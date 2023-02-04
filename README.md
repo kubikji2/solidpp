@@ -84,6 +84,7 @@ translate([-a/2,-b/2,0])
 
 // following lines results in the same solids
 cubepp([a,b,c], align="");
+cubepp([a,b,c], center=true); // discouraged
 cube([a,b,], center=true);
 
 // following lines results in the same solids
@@ -92,7 +93,16 @@ translate([-a, -b/2, -c/2])
     cube([a,b,c]);
 ```
 
+### Orientation aka `zet` argument
 
-### Unified orientation aka `z` argument
+In the main contributor's experience the most laborious process is rotation and alignment of the cylinders.
+Therefore, Solid++ provides `zet` argument, that specifies which of the `x`/`y`/`z` axis is the z-axis of the original model. 
+
+For `cylinderpp`, the `zet="x"` results in the horizontal cylinder in the left-right orientation, the `zet="y"` results in the horizontal cylinder in the front-back orientation, and the default orientation `zet="z"` results in the regular vertical orientation.
+For `cubepp` and `spherepp`, the `zet` argument plays no role.
+
+Note that the solids are rotated according to the `zet` and then `align` and `size` are considered independently. Therefore, the `align` is always in the main (parent) transform frame, so you do not need to worry about the axis changes caused by `zet`. Moreover, using the `size=[x,y,z]` assures that the left-right/front-back/bottom-up bounding box dimension is `x`/`y`/`z` respectivelly regardless the `zet`.
 
 ### Solid-specific properties
+
+TODO combination of d1=[a,b], d2=[b,a], a!=b and `zet`.
