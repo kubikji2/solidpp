@@ -4,22 +4,22 @@ include<solidpp_utils.scad>
 // - argument 'size' defines the size of bounding box
 //   '-> it can either be:
 //       - list of size 3 containing a numbers only,
-//       - a single number denoting all bounfing box side sizes
+//       - a single number denoting all bounding box side sizes
 //       - 'undef' (default value) to use default size
 //   '-> note that in the first case, the 'size' defines the principal axis lengths
 // - argument 'r' defines the sphere radius, or half of the principal axis lengths
 //   '-> it can either be:
 //       - list of size 3 containing a numbers only,
-//       - a single number denoting half of the bounfing box side sizes
-//       - 'undef' (default value) to use default size
-//   '-> note that using singe value results in sphere,
+//       - a single number denoting half of the bounding box side sizes
+//       - 'undef' (default value) to use default radius
+//   '-> note that using single value results in sphere,
 //       using the list of numbers may result in ellipsoid
 // - argument 'd' defines the sphere diameter, or the principal axis lengths
 //   '-> it can either be:
 //       - list of size 3 containing a numbers only,
-//       - a single number denoting all bounfing box side sizes
-//       - 'undef' (default value) to use default size
-//   '-> note that using singe value results in sphere,
+//       - a single number denoting all bounding box side sizes
+//       - 'undef' (default value) to use default diameter
+//   '-> note that using single value results in sphere,
 //       using the list of numbers may result in ellipsoid
 //   '-> note that 'd' and 'size' are functionally same
 // - argument 'align' defines the sphere alignment
