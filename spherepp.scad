@@ -1,8 +1,54 @@
 include<solidpp_utils.scad>
 
+// improved version of sphere module
+// - argument 'size' defines the size of bounding box
+//   '-> it can either be:
+//       - list of size 3 containing a numbers only,
+//       - a single number denoting all bounfing box side sizes
+//       - 'undef' (default value) to use default size
+//   '-> note that in the first case, the 'size' defines the principal axis lengths
+// - argument 'r' defines the sphere radius, or half of the principal axis lengths
+//   '-> it can either be:
+//       - list of size 3 containing a numbers only,
+//       - a single number denoting half of the bounfing box side sizes
+//       - 'undef' (default value) to use default size
+//   '-> note that using singe value results in sphere,
+//       using the list of numbers may result in ellipsoid
+// - argument 'd' defines the sphere diameter, or the principal axis lengths
+//   '-> it can either be:
+//       - list of size 3 containing a numbers only,
+//       - a single number denoting all bounfing box side sizes
+//       - 'undef' (default value) to use default size
+//   '-> note that using singe value results in sphere,
+//       using the list of numbers may result in ellipsoid
+//   '-> note that 'd' and 'size' are functionally same
+// - argument 'align' defines the sphere alignment
+//   '-> the 'undef' (default value) results in ordinary alignment
+//   '-> if 'align' is a string, then following rules are applied:
+//       1. If 'align' contains a small letter 'x'/'y'/'z'
+//          the solid is aligned such that the bounding box is 
+//          touching the origin from the 'right'/'back'/'top' respectively.
+//       2. If 'align' contains a capital letter 'X'/'Y'/'Z'
+//          the solid is aligned such that its bounding box is
+//          touching the origin from the 'left'/'front'/'bottom' respectively.
+//       3. If 'align' contains neither ('x' nor 'X')/('y' nor 'Y')/('z' nor 'Z'),
+//          then the bounding box is centered in the 'x'/'y'/'z'-axis respectively.
+//       4. The rules 1.-3. can be combined.
+//       Note that other cases (an empty string or string containing only other letters)
+//            restult in the centering along all axis and are equivalent to the `center=true`.
+//       Note that the rules are applied for each axis sequentially.
+//            Therefore, for example strings containing both 'x' and 'X' will result in alignment
+//            according the first rule.
+// - argument 'zet' is ignored for this module
+// - argument 'center' is a bool and has no significance other then overriding any alignment
+//   '-> note that 'center=true' overrides any 'align'
 module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=false)
 {
     __module_name = "SPHEREPP";
+
+    // check r and d
+    assert(!is_undef(r) || !is_num(d), "[SPHEREPP] defining both 'd' and 'r' is not permitted!");
+
     // check r
     // '-> undef, scalar, or list of size 3
     __solidpp_assert_size_like(r, "r" , __module_name);
@@ -45,5 +91,5 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
     // construct the solid
     translate(_o)
         resize(_size)
-            sphere(d=100);
+            sphere(d=1);
 }
