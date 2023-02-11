@@ -6,10 +6,11 @@ This repository is planned to be integrated into [OpenSCAD++] library.
 ## Main features
 
 The `cube`, `sphere` and `cylinder` arguments are kept for their solid++ counterparts `cubepp`, `shperepp` and `cylinderpp`, but new unified arguments are presented, namely bounding box size (`size`), alignment (`align`) and orientation (`z`).
+Moreover, `cubepp` and `cylinderp` can be further modified using `modifiers` discussed below.
 
 ### Bounding box size aka `size` argument
 
-Bounding box size defines the solids bounding box.
+Bounding box size defines the solid bounding box.
 It is the first positional argument; therefore, its name can be omitted from the code.
 
 For `cubepp`, this argument replaces `cube` size with all its features:
@@ -69,7 +70,7 @@ Solid++ allow individual axis alignment that can be achieved by the following ru
 5. If the `align` is an empty string or string containing only other letters is equivalent to the `center=true`.
 6. Default alignment for the `cubepp`, `spherepp` and `cylinderpp` remains the same as for their basic counterparts.
 
-The default `cube` and `cubepp` alignment is `align="xyz"`, the default `sphere` and `spherepp` alignment is `align=""` (`align="c"`), and the default `cylinder` and `cylinderpp` is `align="z"`.
+The default `cube` and `cubepp` alignment are `align="xyz"`, the default `sphere` and `spherepp` alignment are `align=""` (`align="c"`), and the default `cylinder` and `cylinderpp` are `align="z"`.
 
 ```openscad
 // following lines results in the same solids
@@ -95,14 +96,21 @@ translate([-a, -b/2, -c/2])
 
 ### Orientation aka `zet` argument
 
-In the main contributor's experience the most laborious process is rotation and alignment of the cylinders.
+In the main contributor's experience, the most laborious process is the rotation and alignment of the cylinders.
 Therefore, Solid++ provides `zet` argument, that specifies which of the `x`/`y`/`z` axis is the z-axis of the original model. 
 
 For `cylinderpp`, the `zet="x"` results in the horizontal cylinder in the left-right orientation, the `zet="y"` results in the horizontal cylinder in the front-back orientation, and the default orientation `zet="z"` results in the regular vertical orientation.
 For `cubepp` and `spherepp`, the `zet` argument plays no role.
 
-Note that the solids are rotated according to the `zet` and then `align` and `size` are considered independently. Therefore, the `align` is always in the main (parent) transform frame, so you do not need to worry about the axis changes caused by `zet`. Moreover, using the `size=[x,y,z]` assures that the left-right/front-back/bottom-up bounding box dimension is `x`/`y`/`z` respectivelly regardless the `zet`.
+Note that the solids are rotated according to the `zet` and then `align` and `size` are considered independently. Therefore, the `align` is always in the main (parent) transform frame, so you do not need to worry about the axis changes caused by `zet`. Moreover, using the `size=[x,y,z]` assures that the left-right/front-back/bottom-up bounding box dimension is `x`/`y`/`z` respectively regardless of the `zet`.
 
-### Solid-specific properties
+### Modifiers
 
-TODO combination of d1=[a,b], d2=[b,a], a!=b and `zet`.
+Solids with distinguished edges (`cubepp` and `cylinderpp`) can be further modified using modifiers such as rounding the edges, or corners, beveling, and cutting of edges or corners.
+Modifiers are created using constructors in `modifiers.scad` that are basically just wrappers for computing a storing data required for solid modification.
+
+#### Round corners (`round_corners(r|d)`)
+
+Round corners of the `cubepp` or `cylinderpp` using the `r|d` parameters that defines either radius/diameter of the sphere used for rounding or the semi-/axis of ellipsoid used for un-even rounding.
+This modifier cannot be applied to the `spherepp` and connects the `cubepp`/`cylinderpp` to `spherocube`/`spherocylinder`.  
+Note that the edges are consequently rounded as well.
