@@ -111,6 +111,29 @@ Modifiers are created using constructors in `modifiers.scad` that are basically 
 
 #### Round corners (`round_corners(r|d)`)
 
-Round corners of the `cubepp` or `cylinderpp` using the `r|d` parameters that defines either radius/diameter of the sphere used for rounding or the semi-/axis of ellipsoid used for un-even rounding.
+Round corners of the `cubepp` or `cylinderpp` using the `r|d` parameter that defines either the radius/diameter of the sphere used for rounding or the semi-/axis of the ellipsoid used for un-even rounding.
 This modifier cannot be applied to the `spherepp` and connects the `cubepp`/`cylinderpp` to `spherocube`/`spherocylinder`.  
 Note that the edges are consequently rounded as well.
+
+#### Round edges (`round_edges(r|d, axes='xy')`)
+
+Round edges of the `cubepp` or `cylinderpp` using `r|d` parameter.
+The function of `r|d` parameter and its effect on solids depends on the number of the axis chosen in `axes` and the solidpp modified by it.
+For `cylinderpp`, the `axes` are omitted, since only the bases edges are affected by the rounding.
+The `r|d` argument can be either an integer defining the diameter/radius of the sphere used for even rounding or a vector of size 3 defining the size of semi-/axes of the ellipsoid used for un-even rounding.
+Note that, for `cylinderpp`, `round_edges` modifier's effect is the same as `round_corners`.
+For `cubepp`, the `axes` argument defines which directions/axis are used for rounding.
+If a single axis is used, the sides with the normals perpendicular to such axis are considered the bases and only their edges are rounded.
+If two axes are defined, only the edges whose neighbor sides have normals perpendicular to those axes are rounded.
+If all axes are defined, all edges are rounded.
+Note that the axis order does not matter and the axes can be specified by both small and capital letters.
+The valid dimensions of the `r|d` parameters depend on the number of utilized axes.
+For a single axis, `r|d` defines the radius/diameter of the sphere (a single integer) or the semi-/axis of the ellipsoid (a list of size 3) used to round the edges.
+For two axes ('ab'), `r|d` can be either an integer defining the diameter/radius of the circle used to round the edges perpendicular to the ab-plane or a vector of size 2 defining the semi-/axis of the ellipse.
+Note that, the semi-/axis ordering follows axis priority x > y > z, e.g. for `axes=zx`/`axes=xz`, the `r=[2,3]` is interpreted as `r_x=2` and `r_z=3`.
+For all three axes, `r|d` defines the radius/diameter of the sphere (a single integer) or the semi-/axis of the ellipsoid (a list of size 3) used to round the edges.
+Note that if all axes are chosen, the resulting geometry is different from the one obtained by `round_corner`.
+Moreover, the `round_edges` unify an interface to the `cylindrocube` (TODO check).
+
+
+
