@@ -160,3 +160,17 @@ Note that the modifier's effect on the `cylinderpp` is the same as the `bevel_ba
 
 The argument `cut` is either a single number (or a single number list) denoting the corner cut dimension in all axis, or a number triplet [`x`,`y`,`z`] denoting the cut sizes in the particular axis.
 
+#### Bevel edges (`bevel_edges(cut, axes='xyz')`)
+
+Cuts off (bevels) the `cubepp` edges using the `cut` argument defining the size and the `axis` to define the affected edges.
+Note that this modifier's effect on the `cylinderpp` is the same as the `bevel_base`and using the `bevel_corners` for `cylinderpp` is discouraged.
+Moreover, the arguments and their effect on the `cubepp` are in a way similar to the `round_edges`.
+
+The effect of `cut` argument is guided by number of axes in `axes` argument that is required to by a string containing either lower or upper case character denoting axes (`x`/`X` for the x-axis, `y`/`Y` for the y-axis, `z`/`Z` for the z-axis).
+If the `axes` contain a single axis, only the edges of the side with normals parallel to the said axis are affected.
+If the `axes` contain two axes, only the edges whose neighboring sides have normals parallel to one of the axes are affected.
+If the `axes` contain all three axes, all edges are affected.
+
+The `cut` argument can be a single number (a single-element list) denoting the distance from the edges to be cut off regardless of the `axes` content.
+In the case of `axes` containing a single or all axes, the `cut` can be a triplet [`x`, `y`, `z`] denoting the distance from the edges along particular axes.
+In the case of `axes` containing precisely two axes, the `cut` can be a pair [`a`, `b`] denoting the distances from the edges along the axes in order `x`, `y`, `z`, i.e. if `axis="xy"` then `a` is x-axis bevel offset, `b` is the y-axis bevel offset, if `axis="xz"` then `a` is x-axis bevel offset, `b` is the z-axis bevel offset, and if `axis="yz"` then `a` is y-axis bevel offset, `b` is the z-axis bevel offset.
