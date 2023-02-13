@@ -119,11 +119,11 @@ Note that the edges are consequently rounded as well.
 
 Round edges of the `cubepp` or `cylinderpp` using `r|d` parameter.
 The function of `r|d` parameter and its effect on solids depends on the number of the axis chosen in `axes` and the solidpp modified by it.
-For `cylinderpp`, the `axes` are omitted, since only the bases edges are affected by the rounding.
+For `cylinderpp`, the `axes` are omitted, since only the base edges are affected by the rounding.
 The `r|d` argument can be either an integer defining the diameter/radius of the sphere used for even rounding or a vector of size 3 defining the size of semi-/axes of the ellipsoid used for un-even rounding.
 Note that, for `cylinderpp`, `round_edges` modifier's effect is the same as `round_corners`.
 For `cubepp`, the `axes` argument defines which directions/axis are used for rounding.
-If a single axis is used, the sides with the normals perpendicular to such axis are considered the bases and only their edges are rounded.
+If a single axis is used, the sides with the normals parallel to such axis are considered the bases and only their edges are rounded.
 If two axes are defined, only the edges whose neighbor sides have normals perpendicular to those axes are rounded.
 If all axes are defined, all edges are rounded.
 Note that the axis order does not matter and the axes can be specified by both small and capital letters.
@@ -135,5 +135,21 @@ For all three axes, `r|d` defines the radius/diameter of the sphere (a single in
 Note that if all axes are chosen, the resulting geometry is different from the one obtained by `round_corner`.
 Moreover, the `round_edges` unify an interface to the `cylindrocube` (TODO check).
 
+### Bevel base (`bevel_base(bevel, axis='z', bevel_bottom=undef, bevel_top=undef)`)
 
+Bevel edges of the bases using `bevel` and defined by `axis`.
+In the case of `cylinderpp`, only two bases are possible.
+Therefore, the `axis` is ignored (it is considered to be always equal to `z`).
+In the case of `cubepp`, `axis` is considered to be a single char denoting one of the axes (`x`/`X` for the x-axis, `y`/`Y` for the y-axis, `z`/`Z` for the z-axis).
+The normals of bases that are parallel to the selected axis are considered bases.
+
+The `bevel` argument can either be a single number (or a single element array) denoting the beveling uniform in all axis, two numbers denoting the [`a`,`h`], where `a` is the distance from the base edges and `h` is the height of the bevel (length of the bevel segment projected to the `axis`), ...
+**VARIANT 1**:
+... or the triplet [`a`,`b`,`h`], where the `a` is the distance from the base edges along the *main axis*, `b` is the distance from the base edges along the *side axis*, `h` is the height of the bevel (length of the bevel segment projected to the `axis`).
+The *main axis* and *side axis* as the two remaining axes complementary to the argument `axis`, e.g. for `axis=z`, the x-axis is the main axis, the y-axis is the side axis, for `axis=y`, the x-axis is the main axis, and the z-axis is the side axis.
+**VARIANT 2**:
+... or the triplet [`x`,`y`,`z`], where the `x` is the bevel projection to the x-axis, `y` is the bevel projection to the y-axis, and `z` is the bevel projection to the z-axis.
+TODO DECIDE VARIANT ^^^
+
+In the same manner, the `bevel_bottom` and `bevel_top` affect only a particular base, where the *bottom* is the base with a lower value in the leading axis defined in `axis`.
 
