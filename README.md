@@ -5,8 +5,8 @@ This repository is planned to be integrated into [OpenSCAD++] library.
 
 ## Main features
 
-The `cube`, `sphere` and `cylinder` arguments are kept for their solid++ counterparts `cubepp`, `shperepp` and `cylinderpp`, but new unified arguments are presented, namely bounding box size (`size`), alignment (`align`) and orientation (`z`).
-Moreover, `cubepp` and `cylinderp` can be further modified using `modifiers` discussed below.
+The `cube`, `sphere` and `cylinder` arguments are kept for their solid++ counterparts `cubepp`, `spherepp` and `cylinderpp`, but new unified arguments are presented, namely bounding box size (`size`), alignment (`align`) and orientation (`z`).
+Moreover, `cubepp` and `cylinderpp` can be further modified using `modifiers` discussed below.
 
 ### Bounding box size aka `size` argument
 
@@ -156,6 +156,7 @@ In the same manner, the `bevel_bottom` and `bevel_top` affect only a particular 
 #### Bevel corners (`bevel_corners(cut)`)
 
 Cuts off (bevels) the `cubepp` corners using the `cut` argument defining the cut size.
-Note that the modifier's effect on the `cylinderpp` is the same as the `bevel_base`.
+Note that the modifier's effect on the `cylinderpp` is the same as the `bevel_base` and using the `bevel_corners` for `cylinderpp` is discouraged.
 
 The argument `cut` is either a single number (or a single number list) denoting the corner cut dimension in all axis, or a number triplet [`x`,`y`,`z`] denoting the cut sizes in the particular axis.
+
