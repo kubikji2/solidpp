@@ -153,3 +153,9 @@ TODO DECIDE VARIANT ^^^
 
 In the same manner, the `bevel_bottom` and `bevel_top` affect only a particular base, where the *bottom* is the base with a lower value in the leading axis defined in `axis`.
 
+#### Bevel corners (`bevel_corners(cut)`)
+
+Cuts off (bevels) the `cubepp` corners using the `cut` argument defining the cut size.
+Note that the modifier's effect on the `cylinderpp` is the same as the `bevel_base`.
+
+The argument `cut` is either a single number (or a single number list) denoting the corner cut dimension in all axis, or a number triplet [`x`,`y`,`z`] denoting the cut sizes in the particular axis.
