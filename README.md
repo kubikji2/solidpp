@@ -135,7 +135,7 @@ For all three axes, `r|d` defines the radius/diameter of the sphere (a single in
 Note that if all axes are chosen, the resulting geometry is different from the one obtained by `round_corner`.
 Moreover, the `round_edges` unify an interface to the `cylindrocube` (TODO check).
 
-### Bevel base (`bevel_base(bevel, axis='z', bevel_bottom=undef, bevel_top=undef)`)
+#### Bevel base (`bevel_base(bevel, axis='z', bevel_bottom=undef, bevel_top=undef)`)
 
 Bevel edges of the bases using `bevel` and defined by `axis`.
 In the case of `cylinderpp`, only two bases are possible.
@@ -143,13 +143,7 @@ Therefore, the `axis` is ignored (it is considered to be always equal to `z`).
 In the case of `cubepp`, `axis` is considered to be a single char denoting one of the axes (`x`/`X` for the x-axis, `y`/`Y` for the y-axis, `z`/`Z` for the z-axis).
 The normals of bases that are parallel to the selected axis are considered bases.
 
-The `bevel` argument can either be a single number (or a single element array) denoting the beveling uniform in all axis, two numbers denoting the [`a`,`h`], where `a` is the distance from the base edges and `h` is the height of the bevel (length of the bevel segment projected to the `axis`), ...
-**VARIANT 1**:
-... or the triplet [`a`,`b`,`h`], where the `a` is the distance from the base edges along the *main axis*, `b` is the distance from the base edges along the *side axis*, `h` is the height of the bevel (length of the bevel segment projected to the `axis`).
-The *main axis* and *side axis* as the two remaining axes complementary to the argument `axis`, e.g. for `axis=z`, the x-axis is the main axis, the y-axis is the side axis, for `axis=y`, the x-axis is the main axis, and the z-axis is the side axis.
-**VARIANT 2**:
-... or the triplet [`x`,`y`,`z`], where the `x` is the bevel projection to the x-axis, `y` is the bevel projection to the y-axis, and `z` is the bevel projection to the z-axis.
-TODO DECIDE VARIANT ^^^
+The `bevel` argument can either be a single number (or a single element array) denoting the beveling uniform in all axis, two numbers denoting the [`a`,`h`], where `a` is the distance from the base edges and `h` is the height of the bevel (length of the bevel segment projected to the `axis`), or the triplet [`x`,`y`,`z`], where the `x` is the bevel projection to the x-axis, `y` is the bevel projection to the y-axis, and `z` is the bevel projection to the z-axis.
 
 In the same manner, the `bevel_bottom` and `bevel_top` affect only a particular base, where the *bottom* is the base with a lower value in the leading axis defined in `axis`.
 
