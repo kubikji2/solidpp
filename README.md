@@ -104,6 +104,36 @@ For `cubepp` and `spherepp`, the `zet` argument plays no role.
 
 Note that the solids are rotated according to the `zet` and then `align` and `size` are considered independently. Therefore, the `align` is always in the main (parent) transform frame, so you do not need to worry about the axis changes caused by `zet`. Moreover, using the `size=[x,y,z]` assures that the left-right/front-back/bottom-up bounding box dimension is `x`/`y`/`z` respectively regardless of the `zet`.
 
+### Bounding-box related transformation
+
+Since the `solidpp` unifies the size and alignments of the solids, the unified approach can be used to for transformation to the significant points of the bounding box.
+
+Namely `transform_to_spp(size,align,pos,x=undef,y=undef,z=undef)` uses the `pos` of the solid's to create translation to the bounding box shell using solid's bounding box `size` and `align` based on following rules:
+
+1. Argument `pos` is a string.
+2. If the argument `pos` contains `x`/`y`/`z` the resulting translation is alligned with the relative origin of the bounding box in x-axis/y-axis/z-axis
+3. If the argument `pos` contains `X`/`Y`/`Z` the resulting translation is alligned with the oposite end of the bounding box solid diagonal in x-axis/y-axis/z-axis.
+4. If the argument `pos` contains neither `x`, nor `X` / `y`, nor `Y`/ `z`, nor `Z` the center of x/y/z-axis is used.
+5. For each axis the rules are evaluated sequentially in the order 2., 3. and then 4.
+6. Repetition and other characters are ignored.
+
+For example `pos=""` results in transformation to the bounding box center, `pos="xyz"` is the left-front-bottom corner, `pos="Xyz"` and `pos="Xxxxxxxxxyz"` is the right-front-bottom corner, `pos="Z"` is the top side center, and `pos=XZ` is the center of the right-top bounding box edge.
+
+Arguments `x`/`y`/`z` allows continous defintion of the point of interest within the bounding box.
+This definition work as follows:
+
+1. All arguments are numbers in the range [0,1].
+2. Values continously interpolated on the particular axis between the `x` and `X`/ `y` and `Y` / `z` and `Z`
+3. The `x`/`y`/`z` and `pos` can be combined, but values in `x`/`y`/`z` have greater priority.
+
+For example `x=0.5,y=0,z=1` is equvalent to `pos=yZ` and it means the middle of the front-top edge, `pos=yZ,x=0.25` is the point on the front-top edge 1/4 of the length from the left-front-top corner.
+
+Note that the transformation to the solidpp center might be different to the scope origin since the `align` might be use for the geometry.
+Moreover, the string `cube`/`sphere`/`cylinder` can be used to signals that `cubepp`/`spherepp`/`cylinderpp` default alignment is used.
+Alternatively, the default solidpp alignments are avaliable in the `CUBEPP_DEF_ALIGN`, `CYLINDERPP_DEF_ALIGN` and `SPHEREPP_DEF_ALIGN`.
+
+If one is interested in the numerical values of the transform rather than the transform itself `get_transform_to_spp` function with the identifical interface can be used.
+
 ### Modifiers
 
 Solids with distinguished edges (`cubepp` and `cylinderpp`) can be further modified using modifiers such as rounding the edges, or corners, beveling, and cutting of edges or corners.
@@ -176,6 +206,10 @@ In the case of `axes` containing precisely two axes, the `cut` can be a pair [`a
 - [x] cube++
 - [x] sphere++
 - [x] cylinder++
+
+### Transformation roadmap
+
+- [ ] implement `transform_to_spp`
 
 ### Modifiers roadmap
 
