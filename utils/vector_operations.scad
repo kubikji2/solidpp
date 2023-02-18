@@ -14,7 +14,19 @@ function is_vector(l) =
 // check whether arguments are compatible
 // '-> both are vectors
 // '-> have same length
-function are_vector_compatible(v1,v2) = 
+function are_vectors_compatible(v1,v2) = 
     is_vector(v1) &&
     is_vector(v2) &&
     len(v1) == len(v2);
+
+// add two vectors
+// '-> if compatible return the vector sum
+// '-> 'undef' otherwise
+function add_vectors(v1,v2) = 
+    are_vectors_compatible(v1,v2) ?
+        [for (i=[0:len(v1)-1]) v1[i]+v2[i]] :
+        echo(str("[VECTOR] addition not defined for provided arguments ",v1," and ",v2," !"))
+        undef;
+
+// shorter wrapper
+function add_vs(v1,v2) = add_vectors(v1,v2);
