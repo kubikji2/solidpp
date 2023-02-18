@@ -1,4 +1,3 @@
-
 // recursively checks whether each element of the list is number
 function __spp__is_vector_rec(l,idx,res) = 
     idx == len(l) ?
@@ -58,3 +57,11 @@ function scale_vector(s,v) =
 // shorter scaling wrapper
 function scale_vec(s,v) = scale_vector(s,v);
 function s_vec(s,v) = scale_vector(s,v);
+
+// return 'true' if 'v' is a vector of size 'l'
+function is_vector_of_size(v,l) = 
+    is_vector(v) && len(v) == l;
+
+// checks 3D and 2D vector
+function is_vector_3D(v) = is_vector_of_size(v,3);
+function is_vector_2D(v) = is_vector_of_size(v,2);
