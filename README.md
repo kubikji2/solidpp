@@ -186,7 +186,29 @@ In the case of `axes` containing precisely two axes, the `cut` can be a pair [`a
   - [ ] bevel_base_cubepp
   - [ ] bevel_edges_cubepp
   - [ ] bevel_corner_cubepp
-- [ ] implement the utilities
+- [ ] implement the utilities for the back-end solids
   - [ ] trapezoid
   - [ ] tetrahedron
   - [ ] prism
+- [ ] implement constructors
+  - [ ] modifier `round_corners`
+  - [ ] modifier `round_edges`
+  - [ ] modifier `bevel_base`
+  - [ ] modifier `bevel_corners`
+  - [ ] modifier `bevel_edges`
+- [ ] intergrate constructors into the solid++
+  - [ ] modifier `round_corners`
+    - [ ] `cubepp`
+    - [ ] `cylinderpp` 
+  - [ ] modifier `round_edges`
+    - [ ] `cubepp`
+    - [ ] `cylinderpp`
+  - [ ] modifier `bevel_base`
+    - [ ] `cubepp`
+    - [ ] `cylinderpp`
+  - [ ] modifier `bevel_corners`
+    - [ ] `cubepp`
+    - [ ] `cylinderpp`
+  - [ ] modifier `bevel_edges`
+    - [ ] `cubepp`
+    - [ ] `cylinderpp`
