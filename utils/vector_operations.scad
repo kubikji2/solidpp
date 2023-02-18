@@ -46,3 +46,15 @@ function sub_vectors(v1,v2) = subtract_vectors(v1,v2);
 function sub_vecs(v1,v2) = subtract_vectors(v1,v2);
 function sub_vs(v1,v2) = subtract_vectors(v1,v2);
 
+// multiply vector 'v' by scalar value 's'
+// '-> order does not matter
+function scale_vector(s,v) = 
+    is_vector(v) && is_num(s) ?
+        [for (i=[0:len(v)-1]) s*v[i]] :
+        is_vector(s) && is_num(v) ?
+            [for (i=[0:len(s)-1]) v*s[i]] :
+            undef;
+
+// shorter scaling wrapper
+function scale_vec(s,v) = scale_vector(s,v);
+function s_vec(s,v) = scale_vector(s,v);
