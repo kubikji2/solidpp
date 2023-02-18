@@ -1,5 +1,8 @@
 include<utils/solidpp_utils.scad>
 
+// spherepp default alignment
+SPHEREPP_DEF_ALIGN = "c";
+
 // improved version of sphere module
 // - argument 'size' defines the size of bounding box
 //   '-> it can either be:
@@ -79,7 +82,7 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
 
     // parse alignment
     // '-> if undef, use default
-    _align = is_undef(align) ? "c" : align;
+    _align = is_undef(align) ? SPHEREPP_DEF_ALIGN : align;
 
     // check center
     // '-> it is just a bool

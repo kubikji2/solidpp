@@ -1,5 +1,8 @@
 include<utils/solidpp_utils.scad>
 
+// cubepp default alignment
+CUBEPP_DEF_ALIGN = "xyz";
+
 // improved version of cube module
 // - argument 'size' defines the cube size
 //   '-> it can either be:
@@ -44,7 +47,7 @@ module cubepp(size=undef, align=undef, zet=undef, center=false)
 
     // parse alignment
     // '-> if undef, use default
-    _align = is_undef(align) ? "xyz" : align;
+    _align = is_undef(align) ? CUBEPP_DEF_ALIGN : align;
 
     // check center
     // '-> it is just a bool

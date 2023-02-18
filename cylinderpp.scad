@@ -1,5 +1,8 @@
 include<utils/solidpp_utils.scad>
 
+// cylinderpp default alignment
+CYLINDERPP_DEF_ALIGN = "z";
+
 // single-use function to construct bounding box from the diameter, height and zet
 function __solidpp__construct_cylinderpp_size(d,h,zet) =
     is_undef(zet) ?
@@ -159,7 +162,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
 
     // parse alignment
     // '-> if undef, use default
-    _align = is_undef(align) ? "z" : align;
+    _align = is_undef(align) ? CYLINDERPP_DEF_ALIGN : align;
 
     // check center
     // '-> it is just a bool
