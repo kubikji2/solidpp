@@ -49,7 +49,7 @@ module cubepp(size=undef, align=undef, zet=undef, center=false)
     // check center
     // '-> it is just a bool
     assert(is_bool(center), "[CUBEPP] argument 'center' must be bool!");
-    _o = center ? [0,0,0] : __solidpp__get_offsets(_size, _align) ;
+    _o = center ? [0,0,0] : __solidpp__get_alignment_offset(_size, _align) ;
 
     // construct the solid
     translate(_o)

@@ -166,7 +166,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     assert(is_bool(center), "[SPHEREPP] argument 'center' must be bool!");
     
     // create offset
-    _o = center ? [0,0,0] : __solidpp__get_offsets(_size, _align);
+    _o = center ? [0,0,0] : __solidpp__get_alignment_offset(_size, _align);
     
     // construct the solid
     translate(_o)

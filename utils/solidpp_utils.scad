@@ -3,7 +3,7 @@ function __solidpp__is_c_in_s(c,s) =
     len(search(c,s)) > 0;
 
 // this __private__ fucntion provides offset in a single axis
-function __solidpp__get_offset(c,C,s,c_len) =
+function __solidpp__get_axis_offset(c,C,s,c_len) =
     is_undef(s) ?
         0 :
         __solidpp__is_c_in_s(c,s) ?
@@ -13,11 +13,11 @@ function __solidpp__get_offset(c,C,s,c_len) =
                 0;
 
 // this __private__ function produce translation offset assuming bounding box center=true
-function __solidpp__get_offsets(size, align) = 
+function __solidpp__get_alignment_offset(size, align) = 
     [
-        __solidpp__get_offset("x", "X", align, size.x),
-        __solidpp__get_offset("y", "Y", align, size.y),
-        __solidpp__get_offset("z", "Z", align, size.z)
+        __solidpp__get_axis_offset("x", "X", align, size.x),
+        __solidpp__get_axis_offset("y", "Y", align, size.y),
+        __solidpp__get_axis_offset("z", "Z", align, size.z)
     ];
 
 // this __private__ function ensures that valid 'arg' are unpacked to the 3D list,
