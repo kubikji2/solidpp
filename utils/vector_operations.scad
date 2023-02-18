@@ -11,3 +11,10 @@ function is_vector(l) =
     __spp__is_vector_rec(l,0,true);
 
 
+// check whether arguments are compatible
+// '-> both are vectors
+// '-> have same length
+function are_vector_compatible(v1,v2) = 
+    is_vector(v1) &&
+    is_vector(v2) &&
+    len(v1) == len(v2);
