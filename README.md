@@ -168,3 +168,25 @@ If the `axes` contain all three axes, all edges are affected.
 The `cut` argument can be a single number (a single-element list) denoting the distance from the edges to be cut off regardless of the `axes` content.
 In the case of `axes` containing a single or all axes, the `cut` can be a triplet [`x`, `y`, `z`] denoting the distance from the edges along particular axes.
 In the case of `axes` containing precisely two axes, the `cut` can be a pair [`a`, `b`] denoting the distances from the edges along the axes in order `x`, `y`, `z`, i.e. if `axis="xy"` then `a` is x-axis bevel offset, `b` is the y-axis bevel offset, if `axis="xz"` then `a` is x-axis bevel offset, `b` is the z-axis bevel offset, and if `axis="yz"` then `a` is y-axis bevel offset, `b` is the z-axis bevel offset.
+
+## Roadmap
+
+### Basic solid++ roadmap
+
+- [x] cube++
+- [x] sphere++
+- [x] cylinder++
+
+### Modifiers roadmap
+
+- [x] interfaces defined
+- [ ] implement the back-end solids
+  - [ ] round_corners_cubepp
+  - [ ] round_edges_cubepp
+  - [ ] bevel_base_cubepp
+  - [ ] bevel_edges_cubepp
+  - [ ] bevel_corner_cubepp
+- [ ] implement the utilities
+  - [ ] trapezoid
+  - [ ] tetrahedron
+  - [ ] prism
