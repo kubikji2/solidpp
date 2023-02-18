@@ -35,12 +35,27 @@ function get_translation_to_spp(size, align, pos, x=undef, y=undef, z=undef) =
 function get_translations_to_spp(size, align, pos, x=undef, y=undef, z=undef) =
     0;
 
+
+
 module translate_to_spp(size, align, pos, x=undef, y=undef, z=undef) 
 {
-    // TODO check
- 
-    __off = get_translation_to_spp(size=size, align=align, pos=pos, x=x, y=y, z=z);
+    // check size
+    // '-> it is either list of nums of size 3, or scalar
+    __solidpp__assert_size_like(size, "size" ,"TRANSLATE TO SPP");
+    
+    // expand size if needed
+    _size = __solidpp__get_argument_as_3Dlist(size,[1,1,1]);
 
+    // check align
+    assert(is_string(align), "[TRANSLATE TO SPP] argument 'align' must be string!");
+
+    // check pos
+    assert(is_string(pos), "[TRANSLATE TO SPP] argument 'pos' must be string!");
+    
+    // produce offset
+    __off = get_translation_to_spp(size=_size, align=align, pos=pos, x=x, y=y, z=z);
+
+    // translate the children
     translate(__off)
     {
         children();
