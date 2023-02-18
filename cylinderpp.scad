@@ -1,7 +1,7 @@
-include<solidpp_utils.scad>
+include<utils/solidpp_utils.scad>
 
 // single-use function to construct bounding box from the diameter, height and zet
-function __solidpp_construct_size(d,h,zet) =
+function __solidpp__construct_cylinderpp_size(d,h,zet) =
     is_undef(zet) ?
         [d,d,h] :
         (zet == "x") || (zet == "X") ?
@@ -140,17 +140,17 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
 
 
     // check size
-    __solidpp_assert_size_like(size, "size", __module_name);
+    __solidpp__assert_size_like(size, "size", __module_name);
     
     // create bounding box from size
-    __size = __solidpp_get_agument_as_3Dlist(size, undef);
+    __size = __solidpp__get_agument_as_3Dlist(size, undef);
     // create bounding box, possibly using cylinder-specific arguments
     _size = !is_undef(__size) ?
                 __size :
                 !is_undef(__size) ?
                     __size :
                     !is_undef(_d_max) && !is_undef(_h) ?
-                        __solidpp_construct_size(_d_max, _h, zet) :
+                        __solidpp__construct_cylinderpp_size(_d_max, _h, zet) :
                         [1,1,1];
 
     // check align
@@ -166,7 +166,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     assert(is_bool(center), "[SPHEREPP] argument 'center' must be bool!");
     
     // create offset
-    _o = center ? [0,0,0] : __solidpp_get_offsets(_size, _align);
+    _o = center ? [0,0,0] : __solidpp__get_offsets(_size, _align);
     
     // construct the solid
     translate(_o)

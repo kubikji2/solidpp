@@ -1,4 +1,4 @@
-include<solidpp_utils.scad>
+include<utils/solidpp_utils.scad>
 
 // improved version of cube module
 // - argument 'size' defines the cube size
@@ -30,13 +30,13 @@ module cubepp(size=undef, align=undef, zet=undef, center=false)
 {
     // check size
     // '-> it is either list of nums of size 3, or scalar
-    __solidpp_assert_size_like(size, "size" ,"CUBEPP");
+    __solidpp__assert_size_like(size, "size" ,"CUBEPP");
     
     // define size
     // '-> if undef use default size
     // '-> if list, keep it
     // '-> if number, fill array
-    _size = __solidpp_get_agument_as_3Dlist(size,[1,1,1]);
+    _size = __solidpp__get_agument_as_3Dlist(size,[1,1,1]);
 
     // check align,
     // '-> it is string or undef
@@ -49,7 +49,7 @@ module cubepp(size=undef, align=undef, zet=undef, center=false)
     // check center
     // '-> it is just a bool
     assert(is_bool(center), "[CUBEPP] argument 'center' must be bool!");
-    _o = center ? [0,0,0] : __solidpp_get_offsets(_size, _align) ;
+    _o = center ? [0,0,0] : __solidpp__get_offsets(_size, _align) ;
 
     // construct the solid
     translate(_o)

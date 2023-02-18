@@ -1,4 +1,4 @@
-include<solidpp_utils.scad>
+include<utils/solidpp_utils.scad>
 
 // improved version of sphere module
 // - argument 'size' defines the size of bounding box
@@ -51,18 +51,18 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
 
     // check r
     // '-> undef, scalar, or list of size 3
-    __solidpp_assert_size_like(r, "r" , __module_name);
-    _r = __solidpp_get_agument_as_3Dlist(r,undef);
+    __solidpp__assert_size_like(r, "r" , __module_name);
+    _r = __solidpp__get_agument_as_3Dlist(r,undef);
     
     // check d
     // '-> undef, scalar, or list of size 3
-    __solidpp_assert_size_like(d, "d" , __module_name);
-    _d = __solidpp_get_agument_as_3Dlist(d,undef);
+    __solidpp__assert_size_like(d, "d" , __module_name);
+    _d = __solidpp__get_agument_as_3Dlist(d,undef);
     
     // check size
     // '-> undef, scalar, or list of size 3
-    __solidpp_assert_size_like(size, "size" , __module_name);
-    __size = __solidpp_get_agument_as_3Dlist(size, undef);
+    __solidpp__assert_size_like(size, "size" , __module_name);
+    __size = __solidpp__get_agument_as_3Dlist(size, undef);
 
     // construct size
     _size = !is_undef(__size) ?
@@ -86,7 +86,7 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
     assert(is_bool(center), "[SPHEREPP] argument 'center' must be bool!");
     
     // create offset
-    _o = center ? [0,0,0] : __solidpp_get_offsets(_size, _align);
+    _o = center ? [0,0,0] : __solidpp__get_offsets(_size, _align);
 
     // construct the solid
     translate(_o)
