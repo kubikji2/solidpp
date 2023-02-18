@@ -28,5 +28,21 @@ function add_vectors(v1,v2) =
         echo(str("[VECTOR] addition not defined for provided arguments ",v1," and ",v2," !"))
         undef;
 
-// shorter wrapper
+// shorter addition wrappers
+function add_vecs(v1,v2) = add_vectors(v1,v2);
 function add_vs(v1,v2) = add_vectors(v1,v2);
+
+// subtract two vectors
+// '-> if compatible return the vector difference
+// '-> 'undef' otherwise
+function subtract_vectors(v1,v2) = 
+    are_vectors_compatible(v1,v2) ?
+        [for (i=[0:len(v1)-1]) v1[i]-v2[i]] :
+        echo(str("[VECTOR] subtraction not defined for provided arguments ",v1," and ",v2," !"))
+        undef;
+
+// shorter subtraction wrappers
+function sub_vectors(v1,v2) = subtract_vectors(v1,v2);
+function sub_vecs(v1,v2) = subtract_vectors(v1,v2);
+function sub_vs(v1,v2) = subtract_vectors(v1,v2);
+
