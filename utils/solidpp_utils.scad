@@ -22,7 +22,7 @@ function __solidpp__get_alignment_offset(size, align) =
 
 // this __private__ function ensures that valid 'arg' are unpacked to the 3D list,
 // for invalid values, the 'default_value' is used
-function __solidpp__get_agument_as_3Dlist(arg, default_value=undef) =
+function __solidpp__get_agrument_as_3Dlist(arg, default_value=undef) =
     is_undef(arg) ?
         default_value :
         is_list(arg) ?

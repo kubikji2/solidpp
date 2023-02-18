@@ -52,17 +52,17 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
     // check r
     // '-> undef, scalar, or list of size 3
     __solidpp__assert_size_like(r, "r" , __module_name);
-    _r = __solidpp__get_agument_as_3Dlist(r,undef);
+    _r = __solidpp__get_agrument_as_3Dlist(r,undef);
     
     // check d
     // '-> undef, scalar, or list of size 3
     __solidpp__assert_size_like(d, "d" , __module_name);
-    _d = __solidpp__get_agument_as_3Dlist(d,undef);
+    _d = __solidpp__get_agrument_as_3Dlist(d,undef);
     
     // check size
     // '-> undef, scalar, or list of size 3
     __solidpp__assert_size_like(size, "size" , __module_name);
-    __size = __solidpp__get_agument_as_3Dlist(size, undef);
+    __size = __solidpp__get_agrument_as_3Dlist(size, undef);
 
     // construct size
     _size = !is_undef(__size) ?

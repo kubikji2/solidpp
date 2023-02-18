@@ -36,7 +36,7 @@ module cubepp(size=undef, align=undef, zet=undef, center=false)
     // '-> if undef use default size
     // '-> if list, keep it
     // '-> if number, fill array
-    _size = __solidpp__get_agument_as_3Dlist(size,[1,1,1]);
+    _size = __solidpp__get_agrument_as_3Dlist(size,[1,1,1]);
 
     // check align,
     // '-> it is string or undef

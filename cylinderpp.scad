@@ -143,7 +143,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     __solidpp__assert_size_like(size, "size", __module_name);
     
     // create bounding box from size
-    __size = __solidpp__get_agument_as_3Dlist(size, undef);
+    __size = __solidpp__get_agrument_as_3Dlist(size, undef);
     // create bounding box, possibly using cylinder-specific arguments
     _size = !is_undef(__size) ?
                 __size :
