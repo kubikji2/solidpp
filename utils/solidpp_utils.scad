@@ -52,6 +52,38 @@ module __solidpp__assert_size_like(var, var_name, module_name)
     );
 }
 
+// this __protected__ function ensures that valid 'arg' are unpacked to the 2D list,
+// for 'undef' values, the 'default_value' is used
+function __solidpp__get_argument_as_2Dlist(arg, default_value=undef) = 
+    is_undef(arg) ?
+        default_value :
+        is_list(arg) ?
+            arg :
+            [arg, arg];
+
+// this __protected__ check validity of the 'var'
+// '-> valid types are:
+//     - 'undef',
+//     - a list of size 2 containing only numbers,
+//     - a single number
+// if the assert fails, formatted yet generic message is shown
+module __solidpp__assert_2D_vector_like(var, var_name, module_name)
+{
+    check =
+        is_undef(var) ||        // - undef,
+        (   is_list(var) &&     // - list ...
+            len(var) == 2 &&    //   ... of size 2 ...
+            is_num(var[0]) &&   //   ... containing ...
+            is_num(var[1]) &&   //   ... only numbers,
+        ) || 
+        (is_num(var));          // - or a single value
+    assert(
+        check,
+        str("[",module_name,"] argument '",var_name,"' can be either 'undef', list of size 2 containing only numbers, or a single number!")
+    );
+}
+
+
 // creates offset vector 3D denoting translation from the centered bounding box into desired alignment
 // '-> argument '_size' is the bounding box size (processed size/r/d/whatever as vector 3D)
 // '-> argument 'align' is the raw 'align' solidpp argument
