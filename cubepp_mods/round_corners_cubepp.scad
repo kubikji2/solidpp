@@ -3,11 +3,11 @@ include<../utils/vector_operations.scad>
 include<../cubepp.scad>
 include<../spherepp.scad>
 
-module spherocubepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=false)
+module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=false)
 {
 
     // set module name
-    __module_name = "SPHEROCUBE++";
+    __module_name = "ROUND-CORNERS-CUBE++";
 
     // check size
     // '-> it is either undef, vector 3D, or scalar
