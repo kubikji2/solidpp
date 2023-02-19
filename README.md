@@ -210,12 +210,14 @@ In the case of `axes` containing precisely two axes, the `cut` can be a pair [`a
 ### Transformation roadmap
 
 - [ ] implement `transform_to_spp`
+  - [x] implement `translate_to_spp`
+  - [ ] implement normals or other stuff ???
 
 ### Modifiers roadmap
 
 - [x] interfaces defined
 - [ ] implement the back-end solids
-  - [ ] round_corners_cubepp
+  - [x] round_corners_cubepp
   - [ ] round_edges_cubepp
   - [ ] bevel_base_cubepp
   - [ ] bevel_edges_cubepp
@@ -225,7 +227,7 @@ In the case of `axes` containing precisely two axes, the `cut` can be a pair [`a
   - [ ] tetrahedron
   - [ ] prism
 - [ ] implement constructors
-  - [ ] modifier `round_corners`
+  - [x] modifier `round_corners`
   - [ ] modifier `round_edges`
   - [ ] modifier `bevel_base`
   - [ ] modifier `bevel_corners`
