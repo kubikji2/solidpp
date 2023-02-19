@@ -128,3 +128,32 @@ function __solidpp__get_rotation_from_zet(zet, default_value=[0,0,0]) =
                 zet == "z" || zet == "Z" ?
                     [0,0,0] :
                     default_value;
+
+
+// __private__ recursive implementation of the umbers within list checker
+function __spp__is_list_of_numbers_rec(l, idx, res) = 
+    idx == len(l) ? 
+        res :
+        __spp__is_list_of_numbers_rec(l, idx+1, res && is_num(l[idx]));
+
+
+// __protected__ checks the list and returns true if the list contain numbers only
+// '-> morever, if 'dim' is defined, the length of the list is checked
+function __solidpp__is_list_of_numbers(l, dim=undef) =
+    is_list(l) &&
+    (is_undef(dim) || len(l) == dim) &&
+    __spp__is_list_of_numbers_rec(l, 0, true);
+
+
+// __private__ recursive implementation of list of vectors checker
+function __spp__check_list_of_vectors_rec(l, idx, res, dim=undef) = 
+    idx == len(l) ?
+        res :
+        __spp__check_list_of_vectors_rec(l, idx+1, res && __solidpp__is_list_of_numbers(l[idx], dim), dim);
+
+
+// __protected__ checks the list and returns true if the list contains only list of numbers (vectors)
+// '-> morever, if 'dim' is defined, the length of each list is checked
+function __solidpp__check_list_of_vectors(l, dim=undef) =
+    is_list(l) &&
+    __spp__check_list_of_vectors_rec(l, 0, true, dim);
