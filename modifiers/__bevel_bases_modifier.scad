@@ -11,6 +11,13 @@ function __solidpp__is_valid_bevel_bases_modifier(modifier) =
     is_vector_3D(modifier[2]) &&
     is_vector_3D(modifier[3]);
 
+function __spp__get_bevel_for_axis(b,h,axis) =
+    axis == "x" || axis == "X" ? 
+        [h,b,b] :
+        axis == "y" || axis == "Y" ?
+            [b,h,b] :
+            [b,b,h];
+
 
 // returns the 'bevel_corners' modifier if possible
 // '-> otherwise return the [undef, <message>] standard modifier format
@@ -33,8 +40,8 @@ function __solidpp__new_bevel_bases(bevel=undef, axis="z", bevel_bottom=undef, b
                         [__BEVEL_BASES_MOD_ID, axis, bevel, bevel ] :
                         is_vector_2D(bevel) ?
                             [   __BEVEL_BASES_MOD_ID, axis,
-                                [bevel[0],bevel[0],bevel[1]],
-                                [bevel[0],bevel[0],bevel[1]]
+                                __spp__get_bevel_for_axis(bevel[0], bevel[1], axis),
+                                __spp__get_bevel_for_axis(bevel[0], bevel[1], axis)
                             ] : 
                             [undef, "argument 'bevel' must either be a vector 3D, vector 2D or a number"] :
                 is_undef(bevel_bottom) || is_undef(bevel_top) ?
@@ -46,12 +53,12 @@ function __solidpp__new_bevel_bases(bevel=undef, axis="z", bevel_bottom=undef, b
                             is_num(bevel_bottom) ?
                                 [bevel_bottom, bevel_bottom, bevel_bottom] :
                                 is_vector_2D(bevel_bottom) ?
-                                    [bevel_bottom[0],bevel_bottom[0],bevel_bottom[1]] :
+                                    __spp__get_bevel_for_axis(bevel_bottom[0], bevel_bottom[1], axis) :
                                     bevel_bottom,
                             is_num(bevel_top) ?
                                 [bevel_top, bevel_top, bevel_top] :
                                 is_vector_2D(bevel_top) ?
-                                    [bevel_top[0], bevel_top[0], bevel_top[1]] :
+                                    __spp__get_bevel_for_axis(bevel_top[0], bevel_top[1], axis) :
                                     bevel_top
                         ] :
                         [undef, "both arguments 'bevel_bottom' and 'bevel_top' must either be a vector 3D, vector 2D or a number"];
