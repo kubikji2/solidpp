@@ -10,9 +10,9 @@ function __solidpp__is_valid_round_corners_modifier(modifier) =
     is_vector_3D(modifier[1]);
 
 
-// returns the 'round_corner' modifier is possible
+// returns the 'round_corners' modifier is possible
 // '-> otherwise return the [undef, <message>] standard modifier format
-function __solidpp__new_round_corner(r=undef, d=undef) = 
+function __solidpp__new_round_corners(r=undef, d=undef) = 
     is_undef(r) && is_undef(d) ?
         [undef, "either 'r' or 'd' must be defined"] :
         !is_undef(r) && !is_undef(d) ?
