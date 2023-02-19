@@ -66,6 +66,7 @@ function is_vector_of_size(v,l) =
 function is_vector_3D(v) = is_vector_of_size(v,3);
 function is_vector_2D(v) = is_vector_of_size(v,2);
 
+
 // recursively checks whether all vector elements are non negative
 function __spp__is_vector_non_negative_rec(v, idx,res) = 
     idx == len(v) ?
@@ -79,5 +80,21 @@ function __spp__is_vector_non_negative_rec(v, idx,res) =
 function is_vector_non_negative(v) =
     is_vector(v) ?
         __spp__is_vector_non_negative_rec(v,0,true):
+        undef;
+
+
+// recursively checks whether all vector elements are positive
+function __spp__is_vector_positive_rec(v, idx,res) = 
+    idx == len(v) ?
+        res :
+        __spp__is_vector_positive_rec(v, idx+1, res && (v[idx] > 0));
+
+// checks whether all vector elements are positive
+// '-> returns 'true' if so
+// '-> returns 'false' if any element is not positive
+// '-> returns 'undef' if provided argument 'v' is not a vector
+function is_vector_non_positive(v) =
+    is_vector(v) ?
+        __spp__is_vector_positive_rec(v,0,true):
         undef;
 
