@@ -49,8 +49,11 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
     // '-> if number, fill array
     _cut = __solidpp__get_argument_as_3Dlist(cut,[0.1,0.1,0.1]);
 
-    // TODO cut must be positive
-    assert( __solidpp__ );
+    // cut must be positive
+    assert(
+            is_vector_positive(_cut),
+            str("[",__module_name,"] argument 'cut' canot contain negative numvers!")
+            );
 
     // expand size
     _x = _size.x;
