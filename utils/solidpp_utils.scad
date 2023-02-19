@@ -74,7 +74,7 @@ module __solidpp__assert_2D_vector_like(var, var_name, module_name)
         (   is_list(var) &&     // - list ...
             len(var) == 2 &&    //   ... of size 2 ...
             is_num(var[0]) &&   //   ... containing ...
-            is_num(var[1]) &&   //   ... only numbers,
+            is_num(var[1])      //   ... only numbers,
         ) || 
         (is_num(var));          // - or a single value
     assert(
@@ -115,3 +115,16 @@ function __solidpp__produce_offset_from_align_and_center(_size, align, center, s
     center ?
         [0,0,0] :
         __solidpp__get_alignment_offset(_size, _align);
+
+
+// translate argument 'zet' to the rotation keeping the expected orientation
+function __solidpp__get_rotation_from_zet(zet, default_value=[0,0,0]) = 
+    is_undef(zet) ?
+        default_value :
+        zet == "x" || zet == "X" ?
+            [0,90,0] :
+            zet == "y" || zet == "Y" ?
+                [-90,0,0] :
+                zet == "z" || zet == "Z" ?
+                    [0,0,0] :
+                    default_value;

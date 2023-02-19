@@ -132,15 +132,9 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     // check zet
     // '-> it is string or undef
     assert(is_undef(zet) || is_string(zet), "[CYLINDERPP] arguments 'zet' is eithter 'undef' or a string!");
+    
     // construct rotation
-    _r = is_undef(zet) ?
-            [0,0,0] :
-            zet == "x" || zet == "X" ?
-                [0,90,0] :
-                zet == "y" || zet == "Y" ?
-                    [-90,0,0] :
-                    [0,0,0];
-
+    _r = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
 
     // check size
     __solidpp__assert_size_like(size, "size", __module_name);
