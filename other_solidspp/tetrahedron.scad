@@ -7,7 +7,7 @@ module tetrahedron(points=undef)
 {
 
     // module name
-    __module_name = "TETRAHEDRON++";
+    __module_name = "TETRAHEDRON";
 
     // check we have four points
     assert(
