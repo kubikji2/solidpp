@@ -31,9 +31,12 @@ CUBEPP_DEF_ALIGN = "xyz";
 //   '-> note that 'center=true' overrides any 'align'
 module cubepp(size=undef, align=undef, zet=undef, center=false)
 {
+    // set module name
+    __module_name = "CUBEPP";
+
     // check size
     // '-> it is either list of nums of size 3, or scalar
-    __solidpp__assert_size_like(size, "size" ,"CUBEPP");
+    __solidpp__assert_size_like(size, "size" , __module_name);
     
     // define size
     // '-> if undef use default size
@@ -41,18 +44,14 @@ module cubepp(size=undef, align=undef, zet=undef, center=false)
     // '-> if number, fill array
     _size = __solidpp__get_argument_as_3Dlist(size,[1,1,1]);
 
-    // check align,
-    // '-> it is string or undef
-    assert(is_undef(align) || is_string(align), "[CUBEPP] arguments 'align' is eithter 'undef' or a string!");
-
-    // parse alignment
-    // '-> if undef, use default
-    _align = is_undef(align) ? CUBEPP_DEF_ALIGN : align;
-
-    // check center
-    // '-> it is just a bool
-    assert(is_bool(center), "[CUBEPP] argument 'center' must be bool!");
-    _o = center ? [0,0,0] : __solidpp__get_alignment_offset(_size, _align) ;
+    // process the align and center to produce offset
+    // '-> arguments 'align' and 'center' are checked within the function
+    _o = __solidpp__produce_offset_from_align_and_center(
+            _size=_size,
+            align=align,
+            center=center,
+            solidpp_name=__module_name,
+            def_align=CUBEPP_DEF_ALIGN);
 
     // construct the solid
     translate(_o)

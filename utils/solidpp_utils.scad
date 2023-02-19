@@ -51,3 +51,35 @@ module __solidpp__assert_size_like(var, var_name, module_name)
         str("[",module_name,"] argument '",var_name,"' can be either 'undef', list of size 3 containing only numbers, or a single number!")
     );
 }
+
+// creates offset vector 3D denoting translation from the centered bounding box into desired alignment
+// '-> argument '_size' is the bounding box size (processed size/r/d/whatever as vector 3D)
+// '-> argument 'align' is the raw 'align' solidpp argument
+// '-> argument 'center' is the raw 'center' solidpp argument
+// '-> argument 'solidpp_name' is the name of the modul calling this function
+// '-> argument 'def_align' is the string denoting the default alignment
+// NOTE: arguments 'align' and 'center' are checked within this function
+function __solidpp__produce_offset_from_align_and_center(_size, align, center, solidpp_name, def_align) =
+    
+    // check align,
+    // '-> it is string or undef
+    assert(
+            is_undef(align) || is_string(align),
+            str("[", solidpp_name ,"] arguments 'align' must be eithter 'undef' or a string!")
+            )
+
+    // parse alignment
+    // '-> if undef, use default
+    let (_align = is_undef(align) ? def_align : align)
+    
+    // check center
+    // '-> it is just a bool
+    assert(
+            is_bool(center),
+            str("[", solidpp_name ,"] argument 'center' must be bool!")
+            )
+    
+    // return valid offset
+    center ?
+        [0,0,0] :
+        __solidpp__get_alignment_offset(_size, _align);

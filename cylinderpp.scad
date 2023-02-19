@@ -156,20 +156,14 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
                         __solidpp__construct_cylinderpp_size(_d_max, _h, zet) :
                         [1,1,1];
 
-    // check align
-    // '-> it is string or undef
-    assert(is_undef(align) || is_string(align), "[SPHEREPP] arguments 'align' is eithter 'undef' or a string!");
-
-    // parse alignment
-    // '-> if undef, use default
-    _align = is_undef(align) ? CYLINDERPP_DEF_ALIGN : align;
-
-    // check center
-    // '-> it is just a bool
-    assert(is_bool(center), "[SPHEREPP] argument 'center' must be bool!");
-    
-    // create offset
-    _o = center ? [0,0,0] : __solidpp__get_alignment_offset(_size, _align);
+    // process the align and center to produce offset
+    // '-> arguments 'align' and 'center' are checked within the function
+    _o = __solidpp__produce_offset_from_align_and_center(
+            _size=_size,
+            align=align,
+            center=center,
+            solidpp_name=__module_name,
+            def_align=CYLINDERPP_DEF_ALIGN);
     
     // construct the solid
     translate(_o)
