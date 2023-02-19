@@ -93,7 +93,7 @@ function __spp__is_vector_positive_rec(v, idx,res) =
 // '-> returns 'true' if so
 // '-> returns 'false' if any element is not positive
 // '-> returns 'undef' if provided argument 'v' is not a vector
-function is_vector_non_positive(v) =
+function is_vector_positive(v) =
     is_vector(v) ?
         __spp__is_vector_positive_rec(v,0,true):
         undef;
