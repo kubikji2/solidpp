@@ -129,6 +129,18 @@ function __solidpp__get_rotation_from_zet(zet, default_value=[0,0,0]) =
                     [0,0,0] :
                     default_value;
 
+// return normal vector from the 'zet' argument
+function __solidpp__get_normal_from_zet(zet, default_value=[0,0,0]) =
+    is_undef(zet) ?
+        default_value :
+        zet == "x" || zet == "X" ?
+            [1,0,0] :
+            zet == "y" || zet == "Y" ?
+                [0,1,0] :
+                zet == "z" || zet == "Z" ?
+                    [0,0,1] :
+                    default_value;
+
 
 // __private__ recursive implementation of the umbers within list checker
 function __spp__is_list_of_numbers_rec(l, idx, res) = 
