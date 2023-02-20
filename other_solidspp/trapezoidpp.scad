@@ -25,8 +25,16 @@ module trapezoid(base=undef, top=undef, h=undef, align=undef, zet=undef, center=
     // extract h
     _h = is_undef(h) ? 1 : h;
 
-    // create bounding box
-    _size = [ max(_base.x, _top.x), max(_base.y, _top.y), _h ];
+    // get the maximal dimensions of the bases
+    _a = max(_base.x, _top.x); 
+    _b = max(_base.y, _top.y);
+    
+    // construct the size based on the 'zet' aka orientation
+    _size = zet == "x" || zet == "X" ?
+                [_h, _a, _b] :
+                zet == "y" || zet == "Y" ?
+                    [_a, _h, _b] :
+                    [_a, _b, _h];
 
     // compute top and down offsets
     _tx2 = _top.x/2;
@@ -39,24 +47,25 @@ module trapezoid(base=undef, top=undef, h=undef, align=undef, zet=undef, center=
 
     // creating geometry
     // inspired by: https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Primitive_Solids#polyhedron
-    _points = [
-                [ -_bx2, -_by2, -_h2],
-                [ +_bx2, -_by2, -_h2],
-                [ +_bx2, +_by2, -_h2],
-                [ -_bx2, +_by2, -_h2],
-                [ -_tx2, -_ty2, +_h2],
-                [ +_tx2, -_ty2, +_h2],
-                [ +_tx2, +_ty2, +_h2],
-                [ -_tx2, +_ty2, +_h2]
-              ];
-    _facets = [
-                [0,1,2,3],  // bottom
-                [4,5,1,0],  // front
-                [7,6,5,4],  // top
-                [5,6,2,1],  // right
-                [6,7,3,2],  // back
-                [7,4,0,3]   // left
-              ];
+    _points =   [
+                    [ -_bx2, -_by2, -_h2],
+                    [ +_bx2, -_by2, -_h2],
+                    [ +_bx2, +_by2, -_h2],
+                    [ -_bx2, +_by2, -_h2],
+                    [ -_tx2, -_ty2, +_h2],
+                    [ +_tx2, -_ty2, +_h2],
+                    [ +_tx2, +_ty2, +_h2],
+                    [ -_tx2, +_ty2, +_h2]
+                ];
+
+    _facets =   [
+                    [0,1,2,3],  // bottom
+                    [4,5,1,0],  // front
+                    [7,6,5,4],  // top
+                    [5,6,2,1],  // right
+                    [6,7,3,2],  // back
+                    [7,4,0,3]   // left
+                ];
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
