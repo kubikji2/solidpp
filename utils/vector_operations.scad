@@ -98,3 +98,12 @@ function is_vector_positive(v) =
         __spp__is_vector_positive_rec(v,0,true):
         undef;
 
+
+// pointwise multiplication of two vector
+function pointwise_vector_multiplication(v1,v2) =
+    are_vectors_compatible(v1,v2) ?
+        [ for (_i=[0:len(v1)-1]) v1[_i]*v2[_i]] :
+        undef;
+
+// shorted multiplication wrappers
+function pwm_vecs(v1,v2) = pointwise_vector_multiplication(v1,v2);
