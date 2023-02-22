@@ -66,7 +66,7 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
     _cz = _cut.z;
 
     // compose cuts coordinates and its offsets
-    eps = 0.0001;
+    eps = 0.001;
     __xy_cuts = [
                 [   -eps,    -eps, -eps],
                 [_cx+eps,    -eps, -eps],
