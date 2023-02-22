@@ -90,7 +90,7 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
     _o = __solidpp__produce_offset_from_align_and_center(
-            _size=__size,
+            _size=_size,
             align=align,
             center=center,
             solidpp_name=__module_name,
