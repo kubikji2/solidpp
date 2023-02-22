@@ -22,7 +22,7 @@ module __spp__compose_corner_cut(points, offs, h)
     }
 }
 
-// TODO add readme
+// TODO add documentation
 module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, center=false)
 {
 
@@ -103,9 +103,9 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
         // basic shape
         cubepp([_x,_y,_z], center=true);
         // lower cuts
-        #__spp__compose_corner_cut(points=_xy_cuts,offs=_xy_offs,h=_cz+eps);
+        __spp__compose_corner_cut(points=_xy_cuts,offs=_xy_offs,h=_cz+eps);
         // upper cuts
-        #__spp__compose_corner_cut(points=_xy_cuts_tops,offs=_xy_offs_tops,h=-_cz-eps);
+        __spp__compose_corner_cut(points=_xy_cuts_tops,offs=_xy_offs_tops,h=-_cz-eps);
     }
     
 }
