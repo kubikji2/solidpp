@@ -165,7 +165,7 @@ For all three axes, `r|d` defines the radius/diameter of the sphere (a single in
 Note that if all axes are chosen, the resulting geometry is different from the one obtained by `round_corner`.
 Moreover, the `round_edges` unify an interface to the `cylindrocube` (TODO check).
 
-#### Bevel base (`bevel_base(bevel, axis='z', bevel_bottom=undef, bevel_top=undef)`)
+#### Bevel base (`bevel_base(bevel=undef, axis='z', bevel_bottom=undef, bevel_top=undef)`)
 
 Bevel edges of the bases using `bevel` and defined by `axis`.
 In the case of `cylinderpp`, only two bases are possible.
@@ -219,23 +219,23 @@ In the case of `axes` containing precisely two axes, the `cut` can be a pair [`a
 - [ ] implement the back-end solids
   - [x] round_corners_cubepp
   - [ ] round_edges_cubepp
-  - [ ] bevel_bases_cubepp
+  - [x] bevel_bases_cubepp
   - [ ] bevel_edges_cubepp
   - [x] bevel_corners_cubepp
 - [ ] implement the utilities for the back-end solids
-  - [ ] trapezoid
+  - [x] trapezoid
   - [x] tetrahedron
-  - [ ] prism
+  - [x] prism
 - [ ] implement constructors
   - [x] modifier `round_corners`
   - [ ] modifier `round_edges`
-  - [ ] modifier `bevel_base`
+  - [x] modifier `bevel_base`
   - [x] modifier `bevel_corners`
-  - [ ] modifier `bevel_edges`
+  - [x] modifier `bevel_edges`
 - [ ] intergrate constructors into the solid++
   - [ ] modifier `round_corners`
     - [ ] `cubepp`
-    - [ ] `cylinderpp` 
+    - [ ] `cylinderpp`
   - [ ] modifier `round_edges`
     - [ ] `cubepp`
     - [ ] `cylinderpp`
