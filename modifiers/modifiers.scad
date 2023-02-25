@@ -10,8 +10,8 @@ function round_corners(r=undef, d=undef) =
         ret;
 
 
-function bevel_corners(cut) =
-    let(ret = __solidpp__new_bevel_corners(cut=cut))
+function bevel_corners(bevel) =
+    let(ret = __solidpp__new_bevel_corners(bevel=bevel))
         assert(!is_undef(ret[0]), str("[MODIFIER-bevel corners] ", ret[1], "!"))
         ret;
 
