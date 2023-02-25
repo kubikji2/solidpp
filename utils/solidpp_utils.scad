@@ -169,3 +169,15 @@ function __spp__check_list_of_vectors_rec(l, idx, res, dim=undef) =
 function __solidpp__check_list_of_vectors(l, dim=undef) =
     is_list(l) &&
     __spp__check_list_of_vectors_rec(l, 0, true, dim);
+
+
+// __protected__ git the 'axes' and returns list of three bools determining whether the particular
+// index is present in the 'axes'
+function __solidpp__axes_to_mask(axes) = 
+    is_string(axes) ?
+        [
+            __solidpp__is_c_in_s("x", axes) || __solidpp__is_c_in_s("X", axes),
+            __solidpp__is_c_in_s("y", axes) || __solidpp__is_c_in_s("y", axes),
+            __solidpp__is_c_in_s("z", axes) || __solidpp__is_c_in_s("z", axes)
+        ] :
+        undef;
