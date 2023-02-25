@@ -36,7 +36,7 @@ function __spp__bevel_edgges__mask_from_axes(axes_mask, axes_cnt) =
                 axes_mask.y && axes_mask.z
             ] :
             axes_cnt == 1 ?
-                [axes_mask.z, axes_mask.y, axes_mask.x] :
+                [!axes_mask.z, !axes_mask.y, !axes_mask.x] :
                 [false, false, false];
 
 // __private__ function to compose the bevel as vecotr 3D
@@ -56,22 +56,24 @@ function __spp__bevel_edgess__expand_bevel(bevel, axes_mask) =
 function __solidpp__new_bevel_edges(bevel, axes) = 
     !is_num(bevel) && !is_vector_2D(bevel) && !is_vector_3D(bevel) ?
         [undef, "argument 'bevel' must be either number, vector 2D or vector 3D"] :
-        !is_string(axes) ?
-            [undef, "argument 'axes' must be a string"] :
-            let(
-                axes_mask = __solidpp__axes_to_mask(axes), 
-                axes_cnt = vec_sum([for(b=axes_mask) b ? 1 : 0])
-            )
-            echo(axes_cnt)
-            echo(axes_mask)
-            axes_cnt == 0 ?
-                [undef, "argument 'axes' must contain at least one axis"] :
-                is_vector_2D(bevel) && axes_cnt != 2 ?
-                    [undef, "argument 'bevel' can be vector 2D only for two axis defined in argument 'axes'"] :
-                    axes_cnt == 2 && is_vector_3D(bevel) ?
-                        [undef, "argument 'bevel' as vector 3D makes no sense for two axes defined in 'axes'"] :
-                        [
-                            __BEVEL_EDGES_MOD_ID,
-                            __spp__bevel_edgges__mask_from_axes(axes_mask, axes_cnt),
-                            __spp__bevel_edgess__expand_bevel(bevel, axes_mask)
-                        ];
+        (is_num(bevel) && bevel < 0) || !is_vector_positive(bevel) ?
+            [undef, "argument 'bevel' cannot contain negative numbers"] :
+            !is_string(axes) ?
+                [undef, "argument 'axes' must be a string"] :
+                let(
+                    axes_mask = __solidpp__axes_to_mask(axes), 
+                    axes_cnt = vec_sum([for(b=axes_mask) b ? 1 : 0])
+                )
+                echo(axes_cnt)
+                echo(axes_mask)
+                axes_cnt == 0 ?
+                    [undef, "argument 'axes' must contain at least one axis"] :
+                    is_vector_2D(bevel) && axes_cnt != 2 ?
+                        [undef, "argument 'bevel' can be vector 2D only for two axis defined in argument 'axes'"] :
+                        axes_cnt == 2 && is_vector_3D(bevel) ?
+                            [undef, "argument 'bevel' as vector 3D makes no sense for two axes defined in 'axes'"] :
+                            [
+                                __BEVEL_EDGES_MOD_ID,
+                                __spp__bevel_edgges__mask_from_axes(axes_mask, axes_cnt),
+                                __spp__bevel_edgess__expand_bevel(bevel, axes_mask)
+                            ];
