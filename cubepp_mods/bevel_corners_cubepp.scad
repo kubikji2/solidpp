@@ -23,7 +23,7 @@ module __spp__compose_corner_cut(points, offs, h)
 }
 
 // TODO add documentation
-module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, center=false)
+module bevel_corners_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center=false)
 {
 
     // set module name
@@ -39,20 +39,20 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
     // '-> if number, fill array
     _size = __solidpp__get_argument_as_3Dlist(size,[1,1,1]);
 
-    // check cut
+    // check bevel
     // '-> it is either undef, vector 3D, or scalar
-    __solidpp__assert_size_like(cut, "cut" , __module_name);
+    __solidpp__assert_size_like(bevel, "bevel" , __module_name);
 
-    // define _cut as 3D vector
-    // '-> if undef use default cut
+    // define _bevel as 3D vector
+    // '-> if undef use default bevel
     // '-> if list, keep it
     // '-> if number, fill array
-    _cut = __solidpp__get_argument_as_3Dlist(cut,[0.1,0.1,0.1]);
+    _bevel = __solidpp__get_argument_as_3Dlist(bevel,[0.1,0.1,0.1]);
 
-    // cut must be positive
+    // bevel must be positive
     assert(
-            is_vector_positive(_cut),
-            str("[",__module_name,"] argument 'cut' canot contain negative numvers!")
+            is_vector_positive(_bevel),
+            str("[",__module_name,"] argument 'bevel' canot contain negative numvers!")
             );
 
     // expand size
@@ -60,10 +60,10 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
     _y = _size.y;
     _z = _size.z;
 
-    // expand cut
-    _cx = _cut.x;
-    _cy = _cut.y;
-    _cz = _cut.z;
+    // expand bevel
+    _cx = _bevel.x;
+    _cy = _bevel.y;
+    _cz = _bevel.z;
 
     // compose cuts coordinates and its offsets
     eps = 0.001;
