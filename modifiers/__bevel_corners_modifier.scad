@@ -16,5 +16,5 @@ function __solidpp__new_bevel_corners(cut) =
     is_num(cut) ?
         [__BEVEL_CORNERS_MOD_ID, [cut,cut,cut]] :
         is_vector_3D(cut) ?
-            [__BEVEL_CORNERS_MOD_ID, cut] ?
+            [__BEVEL_CORNERS_MOD_ID, cut] :
             [undef, "argument 'cut' must be either number or a vector 3D" ];

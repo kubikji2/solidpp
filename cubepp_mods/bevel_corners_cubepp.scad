@@ -82,7 +82,6 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
                 [_x-_cx,      0, 0],
                ];
 
-    echo(_xy_offs);
     // translate the coordinates and offsets for the top face
     _xy_offs_tops = [for(_point=_xy_offs) add_vecs(_point,[0, 0, 0])];
     _xy_cuts_tops = [for(_point=_xy_cuts) add_vecs(_point,[0, 0, _z+2*eps])];
