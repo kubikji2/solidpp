@@ -22,7 +22,7 @@ module __spp__compose_corner_cut(points, offs, h)
     }
 }
 
-// TODO add readme
+// TODO add documentation
 module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, center=false)
 {
 
@@ -66,7 +66,7 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
     _cz = _cut.z;
 
     // compose cuts coordinates and its offsets
-    eps = 0.0001;
+    eps = 0.001;
     __xy_cuts = [
                 [   -eps,    -eps, -eps],
                 [_cx+eps,    -eps, -eps],
@@ -89,7 +89,7 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
     _o = __solidpp__produce_offset_from_align_and_center(
-            _size=__size,
+            _size=_size,
             align=align,
             center=center,
             solidpp_name=__module_name,
@@ -102,9 +102,9 @@ module bevel_corners_cubepp(size=undef, cut=undef, align=undef, zet=undef, cente
         // basic shape
         cubepp([_x,_y,_z], center=true);
         // lower cuts
-        #__spp__compose_corner_cut(points=_xy_cuts,offs=_xy_offs,h=_cz+eps);
+        __spp__compose_corner_cut(points=_xy_cuts,offs=_xy_offs,h=_cz+eps);
         // upper cuts
-        #__spp__compose_corner_cut(points=_xy_cuts_tops,offs=_xy_offs_tops,h=-_cz-eps);
+        __spp__compose_corner_cut(points=_xy_cuts_tops,offs=_xy_offs_tops,h=-_cz-eps);
     }
     
 }

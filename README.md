@@ -190,7 +190,7 @@ Cuts off (bevels) the `cubepp` edges using the `cut` argument defining the size 
 Note that this modifier's effect on the `cylinderpp` is the same as the `bevel_base`and using the `bevel_corners` for `cylinderpp` is discouraged.
 Moreover, the arguments and their effect on the `cubepp` are in a way similar to the `round_edges`.
 
-The effect of `cut` argument is guided by number of axes in `axes` argument that is required to by a string containing either lower or upper case character denoting axes (`x`/`X` for the x-axis, `y`/`Y` for the y-axis, `z`/`Z` for the z-axis).
+The effect of `cut` argument is guided by the number of axes in `axes` argument that is required to be a string containing either lower or upper case character denoting axes (`x`/`X` for the x-axis, `y`/`Y` for the y-axis, `z`/`Z` for the z-axis).
 If the `axes` contain a single axis, only the edges of the side with normals parallel to the said axis are affected.
 If the `axes` contain two axes, only the edges whose neighboring sides have normals parallel to one of the axes are affected.
 If the `axes` contain all three axes, all edges are affected.
