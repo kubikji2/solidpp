@@ -120,7 +120,7 @@ function __spp__vector_sum_rec(v, idx, res) =
 function vector_sum(v) = 
     is_vector(v) ?
         __spp__vector_sum_rec(v, 0, 0) :
-        undef
+        undef;
 
 // shorter vector sum alias
 function vec_sum(v) = vector_sum(v);
