@@ -95,7 +95,7 @@ module bevel_corners_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cen
             solidpp_name=__module_name,
             def_align=CUBEPP_DEF_ALIGN);
 
-    // construct the goemetry
+    // construct the solid
     translate(_o)
     difference()
     {
