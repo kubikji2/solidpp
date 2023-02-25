@@ -21,8 +21,8 @@ function bevel_bases(bevel=undef, axis="z", bevel_bottom=undef, bevel_top=undef)
         assert(!is_undef(ret[0]), str("[MODIFIER-bevel bases] ", ret[1], "!"))
         ret;
 
-function bevel_edges(cut, axes="xyz") = 
-    let(ret = __solidpp__new_bevel_edges(cut=cut, axes=axes))
+function bevel_edges(bevel, axes="xyz") = 
+    let(ret = __solidpp__new_bevel_edges(bevel=bevel, axes=axes))
         assert(!is_undef(ret[0]), str("[MODIFIER-bevel edges] ", ret[1], "!"))
         ret;
 
