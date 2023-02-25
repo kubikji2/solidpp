@@ -1,4 +1,4 @@
-// recursively checks whether each element of the list is number
+// __private__ recursively checks whether each element of the list is number
 function __spp__is_vector_rec(l,idx,res) = 
     idx == len(l) ?
         res :
@@ -67,7 +67,7 @@ function is_vector_3D(v) = is_vector_of_size(v,3);
 function is_vector_2D(v) = is_vector_of_size(v,2);
 
 
-// recursively checks whether all vector elements are non negative
+// __private__ recursively checks whether all vector elements are non negative
 function __spp__is_vector_non_negative_rec(v, idx,res) = 
     idx == len(v) ?
         res :
@@ -83,7 +83,7 @@ function is_vector_non_negative(v) =
         undef;
 
 
-// recursively checks whether all vector elements are positive
+// __private__ recursively checks whether all vector elements are positive
 function __spp__is_vector_positive_rec(v, idx,res) = 
     idx == len(v) ?
         res :
@@ -107,3 +107,21 @@ function pointwise_vector_multiplication(v1,v2) =
 
 // shorted multiplication wrappers
 function pwm_vecs(v1,v2) = pointwise_vector_multiplication(v1,v2);
+
+
+// __private__ recursive implementation of the vector sum 
+function __spp__vector_sum_rec(v, idx, res) = 
+    idx == len(v) ?
+        res :
+        __spp__vector_sum_rec(v, idx+1, res + v[idx]);
+
+// for vector returns the sum of its elemenets
+// '-> undefined for other types
+function vector_sum(v) = 
+    is_vector(v) ?
+        __spp__vector_sum_rec(v, 0, 0) :
+        undef
+
+// shorter vector sum alias
+function vec_sum(v) = vector_sum(v);
+        
