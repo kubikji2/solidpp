@@ -3,6 +3,12 @@ include<../utils/solidpp_utils.scad>
 
 __ROUND_EDGES_MOD_ID = "__ROUND_EDGES__";
 
+// index to get the mask data
+__ROUND_EDGES_MASKS_IDX = 1;
+
+// index to get the bevel size data
+__ROUND_EDGES_RADIUS_IDX = 2;
+
 // check whether the 'modifier' is a valid 'round_edges' modifier
 // '-> idx 0 - identifier
 // '-> idx 1 - mask of bools 'xy', 'xz', 'yz'
@@ -42,7 +48,7 @@ function __solidpp__new_round_edges(r=undef, d=undef, axes=undef) =
                                     // v  so it is done separately 
                                     [
                                         for( el = __solidpp__expand_edge_modifier(
-                                                        is_undef(r) ? d : r, axes_mask))
+                                                        is_undef(r) ? d : r, axes_mask, axes_cnt))
                                             is_undef(el) ?
                                                 undef :
                                                 el*(is_undef(r) ? 0.5 : 1)

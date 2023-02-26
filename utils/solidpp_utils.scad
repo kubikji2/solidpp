@@ -204,13 +204,13 @@ function __solidpp__plane_mask_from_axes(axes_mask, axes_cnt) =
 // __protected__ function to compose the modifier data (bevel/r/d) as vector 3D
 // '-> axes mask is mask composed using '__solidpp__axes_to_mask'
 // '-> the 'data' are expected to be compatible with the 'axes_mask' regarding its length
-function __solidpp__expand_edge_modifier(data, axes_mask) =
-    is_num(data) ?
-        [data, data, data] :
-        is_vector_3D(data) ?
-            data :
+function __solidpp__expand_edge_modifier(data, axes_mask, axes_cnt) =
+    // let(axes_cnt = vec_sum([for(b=axes_mask) b ? 1 : 0]))
+    axes_cnt == 1 || axes_cnt == 3 ?
+        is_vector_3D(data) ? data : [data, data, data] :
+        let (_data = is_vector_2D(data) ? data : [data, data])
             axes_mask.x && axes_mask.y ?
-                [data[0], data[1], undef] :
+                [_data[0], _data[1], 0] :
                 axes_mask.x && axes_mask.z ?
-                    [data[0], undef, data[1]] :
-                    [undef, data[0], data[1]];
+                    [_data[0], 0, _data[1]] :
+                    [0, _data[0], _data[1]];

@@ -44,5 +44,5 @@ function __solidpp__new_bevel_edges(bevel, axes) =
                             [
                                 __BEVEL_EDGES_MOD_ID,
                                 __solidpp__plane_mask_from_axes(axes_mask, axes_cnt),
-                                __solidpp__expand_edge_modifier(bevel, axes_mask)
+                                __solidpp__expand_edge_modifier(bevel, axes_mask, axes_cnt)
                             ];
