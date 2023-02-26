@@ -35,8 +35,6 @@ function __solidpp__new_bevel_edges(bevel, axes) =
                     axes_mask = __solidpp__axes_to_mask(axes), 
                     axes_cnt = vec_sum([for(b=axes_mask) b ? 1 : 0])
                 )
-                echo(axes_cnt)
-                echo(axes_mask)
                 axes_cnt == 0 ?
                     [undef, "argument 'axes' must contain at least one axis"] :
                     is_vector_2D(bevel) && axes_cnt != 2 ?

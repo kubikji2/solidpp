@@ -2,6 +2,7 @@
 use<__round_corners_modifier.scad>
 use<__bevel_corners_modifier.scad>
 use<__bevel_bases_modifier.scad>
+use<__bevel_edges_modifier.scad>
 
 
 function round_corners(r=undef, d=undef) = 
