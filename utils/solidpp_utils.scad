@@ -181,3 +181,36 @@ function __solidpp__axes_to_mask(axes) =
             __solidpp__is_c_in_s("z", axes) || __solidpp__is_c_in_s("z", axes)
         ] :
         undef;
+
+// __protected__ function to compose mask to define affected planes
+// '-> axes mask is mask composed using '__solidpp__axes_to_mask'
+// returns list of three bools:
+// '-> idx 0 - are edges of sides with normal in 'xy'-plane affected ?
+// '-> idx 1 - are edges of sides with normal in 'xz'-plane affected ?
+// '-> idx 2 - are edges of sides with normal in 'yz'-plane affected ?
+function __solidpp__plane_mask_from_axes(axes_mask, axes_cnt) =
+    axes_cnt == 3 ?
+        [true, true, true] :
+        axes_cnt == 2 ?
+            [
+                axes_mask.x && axes_mask.y,
+                axes_mask.x && axes_mask.z,
+                axes_mask.y && axes_mask.z
+            ] :
+            axes_cnt == 1 ?
+                [!axes_mask.z, !axes_mask.y, !axes_mask.x] :
+                [false, false, false];
+
+// __protected__ function to compose the modifier data (bevel/r/d) as vector 3D
+// '-> axes mask is mask composed using '__solidpp__axes_to_mask'
+// '-> the 'data' are expected to be compatible with the 'axes_mask' regarding its length
+function __solidpp__expand_edge_modifier(data, axes_mask) =
+    is_num(data) ?
+        [data, data, data] :
+        is_vector_3D(data) ?
+            data :
+            axes_mask.x && axes_mask.y ?
+                [data[0], data[1], undef] :
+                axes_mask.x && axes_mask.z ?
+                    [data[0], undef, data[1]] :
+                    [undef, data[0], data[1]];
