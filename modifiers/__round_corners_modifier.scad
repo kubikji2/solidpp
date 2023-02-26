@@ -14,9 +14,9 @@ function __solidpp__is_valid_round_corners_modifier(modifier) =
 // '-> otherwise return the [undef, <message>] standard modifier format
 function __solidpp__new_round_corners(r=undef, d=undef) = 
     is_undef(r) && is_undef(d) ?
-        [undef, "either 'r' or 'd' must be defined"] :
+        [undef, "argument 'r'|'d' must be defined"] :
         !is_undef(r) && !is_undef(d) ?
-            [undef, "arguments 'r' and 'd' can be defined at the same time"] :
+            [undef, "only one argument 'r'|'d' can be defined at the time"] :
             !is_undef(r) ?
                 is_num(r) ? 
                     [ __ROUND_CORNERS_MOD_ID, [r,r,r] ] :
