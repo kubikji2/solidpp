@@ -17,7 +17,7 @@ module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef
     // '-> if undef use default size
     // '-> if list, keep it
     // '-> if number, fill array
-    __size = __solidpp__get_argument_as_3Dlist(size,[1,1,1]);
+    _size = __solidpp__get_argument_as_3Dlist(size,[1,1,1]);
 
     // check r
     // '-> it is either undef, vector 3D, or scalar
@@ -33,21 +33,18 @@ module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef
             __solidpp__get_argument_as_3Dlist(r,[0.1,0.1,0.1]);
     
     // construct _size aka inner cube size
-    _size = sub_vecs(__size, s_vec(2,_r));
-
-    echo(size);
-    echo(_size);
+    __size = sub_vecs(_size, s_vec(2,_r));
 
     // check _size for negative elements
     assert(
-            is_vector_non_negative(_size),
-            str("[",__module_name,"] argument 'size' must be at least equal to the 'r|d' in each axis.")
+            is_vector_non_negative(__size),
+            str("[",__module_name,"] argument 'size' must be at least equal to the 'r'|'d' in each axis.")
             );
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
     _o = __solidpp__produce_offset_from_align_and_center(
-            _size=__size,
+            _size=_size,
             align=align,
             center=center,
             solidpp_name=__module_name,
@@ -60,7 +57,7 @@ module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef
             // sphrepp manages possible elipsoid
             spherepp(r=_r);
             // cubepp manages alignment and center
-            cubepp(size=_size, center=true);
+            cubepp(size=__size, center=true);
         }
     
 }
