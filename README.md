@@ -139,6 +139,12 @@ If one is interested in the numerical values of the transform rather than the tr
 Solids with distinguished edges (`cubepp` and `cylinderpp`) can be further modified using modifiers such as rounding the edges, or corners, beveling, and cutting of edges or corners.
 Modifiers are created using constructors in `modifiers.scad` that are basically just wrappers for computing a storing data required for solid modification.
 
+#### Round bases (`round_bases(r|d, axis='z', r_base|d_base=undef, r_top|d_top=undef)`)
+
+TODO description
+
+using rounded sides can be achieved by nesting the modifiers
+
 #### Round corners (`round_corners(r|d)`)
 
 Round corners of the `cubepp` or `cylinderpp` using the `r|d` parameter that defines either the radius/diameter of the sphere used for rounding or the semi-/axis of the ellipsoid used for un-even rounding.
@@ -165,7 +171,7 @@ For all three axes, `r|d` defines the radius/diameter of the sphere (a single in
 Note that if all axes are chosen, the resulting geometry is different from the one obtained by `round_corner`.
 Moreover, the `round_edges` unify an interface to the `cylindrocube` (TODO check).
 
-#### Bevel base (`bevel_base(bevel=undef, axis='z', bevel_bottom=undef, bevel_top=undef)`)
+#### Bevel bases (`bevel_bases(bevel=undef, axis='z', bevel_bottom=undef, bevel_top=undef)`)
 
 Bevel edges of the bases using `bevel` and defined by `axis`.
 In the case of `cylinderpp`, only two bases are possible.
@@ -176,6 +182,7 @@ The normals of bases that are parallel to the selected axis are considered bases
 The `bevel` argument can either be a single number (or a single element array) denoting the beveling uniform in all axis, two numbers denoting the [`a`,`h`], where `a` is the distance from the base edges and `h` is the height of the bevel (length of the bevel segment projected to the `axis`), or the triplet [`x`,`y`,`z`], where the `x` is the bevel projection to the x-axis, `y` is the bevel projection to the y-axis, and `z` is the bevel projection to the z-axis.
 
 In the same manner, the `bevel_bottom` and `bevel_top` affect only a particular base, where the *bottom* is the base with a lower value in the leading axis defined in `axis`.
+Only a single base can be beveled by defining only a one `bevel_bottom`/`bevel_top` argument.
 
 #### Bevel corners (`bevel_corners(bevel)`)
 
@@ -199,6 +206,10 @@ The `bevel` argument can be a single number (a single-element list) denoting the
 In the case of `axes` containing a single or all axes, the `bevel` can be a triplet [`x`, `y`, `z`] denoting the distance from the edges along particular axes.
 In the case of `axes` containing precisely two axes, the `bevel` can be a pair [`a`, `b`] denoting the distances from the edges along the axes in order `x`, `y`, `z`, i.e. if `axis="xy"` then `a` is x-axis bevel offset, `b` is the y-axis bevel offset, if `axis="xz"` then `a` is x-axis bevel offset, `b` is the z-axis bevel offset, and if `axis="yz"` then `a` is y-axis bevel offset, `b` is the z-axis bevel offset.
 
+#### Regular base (`regular_base(a=undef, h=undef)`)
+
+Regular base for the `prismpp` and `pyramid`
+
 ## Roadmap
 
 ### Basic solid++ roadmap
@@ -206,6 +217,14 @@ In the case of `axes` containing precisely two axes, the `bevel` can be a pair [
 - [x] cube++
 - [x] sphere++
 - [x] cylinder++
+
+### Advanced solid++ roadmap
+
+- [ ] prism++
+- [ ] pyramid++
+- [ ] trapezoid++
+- [ ] tube++
+- [ ] torus++
 
 ### Transformation roadmap
 
@@ -217,19 +236,23 @@ In the case of `axes` containing precisely two axes, the `bevel` can be a pair [
 
 - [x] interfaces defined
 - [ ] implement the back-end solids
+  - [x] round_bases_cubepp
   - [x] round_corners_cubepp
-  - [ ] round_edges_cubepp
+  - [x] round_edges_cubepp
   - [x] bevel_bases_cubepp
-  - [ ] bevel_edges_cubepp
+  - [x] bevel_edges_cubepp
   - [x] bevel_corners_cubepp
+  - [ ] round_bases_cylinderpp
+  - [ ] bevel_bases_cylinderpp
 - [ ] implement the utilities for the back-end solids
   - [x] trapezoid
   - [x] tetrahedron
   - [x] prism
 - [ ] implement constructors
+  - [ ] modifier `round_bases`
   - [x] modifier `round_corners`
-  - [ ] modifier `round_edges`
-  - [x] modifier `bevel_base`
+  - [x] modifier `round_edges`
+  - [x] modifier `bevel_bases`
   - [x] modifier `bevel_corners`
   - [x] modifier `bevel_edges`
 - [ ] intergrate constructors into the solid++
