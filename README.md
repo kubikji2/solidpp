@@ -139,6 +139,32 @@ If one is interested in the numerical values of the transform rather than the tr
 Solids with distinguished edges (`cubepp` and `cylinderpp`) can be further modified using modifiers such as rounding the edges, or corners, beveling, and cutting of edges or corners.
 Modifiers are created using constructors in `modifiers.scad` that are basically just wrappers for computing a storing data required for solid modification.
 
+#### Compatibility overview
+
+|                 | `spherepp` | `cubepp` | `cylinderpp` |
+|----------------:|:----------:|:--------:|:------------:|
+| `round_bases`   |    NO      |   YES    |     YES      |
+| `round_corners` |    NO      |   YES    |      NO      |
+| `round_edges`   |    NO      |   YES    |      NO      |
+| `bevel_bases`   |    NO      |   YES    |     YES      |
+| `bevel_corners` |    NO      |   YES    |      NO      |
+| `bevel_edges`   |    NO      |   YES    |      NO      |
+| `regular_base`  |    NO      |   YES    |     YES      |
+
+As seen in the table, `spherepp` cannot be modifed by any means, `cubepp` provides various modifiers and `cylinderpp` can supports only bases modifications.
+
+|                 | `prismpp` | `pyramidpp` | `trapezoidpp` | `tubepp` | `toruspp` |
+|----------------:|:---------:|:-----------:|:-------------:|:--------:|:---------:|
+|   `round_bases` |           |             |               |          |           |
+| `round_corners` |           |             |               |          |           |
+|   `round_edges` |           |             |               |          |           |
+|   `bevel_bases` |           |             |               |          |           |
+| `bevel_corners` |           |             |               |          |           |
+|   `bevel_edges` |           |             |               |          |           |
+|  `regular_base` |           |             |               |          |           |
+
+TODO
+
 #### Round bases (`round_bases(r|d, axis='z', r_base|d_base=undef, r_top|d_top=undef)`)
 
 TODO description
