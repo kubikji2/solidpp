@@ -12,6 +12,21 @@ function __spp__bevel_base_get_trapezioid_alignment(zet, lower) =
                 (lower ? "y" : "Y") :
                 (lower ? "z" : "Z");
 
+// get parameters from the data stored in the 'struct' based on the 'zet'
+// '-> returns 'default_value' upon error
+// '-> otherwise return a, b, and h 
+function __spp__get_params_from_data_and_zet(data, zet, default_value) =
+    is_undef(zet) ?
+        default_value :
+        zet == "x" || zet == "X" ?
+            [data[2], data[1], data[0]] :
+            zet == "y" || zet == "Y" ?
+                [data[0], data[2], data[1]] :
+                zet == "z" || zet == "Z" ?
+                    data :
+                    default_value;
+
+
 // TODO documentation
 module bevel_base_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center=false, bevel_top=undef, bevel_bottom=undef)
 {
@@ -30,10 +45,10 @@ module bevel_base_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center
     __size = __solidpp__get_argument_as_3Dlist(size,[1,1,1]);
 
     // handling default bevel
-    _bevel = !is_undef(bevel) || (!is_undef(bevel_top) && !is_undef(bevel_bottom)) ? 
+    _bevel = !is_undef(bevel) || (!is_undef(bevel_top) || !is_undef(bevel_bottom)) ? 
                 bevel :
-                0.2;
-    
+                0.1;
+
     // handlign default zet
     _zet = is_undef(zet) ? "z" : zet;
 
@@ -65,12 +80,12 @@ module bevel_base_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center
             def_align=CUBEPP_DEF_ALIGN);    
     
     // bases shared params
-    _shared_params = __solidpp__get_params_from_data_and_zet(_size, _zet, _size);
+    _shared_params = __spp__get_params_from_data_and_zet(_size, _zet, _size);
     _shared_size = [_shared_params[0], _shared_params[1]];
     // '-> extracing the shared size dimensions
 
     // bottom base
-    _parsed_bottom_params = __solidpp__get_params_from_data_and_zet(_bevel_bottom, _zet, _bevel_bottom);
+    _parsed_bottom_params = __spp__get_params_from_data_and_zet(_bevel_bottom, _zet, _bevel_bottom);
     _b_a = _shared_params[0] - 2*_parsed_bottom_params[0];
     _b_b = _shared_params[1] - 2*_parsed_bottom_params[1];
     _b_h = _parsed_bottom_params[2];
@@ -88,7 +103,7 @@ module bevel_base_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center
     // '-> computing the bottom trapeziod offset from the center
 
     // top base
-    _parsed_top_params = __solidpp__get_params_from_data_and_zet(_bevel_top, _zet, _bevel_top);
+    _parsed_top_params = __spp__get_params_from_data_and_zet(_bevel_top, _zet, _bevel_top);
     _t_a = _shared_params[0] - 2*_parsed_top_params[0];
     _t_b = _shared_params[1] - 2*_parsed_top_params[1];
     _t_h = _parsed_top_params[2];
