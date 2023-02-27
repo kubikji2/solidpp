@@ -20,15 +20,15 @@ module bevel_edges_cubepp(size=undef, bevel=undef, axes=undef, align=undef, zet=
     // '-> if number, fill array
     _size = __solidpp__get_argument_as_3Dlist(size,[1,1,1]);
 
-    // check bevel
-    // '-> it is either undef, vector 3D, or scalar
-    __solidpp__assert_size_like(bevel, "bevel" , __module_name);
-
     // define _bevel as 3D vector
     // '-> if undef use default bevel
     // '-> if list, keep it
     // '-> if number, fill array
-    _bevel = __solidpp__get_argument_as_3Dlist(bevel, 0.1);
+    _bevel = is_undef(bevel) ?
+            0.1 :
+            bevel;
+
+    echo(_bevel);
 
     // define axes
     _axes = is_undef(axes) ? "xyz" : axes;

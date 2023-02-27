@@ -27,22 +27,22 @@ function __solidpp__is_valid_bevel_edges_modifier(modifier) =
 function __solidpp__new_bevel_edges(bevel, axes) = 
     !is_num(bevel) && !is_vector_2D(bevel) && !is_vector_3D(bevel) ?
         [undef, "argument 'bevel' must be either number, vector 2D or vector 3D"] :
-        (is_num(bevel) && bevel < 0) || !is_vector_positive(bevel) ?
+        (is_num(bevel) && bevel < 0) || (!is_num(bevel) && !is_vector_positive(bevel)) ?
             [undef, "argument 'bevel' cannot contain negative numbers"] :
             !is_string(axes) ?
                 [undef, "argument 'axes' must be a string"] :
                 let(
                     axes_mask = __solidpp__axes_to_mask(axes), 
-                    axes_cnt = vec_sum([for(b=axes_mask) b ? 1 : 0])
+                    mask_cnt = vec_sum([for(b=axes_mask) b ? 1 : 0])
                 )
-                axes_cnt == 0 ?
+                mask_cnt == 0 ?
                     [undef, "argument 'axes' must contain at least one axis"] :
-                    is_vector_2D(bevel) && axes_cnt != 2 ?
+                    is_vector_2D(bevel) && mask_cnt == 3 ?
                         [undef, "argument 'bevel' can be vector 2D only for two axis defined in argument 'axes'"] :
-                        axes_cnt == 2 && is_vector_3D(bevel) ?
+                        mask_cnt == 2 && is_vector_3D(bevel) ?
                             [undef, "argument 'bevel' as vector 3D makes no sense for two axes defined in 'axes'"] :
                             [
                                 __BEVEL_EDGES_MOD_ID,
-                                __solidpp__plane_mask_from_axes(axes_mask, axes_cnt),
-                                __solidpp__expand_edge_modifier(bevel, axes_mask, axes_cnt)
+                                __solidpp__plane_mask_from_axes(axes_mask, mask_cnt),
+                                __solidpp__expand_edge_modifier(bevel, axes_mask, mask_cnt)
                             ];
