@@ -106,46 +106,54 @@ Note that the solids are rotated according to the `zet` and then `align` and `si
 
 ### Bounding-box related transformation
 
-Since the `solidpp` unifies the size and alignments of the solids, the unified approach can be used to for transformation to the significant points of the bounding box.
+Since the `solidpp` unifies the size and alignments of the solids, the unified approach can be used for transformation to the significant points of the bounding box.
 
-Namely `translate_to_spp(size,align,pos,x=undef,y=undef,z=undef)` uses the `pos` of the solid's to create translation to the bounding box shell using solid's bounding box `size` and `align` based on following rules:
+Namely `translate_to_spp(size,align,pos,x=undef,y=undef,z=undef)` uses the `pos` of the solid's to create translation to the bounding box shell using solid's bounding box `size` and `align` based on the following rules:
 
 1. Argument `pos` is a string.
-2. If the argument `pos` contains `x`/`y`/`z` the resulting translation is alligned with the relative origin of the bounding box in x-axis/y-axis/z-axis
-3. If the argument `pos` contains `X`/`Y`/`Z` the resulting translation is alligned with the oposite end of the bounding box solid diagonal in x-axis/y-axis/z-axis.
+2. If the argument `pos` contains `x`/`y`/`z` the resulting translation is aligned with the relative origin of the bounding box in x-axis/y-axis/z-axis
+3. If the argument `pos` contains `X`/`Y`/`Z` the resulting translation is aligned with the opposite end of the bounding box solid diagonal in x-axis/y-axis/z-axis.
 4. If the argument `pos` contains neither `x`, nor `X` / `y`, nor `Y`/ `z`, nor `Z` the center of x/y/z-axis is used.
 5. For each axis the rules are evaluated sequentially in the order 2., 3. and then 4.
 6. Repetition and other characters are ignored.
 
-For example `pos=""` results in translation to the bounding box center, `pos="xyz"` is the left-front-bottom corner, `pos="Xyz"` and `pos="Xxxxxxxxxyz"` is the right-front-bottom corner, `pos="Z"` is the top side center, and `pos=XZ` is the center of the right-top bounding box edge.
+For example, `pos=""` results in translation to the bounding box center, `pos="xyz"` is the left-front-bottom corner, `pos="Xyz"` and `pos="Xxxxxxxxxyz"` is the right-front-bottom corner, `pos="Z"` is the top side center, and `pos=XZ` is the center of the right-top bounding box edge.
 
-Arguments `x`/`y`/`z` allows continous defintion of the point of interest within the bounding box.
+Arguments `x`/`y`/`z` allow the continuous definition of the point of interest within the bounding box.
 This definition work as follows:
 
 1. All arguments are numbers in the range [0,1].
-2. Values continously interpolated on the particular axis between the `x` and `X`/ `y` and `Y` / `z` and `Z`
+2. Values continuously interpolated on the particular axis between the `x` and `X`/ `y` and `Y` / `z` and `Z`
 3. The `x`/`y`/`z` and `pos` can be combined, but values in `x`/`y`/`z` have greater priority.
 
-For example `x=0.5,y=0,z=1` is equvalent to `pos=yZ` and it means the middle of the front-top edge, `pos=yZ,x=0.25` is the point on the front-top edge 1/4 of the length from the left-front-top corner.
+For example, `x=0.5,y=0,z=1` is equivalent to `pos=yZ` and it means the middle of the front-top edge, `pos=yZ,x=0.25` is the point on the front-top edge 1/4 of the length from the left-front-top corner.
 
-Note that the translation to the solidpp center might be different to the scope origin since the `align` might be use for the geometry.
-Moreover, the string `cube`/`sphere`/`cylinder` can be used to signals that `cubepp`/`spherepp`/`cylinderpp` default alignment is used.
-Alternatively, the default solidpp alignments are avaliable in the `CUBEPP_DEF_ALIGN`, `CYLINDERPP_DEF_ALIGN` and `SPHEREPP_DEF_ALIGN`.
+Note that the translation to the solidpp center might be different from the scope origin since the `align` might be used for the geometry.
+Moreover, the string `cube`/`sphere`/`cylinder` can be used to signal that `cubepp`/`spherepp`/`cylinderpp` default alignment is used.
+Alternatively, the default solidpp alignments are available in the `CUBEPP_DEF_ALIGN`, `CYLINDERPP_DEF_ALIGN` and `SPHEREPP_DEF_ALIGN`.
 
-If one is interested in the numerical values of the transform rather than the transform itself `get_translation_to_spp` function with the identifical interface can be used.
+If one is interested in the numerical values of the transformation rather than the transform itself `get_translation_to_spp` function with the identical interface can be used.
 
 ### Extended geometries
 
-Aside from the core geometries, this library provides more geometries, that respects as many main features (`size`, `align` and `zet`) as possible.
+Aside from the core geometries, solidpp library provides more geometries, that respect as many main features (`size`, `align` and `zet`) as possible.
 Though some geometries simply cannot follow these principles, mainly the `size` is relaxed.
 
-#### Prism (`prismpp()`)
+#### Prism (`prismpp(points=undef, h=undef, align=undef, zet=undef, center=false, mod=undef, stack=undef)`)
 
-TODO
+TODO:
 
-##### Unbounded prism (`prism()`)
+- how to manage the beveling?
+- what are the modifiers?
 
-TODO
+##### Unbounded prism (`prism(points=undef, h=undef, n=undef)`)
+
+TODO:
+
+- Creates an arbitrary prism.
+- points must be in the same plain, 2D or 3D points, 3D points in case of normals, 2D points in case of h
+- n is a normal (arbitrary vector 3D)
+- h is the height (in z-axis)
 
 #### Pyramid (`pyramidpp()`)
 
@@ -158,6 +166,8 @@ TODO
 #### Tube (`tubepp()`)
 
 TODO
+
+How to distinguish between the beveling/rounding inner hole edge and/or outer edge using current parameters.
 
 #### Torus (`toruspp()`)
 
@@ -180,17 +190,17 @@ Modifiers are created using constructors in `modifiers.scad` that are basically 
 | `bevel_edges`   |    NO      |   YES    |      NO      |
 | `regular_base`  |    NO      |   YES    |     YES      |
 
-As seen in the table, `spherepp` cannot be modifed by any means, `cubepp` provides various modifiers and `cylinderpp` can supports only bases modifications.
+As seen in the table, `spherepp` cannot be modified by any means, `cubepp` provides various modifiers and `cylinderpp` can support only base modifications.
 
 |                 | `prismpp` | `pyramidpp` | `trapezoidpp` | `tubepp` | `toruspp` |
 |----------------:|:---------:|:-----------:|:-------------:|:--------:|:---------:|
-|   `round_bases` |           |             |               |          |           |
-| `round_corners` |           |             |               |          |           |
-|   `round_edges` |           |             |               |          |           |
-|   `bevel_bases` |           |             |               |          |           |
-| `bevel_corners` |           |             |               |          |           |
-|   `bevel_edges` |           |             |               |          |           |
-|  `regular_base` |           |             |               |          |           |
+|   `round_bases` |    YES    |     ???     |     ???       |   YES    |    NO     |
+| `round_corners` |    NO     |     ???     |     ???       |   ???    |    NO     |
+|   `round_edges` |    YES    |     ???     |     NO        |   ???    |    NO     |
+|   `bevel_bases` |    YES    |     YES     |     NO        |   YES    |    NO     |
+| `bevel_corners` |    NO     |     NO      |     YES       |   ???    |    NO     |
+|   `bevel_edges` |    NO     |     ???     |     NO        |   ???    |    NO     |
+|  `regular_base` |    YES    |     YES     |     NO        |   NO     |    NO     |
 
 TODO
 
@@ -198,7 +208,9 @@ TODO
 
 TODO description
 
-using rounded sides can be achieved by nesting the modifiers
+TODO: how to round other edges, then the bases?
+
+- using rounded sides can be achieved by nesting the modifiers
 
 #### Round corners (`round_corners(r|d)`)
 
@@ -259,11 +271,11 @@ If the `axes` contain all three axes, all edges are affected.
 
 The `bevel` argument can be a single number (a single-element list) denoting the distance from the edges to be cut off regardless of the `axes` content.
 In the case of `axes` containing a single or all axes, the `bevel` can be a triplet [`x`, `y`, `z`] denoting the distance from the edges along particular axes.
-In the case of `axes` containing precisely two axes, the `bevel` can be a pair [`a`, `b`] denoting the distances from the edges along the axes in order `x`, `y`, `z`, i.e. if `axis="xy"` then `a` is x-axis bevel offset, `b` is the y-axis bevel offset, if `axis="xz"` then `a` is x-axis bevel offset, `b` is the z-axis bevel offset, and if `axis="yz"` then `a` is y-axis bevel offset, `b` is the z-axis bevel offset.
+In the case of `axes` containing precisely two axes, the `bevel` can be a pair [`a`, `b`] denoting the distances from the edges along the axes in order `x`, `y`, `z`, i.e. if `axis="xy"` then `a` is x-axis bevel offset, `b` is the y-axis bevel offset if `axis="xz"` then `a` is x-axis bevel offset, `b` is the z-axis bevel offset, and if `axis="yz"` then `a` is y-axis bevel offset, `b` is the z-axis bevel offset.
 
-#### Regular base (`regular_base(a=undef, h=undef)`)
+#### Regular base (`regular_base(a=undef, h=undef, n=undef)`)
 
-Regular base for the `prismpp` and `pyramid`
+This modifier allows defining the regular base for `prismpp` and `pyramid`.
 
 ## Roadmap
 
