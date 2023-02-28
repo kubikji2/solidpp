@@ -134,9 +134,38 @@ Alternatively, the default solidpp alignments are avaliable in the `CUBEPP_DEF_A
 
 If one is interested in the numerical values of the transform rather than the transform itself `get_translation_to_spp` function with the identifical interface can be used.
 
+### Extended geometries
+
+Aside from the core geometries, this library provides more geometries, that respects as many main features (`size`, `align` and `zet`) as possible.
+Though some geometries simply cannot follow these principles, mainly the `size` is relaxed.
+
+#### Prism (`prismpp()`)
+
+TODO
+
+##### Unbounded prism (`prism()`)
+
+TODO
+
+#### Pyramid (`pyramidpp()`)
+
+TODO
+
+#### Trapezoid (`trapezoidpp()`)
+
+TODO
+
+#### Tube (`tubepp()`)
+
+TODO
+
+#### Torus (`toruspp()`)
+
+TODO
+
 ### Modifiers
 
-Solids with distinguished edges (`cubepp` and `cylinderpp`) can be further modified using modifiers such as rounding the edges, or corners, beveling, and cutting of edges or corners.
+Solids with distinguished edges (`cubepp` and `cylinderpp`) can be further modified using modifiers such as rounding the edges, or corners, beveling, and cutting (bevelling) of edges or corners.
 Modifiers are created using constructors in `modifiers.scad` that are basically just wrappers for computing a storing data required for solid modification.
 
 #### Compatibility overview
