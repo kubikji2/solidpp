@@ -5,19 +5,15 @@ include<../utils/vector_operations.scad>
 // '-> given input string 's' for axis defined by 'c' and 'C' of length 'l' 
 function __solidpp__transforms__process_size_char(l, s, c, C) = 
     __solidpp__is_c_in_s(c,s) ?
-        echo(true)
         -0.5*l :
         __solidpp__is_c_in_s(C,s) ?
-        echo(false)
             0.5*l :
-            echo("def")
             0;
 
 
 // produce the offset including possible interpolation
 function __solidpp__transforms__process_size_el(l, s, c, C, int) = 
     is_undef(int) ?
-        echo(str(l," ",s," ",c," ",C," ",int))
         __solidpp__transforms__process_size_char(l=l,s=s,c=c,C=C) :
         (int-0.5)*l;
 
