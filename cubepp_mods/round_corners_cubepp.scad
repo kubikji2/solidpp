@@ -1,10 +1,11 @@
-
 include<../utils/vector_operations.scad>
+include<../modifiers/__round_corners_modifier.scad>
 
 assert(!is_undef(__DEF_CUBEPP__), "[ROUND-CORNERS-CUBE++] cubepp.scad must be included!");
 assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-CORNERS-CUBE++] spherepp.scad must be included!");
 
-module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=false)
+module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=false,
+mod=undef, __mod_queue = undef)
 {
 
     // set module name
@@ -29,10 +30,19 @@ module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef
     __solidpp__assert_size_like(d, "d" , __module_name);
 
     // construct _r
-    _r = !is_undef(d) ?
-            s_vec(0.5,__solidpp__get_argument_as_3Dlist(d)) :
-            __solidpp__get_argument_as_3Dlist(r,[0.1,0.1,0.1]);
-    
+    __r = is_undef(r) && is_undef(d) ? 0.1 : r;
+
+    // processing data using the modifier constructor back-end
+    parsed_data = !is_undef(mod) ?
+                    mod :
+                    __solidpp__new_round_corners(r=__r,d=d);
+
+    // check parsed data
+    assert(!is_undef(parsed_data[0]), str("[", __module_name, "] ", parsed_data[1], "!"));
+
+    // unpack data
+    _r = parsed_data[1];
+
     // construct _size aka inner cube size
     __size = sub_vecs(_size, s_vec(2,_r));
 
@@ -41,6 +51,7 @@ module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef
             is_vector_non_negative(__size),
             str("[",__module_name,"] argument 'size' must be at least equal to the 'r'|'d' in each axis.")
             );
+
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
@@ -58,7 +69,7 @@ module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef
             // sphrepp manages possible elipsoid
             spherepp(r=_r);
             // cubepp manages alignment and center
-            cubepp(size=__size, center=true);
+            cubepp(size=__size, center=true, __mod_queue=__mod_queue);
         }
     
 }
