@@ -2,8 +2,11 @@ include<../modifiers/__round_edges_modifier.scad>
 include<../utils/vector_operations.scad>
 include<../transforms/mirror.scad>
 include<../transforms/transform_if.scad>
-include<../cylinderpp.scad>
-include<../spherepp.scad>
+
+assert(!is_undef(__DEF_CUBEPP__), "[ROUND-EDGES-CUBE++] cubepp.scad must be included!");
+assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-EDGES-CUBE++] spherepp.scad must be included!");
+assert(!is_undef(__DEF_CYLINDERPP__), "[ROUND-EDGES-CUBE++] cylinder.scad must be included!");
+
 
 // TODO add readme
 module round_edges_cubepp(size=undef, r=undef, d=undef, axes=undef, align=undef, zet=undef, center=false)

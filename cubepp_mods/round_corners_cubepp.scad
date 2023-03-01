@@ -1,7 +1,8 @@
 
 include<../utils/vector_operations.scad>
-include<../cubepp.scad>
-include<../spherepp.scad>
+
+assert(!is_undef(__DEF_CUBEPP__), "[ROUND-CORNERS-CUBE++] cubepp.scad must be included!");
+assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-CORNERS-CUBE++] spherepp.scad must be included!");
 
 module round_corners_cubepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=false)
 {

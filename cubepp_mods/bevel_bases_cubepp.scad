@@ -4,6 +4,7 @@ include<../utils/vector_operations.scad>
 include<../other_solidspp/trapezoidpp.scad>
 include<../transforms/transform_to_spp.scad>
 
+assert(!is_undef(__DEF_CUBEPP__), "[BEVEL-BASES-CUBE++] cubepp.scad must be included!");
 
 function __spp__bevel_base_get_trapezioid_alignment(zet, lower) =
     zet == "X" || zet == "x" ?
@@ -28,7 +29,7 @@ function __spp__get_params_from_data_and_zet(data, zet, default_value) =
 
 
 // TODO documentation
-module bevel_base_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center=false, bevel_top=undef, bevel_bottom=undef)
+module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center=false, bevel_top=undef, bevel_bottom=undef)
 {
 
     // set module name

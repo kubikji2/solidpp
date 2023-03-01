@@ -1,6 +1,8 @@
 include<../utils/vector_operations.scad>
 include<../other_solidspp/tetrahedron.scad>
-include<../cubepp.scad>
+
+assert(!is_undef(__DEF_CUBEPP__), "[BEVEL-CORNERS-CUBE++] cubepp.scad must be included!");
+
 
 // module used to cut corners
 module __spp__compose_corner_cut(points, offs, h)

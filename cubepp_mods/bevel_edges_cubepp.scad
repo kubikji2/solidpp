@@ -4,6 +4,8 @@ include<../other_solidspp/prism.scad>
 include<../transforms/mirror.scad>
 include<../utils/vector_operations.scad>
 
+assert(!is_undef(__DEF_CUBEPP__), "[BEVEL-EDGES-CUBE++] cubepp.scad must be included!");
+
 module bevel_edges_cubepp(size=undef, bevel=undef, axes=undef, align=undef, zet=undef, center=false)
 {
 
