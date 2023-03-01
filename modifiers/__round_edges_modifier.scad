@@ -22,6 +22,24 @@ function __solidpp__is_valid_round_edges_modifier(modifier) =
     // '-> TODO make this as a module 
     is_vector_3D(modifier[2]);
 
+
+// returns new copy of the modifier that compensate for the rounding
+// '-> argument 'r' is the vector 3D describin rounding semi-axis
+// WARNING: assume that argument 'round_edges_mod' is valid bevel bases mod
+// WARNING: rely that argument 'r' is vector 3D
+function __solidpp__round_edges__compensate_for_rounding(round_edges_mod, r) =
+    [
+        // id remains the same
+        round_edges_mod[0],
+        // mask remains the same
+        round_edges_mod[1],
+        // TODO compensate for this
+        // '-> well, it might not be possible
+        round_edges_mod[2]
+    ];
+
+
+
 // returns the 'round_edges' modifier is possible
 // '-> otherwise return the [undef, <message>] standard modifier format
 function __solidpp__new_round_edges(r=undef, d=undef, axes=undef) = 
