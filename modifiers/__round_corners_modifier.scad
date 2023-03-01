@@ -10,6 +10,19 @@ function __solidpp__is_valid_round_corners_modifier(modifier) =
     is_vector_3D(modifier[1]);
 
 
+// returns new copy of the modifier that compensate for the rounding
+// '-> argument 'r' is the vector 3D describin rounding semi-axis
+// WARNING: assume that argument 'round_corners_mod' is valid bevel bases mod
+// WARNING: rely that argument 'r' is vector 3D
+function __solidpp__round_corners__compensate_for_rounding(round_corners_mod, r) =
+    [
+        // id remains the same
+        round_corners_mod[0],
+        // mask remains the same
+        round_corners_mod[1]
+    ];
+
+
 // returns the 'round_corners' modifier is possible
 // '-> otherwise return the [undef, <message>] standard modifier format
 function __solidpp__new_round_corners(r=undef, d=undef) = 
