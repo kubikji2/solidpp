@@ -37,7 +37,7 @@ function bevel_edges(bevel, axes="xyz") =
 
 
 // returns true iff 'mod' is a valid modifier
-function is_valid_modifier(mod) = 
+function __solidpp__is_valid_modifier(mod) = 
     let (ret = 
                 __solidpp__is_valid_bevel_bases_modifier(mod) ||
                 __solidpp__is_valid_bevel_edges_modifier(mod) ||
@@ -53,9 +53,23 @@ function is_valid_modifier(mod) =
 function __spp__is_valid_modifier_list_rec(l, idx, res) = 
     idx == len(l) ? 
         res :
-        __spp__is_valid_modifier_list_rec(l, idx+1, res && is_valid_modifier(l[idx]));
+        __spp__is_valid_modifier_list_rec(l, idx+1, res && __solidpp__is_valid_modifier(l[idx]));
 
 // returns true iff 'mods' is a list of valid modifiers
-function is_valid_modifier_list(mods) =
+function __solidpp__is_valid_modifier_list(mods) =
     is_list(mods) &&
     __spp__is_valid_modifier_list_rec(mods, 0, true);
+
+
+// compensate for rounding
+function __solidpp__compensate_for_rounding(mod, r) = 
+    __solidpp__is_valid_bevel_bases_modifier(mod) ?
+        __solidpp__bevel_bases__compensate_for_rounding(mod, r) :
+        __solidpp__is_valid_bevel_corners_modifier(mod) ?
+            __solidpp__bevel_corners__compensate_for_rounding(mod, r) :
+            __solidpp__is_valid_round_corners_modifier(mod) ?
+                __solidpp__round_corners__compensate_for_rounding(mod,r) :
+                __solidpp__is_valid_round_edges_modifier(mod) ? 
+                    __solidpp__round_edges__compensate_for_rounding(mod,r):
+                    assert(false, "[MODIFIERS] unkown modifier!")
+                    undef;
