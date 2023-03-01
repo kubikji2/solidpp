@@ -1,5 +1,6 @@
 include<../utils/vector_operations.scad>
 include<../other_solidspp/tetrahedron.scad>
+include<../modifiers/__bevel_corners_modifier.scad>
 
 assert(!is_undef(__DEF_CUBEPP__), "[BEVEL-CORNERS-CUBE++] cubepp.scad must be included!");
 
@@ -25,7 +26,8 @@ module __spp__compose_corner_cut(points, offs, h)
 }
 
 // TODO add documentation
-module bevel_corners_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center=false)
+module bevel_corners_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center=false,
+    mod=undef, __mod_queue = undef)
 {
 
     // set module name
@@ -49,13 +51,18 @@ module bevel_corners_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cen
     // '-> if undef use default bevel
     // '-> if list, keep it
     // '-> if number, fill array
-    _bevel = __solidpp__get_argument_as_3Dlist(bevel,[0.1,0.1,0.1]);
+    __bevel = is_undef(bevel) ? 0.1 : bevel;
 
-    // bevel must be positive
-    assert(
-            is_vector_positive(_bevel),
-            str("[",__module_name,"] argument 'bevel' canot contain negative numvers!")
-            );
+    // processing data using the modifier constructor back-end
+    parsed_data = !is_undef(mod) ? 
+                    mod :
+                    __solidpp__new_bevel_corners(bevel=__bevel);
+
+    // check parsed data
+    assert(!is_undef(parsed_data[0]), str("[", __module_name, "] ", parsed_data[1], "!"));
+
+    // unpack data
+    _bevel = parsed_data[__BEVEL_CORNERS_DATA_IDX];
 
     // expand size
     _x = _size.x;
@@ -102,7 +109,7 @@ module bevel_corners_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cen
     difference()
     {
         // basic shape
-        cubepp([_x,_y,_z], center=true);
+        cubepp([_x,_y,_z], center=true, __mod_queue=__mod_queue);
         // lower cuts
         __spp__compose_corner_cut(points=_xy_cuts,offs=_xy_offs,h=_cz+eps);
         // upper cuts
