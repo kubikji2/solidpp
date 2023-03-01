@@ -16,6 +16,23 @@ function __solidpp__is_valid_bevel_bases_modifier(modifier) =
     is_vector_3D(modifier[2]) &&
     is_vector_3D(modifier[3]);
 
+
+// returns new copy of the modifier that compensate for the rounding
+// '-> argument 'r' is the vector 3D describin rounding semi-axis
+// WARNING: assume that argument 'bevel_bases_mod' is valid bevel bases mod
+// WARNING: rely that argument 'r' is vector 3D
+function __solidpp__bevel_bases__compensate_for_rounding(bevel_bases_mod, r) =
+    [
+        __BEVEL_BASES_MOD_ID,
+        // remains the same
+        bevel_bases_mod[1],
+        // TODO compute the precise numbers
+        bevel_bases_mod[2],
+        // TODO compute the precise numbers
+        bevel_bases_mod[3]
+    ];
+
+
 function __spp__get_bevel_for_axis(b,h,axis) =
     axis == "x" || axis == "X" ? 
         [h,b,b] :
