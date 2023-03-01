@@ -29,7 +29,8 @@ function __spp__get_params_from_data_and_zet(data, zet, default_value) =
 
 
 // TODO documentation
-module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center=false, bevel_top=undef, bevel_bottom=undef)
+module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, center=false,
+    bevel_top=undef, bevel_bottom=undef, mod=undef, __mod_queue = undef)
 {
 
     // set module name
@@ -53,8 +54,14 @@ module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cente
     // handlign default zet
     _zet = is_undef(zet) ? "z" : zet;
 
+    // TODO check mod
+    
+    // TODO check both mod and bevel, axis, bevel_bottom, bevel_top
+
     // processing data using the modifier constructor back-end
-    parsed_data = __solidpp__new_bevel_bases(
+    parsed_data = !is_undef(mod) ? 
+                    mod :
+                    __solidpp__new_bevel_bases(
                         bevel=_bevel,
                         axis=_zet,
                         bevel_bottom=bevel_bottom,
@@ -120,16 +127,21 @@ module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cente
     translate(_o)
     {
         // base cube
-        cubepp(_size, center=true);
+        cubepp(_size, center=true, __mod_queue=__mod_queue);
 
         // bottom base
-        translate(_bottom_off)
-            trapezoid(base=[_b_a,_b_b], top=_shared_size, h=_b_h, align=_bottom_align, zet=_zet);
+        if (_b_h > 0)
+        {
+            translate(_bottom_off)
+                trapezoid(base=[_b_a,_b_b], top=_shared_size, h=_b_h, align=_bottom_align, zet=_zet);
+        }
 
         // top base
-        translate(_top_off)
-            trapezoid(base=_shared_size, top=[_t_a,_t_b], h=_t_h, align=_top_align, zet=_zet);
-
+        if (_t_h > 0)
+        {
+            translate(_top_off)
+                trapezoid(base=_shared_size, top=[_t_a,_t_b], h=_t_h, align=_top_align, zet=_zet);
+        }
     }
 
 }
