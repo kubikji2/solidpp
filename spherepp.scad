@@ -90,3 +90,6 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
         resize(_size)
             sphere(d=1);
 }
+
+// defining the sphere
+__DEF_SPHEREPP__ = true;

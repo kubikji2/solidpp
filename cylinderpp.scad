@@ -165,3 +165,6 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
             rotate(_r)
                 cylinder(d1=_d1,d2=_d2,h=1, center=true);
 }
+
+// defining the cylinderpp 
+__DEF_CYLINDERPP__ = true;

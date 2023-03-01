@@ -1,4 +1,9 @@
 include<utils/solidpp_utils.scad>
+include<cubepp_mods/bevel_bases_cubepp.scad>
+include<cubepp_mods/bevel_corners_cubepp.scad>
+include<cubepp_mods/bevel_edges_cubepp.scad>
+include<cubepp_mods/round_corners_cubepp.scad>
+include<cubepp_mods/round_edges_cubepp.scad>
 
 // cubepp default alignment
 CUBEPP_DEF_ALIGN = "xyz";
@@ -29,7 +34,8 @@ CUBEPP_DEF_ALIGN = "xyz";
 // - argument 'zet' is ignored for this module
 // - argument 'center' is a bool and provides backward compatibility with the "cube(center=true)"
 //   '-> note that 'center=true' overrides any 'align'
-module cubepp(size=undef, align=undef, zet=undef, center=false)
+// TODO add mod_list description
+module cubepp(size=undef, align=undef, zet=undef, center=false, mod_list=undef)
 {
     // set module name
     __module_name = "CUBEPP";
@@ -43,6 +49,9 @@ module cubepp(size=undef, align=undef, zet=undef, center=false)
     // '-> if list, keep it
     // '-> if number, fill array
     _size = __solidpp__get_argument_as_3Dlist(size,[1,1,1]);
+
+    // check mod_list
+    assert(is_undef(mod_list));
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
@@ -59,3 +68,5 @@ module cubepp(size=undef, align=undef, zet=undef, center=false)
 
 }
 
+// defining the cubepp
+__DEF_CUBEPP__ = true;
