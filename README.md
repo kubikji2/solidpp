@@ -183,12 +183,12 @@ Modifiers are created using constructors in `modifiers.scad` that are basically 
 |                 | `spherepp` | `cubepp` | `cylinderpp` |
 |----------------:|:----------:|:--------:|:------------:|
 | `round_bases`   |    NO      |   YES    |     YES      |
-| `round_corners` |    NO      |   YES    |      NO      |
-| `round_edges`   |    NO      |   YES    |      NO      |
+| `round_corners` |    NO      |   YES    |     NO       |
+| `round_edges`   |    NO      |   YES    |     NO       |
 | `bevel_bases`   |    NO      |   YES    |     YES      |
-| `bevel_corners` |    NO      |   YES    |      NO      |
-| `bevel_edges`   |    NO      |   YES    |      NO      |
-| `regular_base`  |    NO      |   YES    |     YES      |
+| `bevel_corners` |    NO      |   YES    |     NO       |
+| `bevel_edges`   |    NO      |   YES    |     NO       |
+| `regular_base`  |    NO      |   NO     |     NO       |
 
 As seen in the table, `spherepp` cannot be modified by any means, `cubepp` provides various modifiers and `cylinderpp` can support only base modifications.
 
@@ -198,8 +198,8 @@ As seen in the table, `spherepp` cannot be modified by any means, `cubepp` provi
 | `round_corners` |    YES    |     YES     |     YES       |   NO     |    NO     |
 |   `round_edges` |    YES    |     ???     |     NO        |   ???    |    NO     |
 |   `bevel_bases` |    YES    |     YES     |     NO        |   YES    |    NO     |
-| `bevel_corners` |    NO     |     NO      |     NO        |   ???    |    NO     |
-|   `bevel_edges` |    NO     |     ???     |     NO        |   ???    |    NO     |
+| `bevel_corners` |    NO     |     NO      |     NO        |   NO     |    NO     |
+|   `bevel_edges` |    NO     |     NO      |     NO        |   NO     |    NO     |
 |  `regular_base` |    YES    |     YES     |     NO        |   NO     |    NO     |
 
 TODO
@@ -222,7 +222,7 @@ Round edges of the `cubepp` and `prismpp` using `r|d` parameter.
 The function of `r|d` parameter and its effect on solids depends on the number of the axis chosen in `axes` and the solidpp modified by it.
 
 For `cubepp`, the `axes` argument defines which directions/axis are used for rounding.
-If a single axis is used, the sides with the normals parallel to such axis are considered the bases and only their edges are rounded, e.g. `axes="z"` affects edges of the top and bottom sides.
+If a single axis is used, the sides with the normals parallel to such axis are considered the bases and only their edges are rounded, e.g. `axes="z"` affects the edges of the top and bottom sides.
 If two axes are defined, only the edges whose neighbor sides have normals perpendicular to those axes are rounded, e.g. `axes="xy"` affects only the edges between front and right, right and back, back and left, left and front sides.
 If all axes are defined, all edges are rounded.
 Note that the axis order does not matter and the axes can be specified by both small and capital letters.
@@ -257,28 +257,30 @@ Moreover, a single base can be beveled by defining only a single `bevel_bottom` 
 
 #### Bevel corners (`bevel_corners(bevel)`)
 
-The bevel corners method is using `bevel` argument to bevel (cut off) the corners of the `cubepp`.
+The bevel corners modifier is using `bevel` argument to bevel (cut off) the corners of the `cubepp`.
 
 The argument `bevel` is either a single number (or a single number list) denoting the corner cut dimension in all axis, or a number triplet [`x`,`y`,`z`] denoting the cut sizes in the particular axis.
 
 #### Bevel edges (`bevel_edges(bevel, axes='xyz')`)
 
-Bevels (cuts off) the `cubepp` edges using the `bevel` argument defining the size and the `axis` to define the affected edges.
-Note that this modifier's effect on the `cylinderpp` is the same as the `bevel_base`and using the `bevel_corners` for `cylinderpp` is discouraged.
-Moreover, the arguments and their effect on the `cubepp` are in a way similar to the `round_edges`.
+The bevel edges modifier is using `bevel` argument to define the edge bevel (cut off) and `axes` argument to define the affected edges.
+This modifier is applicable only on `cubepp`.
 
 The effect of `bevel` argument is guided by the number of axes in `axes` argument that is required to be a string containing either lower or upper case character denoting axes (`x`/`X` for the x-axis, `y`/`Y` for the y-axis, `z`/`Z` for the z-axis).
-If the `axes` contain a single axis, only the edges of the side with normals parallel to the said axis are affected.
-If the `axes` contain two axes, only the edges whose neighboring sides have normals parallel to one of the axes are affected.
-If the `axes` contain all three axes, all edges are affected.
+If the `axes` contain a single axis, only the edges of the side with normals parallel to the said axis are affected, e.g. `axes="z"` affects the edges of the top and bottom sides.
+If the `axes` contain two axes, only the edges whose neighboring sides have normals parallel to one of the axes are affected, e.g. `axes="xy"` affects only the edges between front and right, right and back, back and left, left and front sides.
+If the `axes` contain all three axes, all edges are beveled.
 
-The `bevel` argument can be a single number (a single-element list) denoting the distance from the edges to be cut off regardless of the `axes` content.
+The `bevel` argument can be a single number denoting the distance from the edges to be cut off regardless of the `axes` content.
 In the case of `axes` containing a single or all axes, the `bevel` can be a triplet [`x`, `y`, `z`] denoting the distance from the edges along particular axes.
 In the case of `axes` containing precisely two axes, the `bevel` can be a pair [`a`, `b`] denoting the distances from the edges along the axes in order `x`, `y`, `z`, i.e. if `axis="xy"` then `a` is x-axis bevel offset, `b` is the y-axis bevel offset if `axis="xz"` then `a` is x-axis bevel offset, `b` is the z-axis bevel offset, and if `axis="yz"` then `a` is y-axis bevel offset, `b` is the z-axis bevel offset.
 
 #### Regular base (`regular_base(a=undef, h=undef, n=undef)`)
 
-This modifier allows defining the regular base for `prismpp` and `pyramid`.
+This modifier allows defining the regular bases for `prismpp` and `pyramidpp` by defining the number of `prismpp`/`pyramidpp` base sides.
+
+The required argument `a` defines the length of the side, optional argument `h` defines the solid height and optional argument `n` defines the number of sides.
+If the argument `h` is missing, the height is considered to be the same as the side length.
 
 ## Roadmap
 
@@ -325,7 +327,7 @@ This modifier allows defining the regular base for `prismpp` and `pyramid`.
   - [x] modifier `bevel_bases`
   - [x] modifier `bevel_corners`
   - [x] modifier `bevel_edges`
-- [ ] intergrate constructors into the solid++
+- [ ] integrate constructors into the solid++
   - [ ] modifier `round_corners`
     - [ ] `cubepp`
     - [ ] `cylinderpp`
