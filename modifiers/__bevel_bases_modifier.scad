@@ -11,7 +11,7 @@ __BEVEL_BASES_TOP_IDX = 3;
 function __solidpp__is_valid_bevel_bases_modifier(modifier) = 
     is_list(modifier) &&
     len(modifier) == 4 &&
-    modifier[0] == __BEVEL_CORNERS_MOD_ID &&
+    modifier[0] == __BEVEL_BASES_MOD_ID &&
     is_string(modifier[1]) &&
     is_vector_3D(modifier[2]) &&
     is_vector_3D(modifier[3]);

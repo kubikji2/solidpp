@@ -15,7 +15,7 @@ __BEVEL_EDGES_BEVEL_IDX = 2;
 // '-> idx 2 - bevel data [x, y, z]
 function __solidpp__is_valid_bevel_edges_modifier(modifier) = 
     is_list(modifier) &&
-    len(modifier) == 2 &&
+    len(modifier) == 3 &&
     modifier[0] == __BEVEL_EDGES_MOD_ID &&
     is_list(modifier[1]) && len(modifier[1]) == 3 && 
     is_bool(modifier[1][0]) && is_bool(modifier[1][1]) && is_bool(modifier[1][0]) && 

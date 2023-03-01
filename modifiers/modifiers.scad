@@ -35,3 +35,13 @@ function bevel_edges(bevel, axes="xyz") =
         assert(!is_undef(ret[0]), str("[MODIFIER-bevel edges] ", ret[1], "!"))
         ret;
 
+function is_valid_modifier(mod) = 
+    let (ret = 
+                __solidpp__is_valid_bevel_bases_modifier(mod) ||
+                __solidpp__is_valid_bevel_edges_modifier(mod) ||
+                __solidpp__is_valid_bevel_corners_modifier(mod) ||
+                __solidpp__is_valid_round_corners_modifier(mod) ||
+                __solidpp__is_valid_round_edges_modifier(mod)
+        )
+        assert(ret, str("[MODIFIER] object '", str(mod), "' is not valid modifier"))
+        ret;
