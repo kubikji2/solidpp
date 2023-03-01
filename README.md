@@ -198,7 +198,7 @@ As seen in the table, `spherepp` cannot be modified by any means, `cubepp` provi
 | `round_corners` |    YES    |     YES     |     YES       |   NO     |    NO     |
 |   `round_edges` |    YES    |     ???     |     NO        |   ???    |    NO     |
 |   `bevel_bases` |    YES    |     YES     |     NO        |   YES    |    NO     |
-| `bevel_corners` |    NO     |     NO      |     YES       |   ???    |    NO     |
+| `bevel_corners` |    NO     |     NO      |     NO        |   ???    |    NO     |
 |   `bevel_edges` |    NO     |     ???     |     NO        |   ???    |    NO     |
 |  `regular_base` |    YES    |     YES     |     NO        |   NO     |    NO     |
 
@@ -239,21 +239,25 @@ For `prismpp`, the `r|d` argument can only be a number defining the radius/diame
 
 #### Bevel bases (`bevel_bases(bevel=undef, axis='z', bevel_bottom=undef, bevel_top=undef)`)
 
-Bevel edges of the bases using `bevel` and defined by `axis`.
-In the case of `cylinderpp`, only two bases are possible.
+The bevel base edges modifier is using `bevel` argument (or `bevel_bottom` and/or `bevel_top`) to bevel (cut off) the base edges.
+It is applicable for `cubepp`, `cylinderpp` `prismpp`, `pyramidpp`, and `tubepp`.
+In the case of multiple available bases (case of `cubepp`), the argument `axis` is used to define the dominant axis.
+
+In the case of `cylinderpp`, `prismpp` and `tubepp`, only two bases are possible, and in the case `pyramidpp`, only one base is possible.
 Therefore, the `axis` is ignored (it is considered to be always equal to `z`).
 In the case of `cubepp`, `axis` is considered to be a single char denoting one of the axes (`x`/`X` for the x-axis, `y`/`Y` for the y-axis, `z`/`Z` for the z-axis).
 The normals of bases that are parallel to the selected axis are considered bases.
 
 The `bevel` argument can either be a single number (or a single element array) denoting the beveling uniform in all axis, two numbers denoting the [`a`,`h`], where `a` is the distance from the base edges and `h` is the height of the bevel (length of the bevel segment projected to the `axis`), or the triplet [`x`,`y`,`z`], where the `x` is the bevel projection to the x-axis, `y` is the bevel projection to the y-axis, and `z` is the bevel projection to the z-axis.
+However, using [`x`,`y`,`z`] is available for `cubepp`, `cylinderpp` and `tubepp`.
 
 In the same manner, the `bevel_bottom` and `bevel_top` affect only a particular base, where the *bottom* is the base with a lower value in the leading axis defined in `axis`.
-Only a single base can be beveled by defining only a one `bevel_bottom`/`bevel_top` argument.
+Note that `pyramidpp` has only a single base considered to be the bottom one.
+Moreover, a single base can be beveled by defining only a single `bevel_bottom` or `bevel_top` argument.
 
 #### Bevel corners (`bevel_corners(bevel)`)
 
-Bevels (cuts off) the `cubepp` corners using the `bevel` argument defining the cut size.
-Note that the modifier's effect on the `cylinderpp` is the same as the `bevel_base` and using the `bevel_corners` for `cylinderpp` is discouraged.
+The bevel corners method is using `bevel` argument to bevel (cut off) the corners of the `cubepp`.
 
 The argument `bevel` is either a single number (or a single number list) denoting the corner cut dimension in all axis, or a number triplet [`x`,`y`,`z`] denoting the cut sizes in the particular axis.
 
