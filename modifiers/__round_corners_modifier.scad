@@ -2,6 +2,9 @@ include<../utils/vector_operations.scad>
 
 __ROUND_CORNERS_MOD_ID = "__ROUND_CORNERS__";
 
+// corner radius idx
+__ROUND_CORNERS_RADIUS_ID = 1;
+
 // check whether the 'modifier' is a valid 'round_corner' modifier
 function __solidpp__is_valid_round_corners_modifier(modifier) = 
     is_list(modifier) &&
