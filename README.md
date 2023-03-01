@@ -195,7 +195,7 @@ As seen in the table, `spherepp` cannot be modified by any means, `cubepp` provi
 |                 | `prismpp` | `pyramidpp` | `trapezoidpp` | `tubepp` | `toruspp` |
 |----------------:|:---------:|:-----------:|:-------------:|:--------:|:---------:|
 |   `round_bases` |    YES    |     ???     |     ???       |   YES    |    NO     |
-| `round_corners` |    NO     |     ???     |     ???       |   ???    |    NO     |
+| `round_corners` |    YES    |     YES     |     YES       |   NO     |    NO     |
 |   `round_edges` |    YES    |     ???     |     NO        |   ???    |    NO     |
 |   `bevel_bases` |    YES    |     YES     |     NO        |   YES    |    NO     |
 | `bevel_corners` |    NO     |     NO      |     YES       |   ???    |    NO     |
@@ -208,35 +208,34 @@ TODO
 
 TODO description
 
-TODO: how to round other edges, then the bases?
-
-- using rounded sides can be achieved by nesting the modifiers
+TODO: how to round other edges, then the bases? - using rounded sides can be achieved by nesting the modifiers
 
 #### Round corners (`round_corners(r|d)`)
 
-Round corners of the `cubepp` or `cylinderpp` using the `r|d` parameter that defines either the radius/diameter of the sphere used for rounding or the semi-/axis of the ellipsoid used for un-even rounding.
-This modifier cannot be applied to the `spherepp` and connects the `cubepp`/`cylinderpp` to `spherocube`/`spherocylinder`.  
-Note that the edges are consequently rounded as well.
+Round corners (and consequently the edges) of the `cubepp`, `prismpp`, `pyramidpp`, and `trapezoid` in the same manner as using `minkowski` operation between the object and the sphere.
+Argument `r|d` defines the radius/diameter of the sphere used for rounding.
+Moreover, in the case of `cubepp`, the `r|d` can also be vector 3D defining the semi-/axis of the ellipsoid used for un-even rounding.
 
 #### Round edges (`round_edges(r|d, axes='xy')`)
 
-Round edges of the `cubepp` or `cylinderpp` using `r|d` parameter.
+Round edges of the `cubepp` and `prismpp` using `r|d` parameter.
 The function of `r|d` parameter and its effect on solids depends on the number of the axis chosen in `axes` and the solidpp modified by it.
-For `cylinderpp`, the `axes` are omitted, since only the base edges are affected by the rounding.
-The `r|d` argument can be either an integer defining the diameter/radius of the sphere used for even rounding or a vector of size 3 defining the size of semi-/axes of the ellipsoid used for un-even rounding.
-Note that, for `cylinderpp`, `round_edges` modifier's effect is the same as `round_corners`.
+
 For `cubepp`, the `axes` argument defines which directions/axis are used for rounding.
-If a single axis is used, the sides with the normals parallel to such axis are considered the bases and only their edges are rounded.
-If two axes are defined, only the edges whose neighbor sides have normals perpendicular to those axes are rounded.
+If a single axis is used, the sides with the normals parallel to such axis are considered the bases and only their edges are rounded, e.g. `axes="z"` affects edges of the top and bottom sides.
+If two axes are defined, only the edges whose neighbor sides have normals perpendicular to those axes are rounded, e.g. `axes="xy"` affects only the edges between front and right, right and back, back and left, left and front sides.
 If all axes are defined, all edges are rounded.
 Note that the axis order does not matter and the axes can be specified by both small and capital letters.
-The valid dimensions of the `r|d` parameters depend on the number of utilized axes.
-For a single axis, `r|d` defines the radius/diameter of the sphere (a single integer) or the semi-/axis of the ellipsoid (a list of size 3) used to round the edges.
-For two axes ('ab'), `r|d` can be either an integer defining the diameter/radius of the circle used to round the edges perpendicular to the ab-plane or a vector of size 2 defining the semi-/axis of the ellipse.
+For `prismpp`, the `axes` are ignored.
+
+The valid dimensions of the `r|d` parameters depend on the number of utilized axes and the solidpp modified by it.
+For `cubepp` and a single axis, `r|d` defines the radius/diameter of the sphere (a single integer) or the semi-/axis of the ellipsoid (a list of size 3) used to round the edges.
+For `cubepp` and two axes (`'ab'`), `r|d` can be either an integer defining the diameter/radius of the circle used to round the edges perpendicular to the ab-plane or a vector of size 2 defining the semi-/axis of the ellipse.
 Note that, the semi-/axis ordering follows axis priority x > y > z, e.g. for `axes=zx`/`axes=xz`, the `r=[2,3]` is interpreted as `r_x=2` and `r_z=3`.
-For all three axes, `r|d` defines the radius/diameter of the sphere (a single integer) or the semi-/axis of the ellipsoid (a list of size 3) used to round the edges.
-Note that if all axes are chosen, the resulting geometry is different from the one obtained by `round_corner`.
-Moreover, the `round_edges` unify an interface to the `cylindrocube` (TODO check).
+For `cubepp` and and all three axes, `r|d` defines the radius/diameter of the sphere (a single integer) or the semi-/axis of the ellipsoid (a list of size 3) used to round the edges.
+Note that if all axes are chosen, the resulting geometry is no different from the one obtained by `round_corner`.
+
+For `prismpp`, the `r|d` argument can only be a number defining the radius/diameter of the base roundings.
 
 #### Bevel bases (`bevel_bases(bevel=undef, axis='z', bevel_bottom=undef, bevel_top=undef)`)
 
