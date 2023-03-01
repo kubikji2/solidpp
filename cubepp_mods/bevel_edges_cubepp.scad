@@ -6,7 +6,8 @@ include<../utils/vector_operations.scad>
 
 assert(!is_undef(__DEF_CUBEPP__), "[BEVEL-EDGES-CUBE++] cubepp.scad must be included!");
 
-module bevel_edges_cubepp(size=undef, bevel=undef, axes=undef, align=undef, zet=undef, center=false)
+module bevel_edges_cubepp(size=undef, bevel=undef, axes=undef, align=undef, zet=undef, center=false,
+    mod=undef, __mod_queue = undef)
 {
 
     // set module name
@@ -26,9 +27,7 @@ module bevel_edges_cubepp(size=undef, bevel=undef, axes=undef, align=undef, zet=
     // '-> if undef use default bevel
     // '-> if list, keep it
     // '-> if number, fill array
-    _bevel = is_undef(bevel) ?
-            0.1 :
-            bevel;
+    _bevel = is_undef(bevel) ? 0.1 : bevel;
 
     echo(_bevel);
 
@@ -36,7 +35,9 @@ module bevel_edges_cubepp(size=undef, bevel=undef, axes=undef, align=undef, zet=
     _axes = is_undef(axes) ? "xyz" : axes;
 
     // processing data using the modifier constructor back-end
-    parsed_data = __solidpp__new_bevel_edges(
+    parsed_data = !is_undef(mod) ?
+                    mod :
+                    __solidpp__new_bevel_edges(
                         bevel=_bevel,
                         axes=_axes);
 
@@ -76,7 +77,7 @@ module bevel_edges_cubepp(size=undef, bevel=undef, axes=undef, align=undef, zet=
     difference()
     {
         // basic shape
-        cubepp([_x,_y,_z], center=true);
+        cubepp([_x,_y,_z], center=true, __mod_queue=__mod_queue);
 
         // prism transform
         eps = 0.0001;

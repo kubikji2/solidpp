@@ -103,6 +103,7 @@ module cubepp(size=undef, align=undef, zet=undef, center=false, mod_list=undef, 
         else if (__solidpp__is_valid_bevel_edges_modifier(_mod))
         {
             // bevel edges
+            bevel_edges_cubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
         }
         else if (__solidpp__is_valid_round_corners_modifier(_mod))
         {

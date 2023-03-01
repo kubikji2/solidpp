@@ -37,7 +37,6 @@ function __spp__queue__construct_compensated_queue_rec(old_list, new_list, old_r
                 _new_r = add_vecs(old_r, _cur_r),
                 _new_list = [_new_mod, each new_list]
             )
-        echo(idx, _new_mod)
         __spp__queue__construct_compensated_queue_rec(old_list, _new_list, _new_r, idx-1);
 
 
@@ -66,7 +65,7 @@ function __solidpp__pop(queue) =
             mods[0],
             [
                 __QUEUE_ID,
-                queue_size > 0 ?
+                queue_size > 1 ?
                     [for(i=[1:len(mods)-1]) mods[i]] :
                     []
             ]
