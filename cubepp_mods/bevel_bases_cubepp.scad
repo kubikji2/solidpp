@@ -121,26 +121,39 @@ module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cente
     // '-> computing the bottom trapeziod offset from the center
 
     // compensate difference in the trapezoid heights
-    _bases_diff_off = scale_vec(_mask, (_b_h-_t_h)/2);
+    _bases_diff_off = scale_vec(_mask, (_b_h-_t_h));
 
-    translate(_bases_diff_off)
+    //translate(_bases_diff_off))
+    // TODO fix this
     translate(_o)
+    difference()
     {
         // base cube
-        cubepp(_size, center=true, __mod_queue=__mod_queue);
+        cubepp(__size, center=true, __mod_queue=__mod_queue);
+
+        _diff_cube = add_vecs([each _shared_size,_t_h],[0.0001,0.0001,0.0001]);
 
         // bottom base
         if (_b_h > 0)
         {
-            translate(_bottom_off)
+            //translate(_bottom_off)
+            difference()
+            {
+                cube([_b_a,_b_b,_b_h]);
                 trapezoid(base=[_b_a,_b_b], top=_shared_size, h=_b_h, align=_bottom_align, zet=_zet);
+            }
         }
 
         // top base
+        //translate(_bases_diff_off)
         if (_t_h > 0)
         {
             translate(_top_off)
-                trapezoid(base=_shared_size, top=[_t_a,_t_b], h=_t_h, align=_top_align, zet=_zet);
+            difference()
+            {
+                cubepp(_diff_cube, center=true, align=_top_align);
+                trapezoid(base=_shared_size, top=[_t_a,_t_b], h=_t_h, align=_top_align, zet=_zet, center=true);
+            }
         }
     }
 

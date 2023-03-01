@@ -9,7 +9,8 @@ assert(!is_undef(__DEF_CYLINDERPP__), "[ROUND-EDGES-CUBE++] cylinder.scad must b
 
 
 // TODO add readme
-module round_edges_cubepp(size=undef, r=undef, d=undef, axes=undef, align=undef, zet=undef, center=false)
+module round_edges_cubepp(size=undef, r=undef, d=undef, axes=undef, align=undef, zet=undef, center=false,
+mod=undef, __mod_queue = undef)
 {
     // set module name
     __module_name = "ROUND-EDGES-CUBE++";
@@ -32,16 +33,16 @@ module round_edges_cubepp(size=undef, r=undef, d=undef, axes=undef, align=undef,
     _axes = is_undef(axes) ? "xy" : axes;
 
     // processing data using the modifier constructor back-end
-    parsed_data = __solidpp__new_round_edges(
+    parsed_data =!is_undef(mod) ?
+                    mod :
+                    __solidpp__new_round_edges(
                         r=__r,
                         d=d,
                         axes=_axes);
 
     // check parsed data
     assert(!is_undef(parsed_data[0]), str("[", __module_name, "] ", parsed_data[1], "!"));
-    
-    echo(parsed_data);
-    
+        
     // extracting data
     _mask = parsed_data[__ROUND_EDGES_MASKS_IDX];
     _r = parsed_data[__ROUND_EDGES_RADIUS_IDX];
@@ -88,6 +89,7 @@ module round_edges_cubepp(size=undef, r=undef, d=undef, axes=undef, align=undef,
         // count number of mask entries
         mask_cnt = vec_sum([for(b=_mask) b ? 1 : 0]);
 
+        // TODO make it subtractable
         if (mask_cnt == 3 || mask_cnt == 2)
         {   
             // make convex hull if mask_cnt is two (e.g. single axix in 'axes') 
