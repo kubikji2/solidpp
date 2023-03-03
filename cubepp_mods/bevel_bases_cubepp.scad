@@ -3,6 +3,7 @@ include<../utils/solidpp_utils.scad>
 include<../utils/vector_operations.scad>
 include<../other_solidspp/trapezoidpp.scad>
 include<../transforms/transform_to_spp.scad>
+include<../debug/coordinate_frame.scad>
 
 assert(!is_undef(__DEF_CUBEPP__), "[BEVEL-BASES-CUBE++] cubepp.scad must be included!");
 
@@ -52,7 +53,7 @@ module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cente
                 0.1;
 
     // handlign default zet
-    _zet = is_undef(zet) ? "z" : zet;
+    __zet = is_undef(zet) ? "z" : zet;
 
     // TODO check mod
     
@@ -63,7 +64,7 @@ module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cente
                     mod :
                     __solidpp__new_bevel_bases(
                         bevel=_bevel,
-                        axis=_zet,
+                        axis=__zet,
                         bevel_bottom=bevel_bottom,
                         bevel_top=bevel_top);
 
@@ -71,6 +72,7 @@ module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cente
     assert(!is_undef(parsed_data[0]), str("[", __module_name, "] ", parsed_data[1], "!"));
 
     // expand data
+    _zet = parsed_data[__BEVEL_AXIS_IDX];
     _bevel_bottom = parsed_data[__BEVEL_BASES_BOTTOM_IDX];
     _bevel_top = parsed_data[__BEVEL_BASES_TOP_IDX];
 
@@ -99,17 +101,6 @@ module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cente
     _b_h = _parsed_bottom_params[2];
     // '-> extracting the parameters
 
-    // alignments for of the trapezoid
-    _bottom_align = __spp__bevel_base_get_trapezioid_alignment(_zet, false);
-    // '-> getting alignment
-
-    _top_align = __spp__bevel_base_get_trapezioid_alignment(_zet, true);
-    // '-> getting alignment
-
-    // alignments on the cube
-    _bottom_off = get_translation_to_spp(_size,"",_top_align);
-    // '-> computing the bottom trapeziod offset from the center
-
     // top base
     _parsed_top_params = __spp__get_params_from_data_and_zet(_bevel_top, _zet, _bevel_top);
     _t_a = _shared_params[0] - 2*_parsed_top_params[0];
@@ -117,43 +108,49 @@ module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cente
     _t_h = _parsed_top_params[2];
     // '-> extracting the parameters
 
-    _top_off = get_translation_to_spp(_size,"",_bottom_align);
-    // '-> computing the bottom trapeziod offset from the center
 
-    // compensate difference in the trapezoid heights
-    _bases_diff_off = scale_vec(_mask, (_b_h-_t_h));
-
-    //translate(_bases_diff_off))
-    // TODO fix this
     translate(_o)
     difference()
     {
         // base cube
         cubepp(__size, center=true, __mod_queue=__mod_queue);
 
-        _diff_cube = add_vecs([each _shared_size,_t_h],[0.0001,0.0001,0.0001]);
+        //_diff_cube = add_vecs([each _shared_size, _t_h],[0.0001,0.0001,0.0001]);
 
-        // bottom base
-        if (_b_h > 0)
-        {
-            //translate(_bottom_off)
-            difference()
-            {
-                cube([_b_a,_b_b,_b_h]);
-                trapezoid(base=[_b_a,_b_b], top=_shared_size, h=_b_h, align=_bottom_align, zet=_zet);
-            }
-        }
+        _r = __solidpp__get_rotation_from_zet(_zet,[0,0,0]);
 
-        // top base
-        //translate(_bases_diff_off)
-        if (_t_h > 0)
+        rotate(_r)
         {
-            translate(_top_off)
-            difference()
+            // bottom base
+            if (_b_h > 0)
+            {   
+                // trnsform to the bottom of the bounding box cube
+                transform_to_spp(__size,"",pos="z")
+                difference()
+                {
+                    _area_size = [__size.x, __size.y, _b_h];
+                    _diff_size = scale_vec(1.1,_area_size);
+                    // cubepp aligned to the the top of the trapezoid
+                    transform_to_spp(_area_size,align="z",pos="Z")                    
+                        cubepp(_diff_size, align="Z");
+                    trapezoid(base=[_b_a,_b_b], top=_shared_size, h=_b_h, align="z");
+                }
+            }           
+            // top base
+            if (_t_h > 0)
             {
-                cubepp(_diff_cube, center=true, align=_top_align);
-                trapezoid(base=_shared_size, top=[_t_a,_t_b], h=_t_h, align=_top_align, zet=_zet, center=true);
+                transform_to_spp(__size,"",pos="Z")
+                difference()
+                {
+                    _area_size = [__size.x, __size.y, _t_h];
+                    _diff_size = scale_vec(1.1,_area_size);
+
+                    transform_to_spp(_area_size,align="Z",pos="z")                    
+                        cubepp(_diff_size, align="z");
+                    trapezoid(base=_shared_size, top=[_t_a,_t_b], h=_t_h, align="Z");
+                }
             }
+            
         }
     }
 

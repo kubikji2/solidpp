@@ -2,6 +2,8 @@ include<../utils/vector_operations.scad>
 
 __BEVEL_BASES_MOD_ID = "__BEVEL_BASES__";
 
+// index to get the axis
+__BEVEL_AXIS_IDX = 1;
 // index to get the base bottom data
 __BEVEL_BASES_BOTTOM_IDX = 2;
 // index to get the top data
