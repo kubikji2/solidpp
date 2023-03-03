@@ -89,42 +89,59 @@ mod=undef, __mod_queue = undef)
         // count number of mask entries
         mask_cnt = vec_sum([for(b=_mask) b ? 1 : 0]);
 
-        // TODO make it subtractable
         if (mask_cnt == 3 || mask_cnt == 2)
         {   
-            // make convex hull if mask_cnt is two (e.g. single axix in 'axes') 
-            hull_if(mask_cnt==2)
+
+            difference()
             {
-                minkowski()
-                {
-                    cubepp(__size, center=true);
-                    spherepp(size=[2*_rx, 2*_ry, 2*_rz]);
-                }
+                // master cubepp that is used to propagate the modifiers
+                cubepp(_size, center=true, __mod_queue=__mod_queue);
 
-                // if mask_cnt is two (e.g. single axix in 'axes')
-                // add the cube
-                if (mask_cnt==2)
-                {
-                    // placing cube in xy-plane
-                    if(!_mask.x)
+                // creating the cut
+                difference()
+                {   
+                    // cube a bit larger then the main create form
+                    cubepp(scale_vec(_size,1.1), center=true);
+
+                    // original shape of the cube
+                    // '-> there is no way how to propagate mod queue
+                    
+                    // make convex hull if mask_cnt is two (e.g. single axix in 'axes') 
+                    hull_if(mask_cnt==2)
                     {
-                        cubepp([_x,_y,__z], center=true);
-                    }
+                        
+                        minkowski()
+                        {
+                            cubepp(__size, center=true);
+                            spherepp(size=[2*_rx, 2*_ry, 2*_rz]);
+                        }
 
-                    // placing cube in xz-plane
-                    if (!_mask.y)
-                    {
-                        cubepp([_x,__y,_z], center=true);
-                    }
+                        // if mask_cnt is two (e.g. single axix in 'axes')
+                        // add the cube
+                        if (mask_cnt==2)
+                        {
+                            // placing cube in xy-plane
+                            if(!_mask.x)
+                            {
+                                cubepp([_x,_y,__z], center=true);
+                            }
 
-                    // placing cube in yz-plane
-                    if (!_mask.z)
-                    {
-                        cubepp([__x,_y,_z], center=true);
-                    }
+                            // placing cube in xz-plane
+                            if (!_mask.y)
+                            {
+                                cubepp([_x,__y,_z], center=true);
+                            }
 
+                            // placing cube in yz-plane
+                            if (!_mask.z)
+                            {
+                                cubepp([__x,_y,_z], center=true);
+                            }
+                        }
+                    }
                 }
             }
+            
         }
         else
         {
