@@ -29,8 +29,6 @@ module bevel_edges_cubepp(size=undef, bevel=undef, axes=undef, align=undef, zet=
     // '-> if number, fill array
     _bevel = is_undef(bevel) ? 0.1 : bevel;
 
-    echo(_bevel);
-
     // define axes
     _axes = is_undef(axes) ? "xyz" : axes;
 
