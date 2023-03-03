@@ -97,7 +97,7 @@ function get_translations_to_spp(size, align, pos, x=undef, y=undef, z=undef) =
 //       that `cubepp`/`spherepp`/`cylinderpp` default alignment is used.
 // NOTE: the default solidpp alignments are avaliable in
 //       `CUBEPP_DEF_ALIGN`, `CYLINDERPP_DEF_ALIGN` and `SPHEREPP_DEF_ALIGN`.
-module translate_to_spp(size, align, pos, x=undef, y=undef, z=undef) 
+module transform_to_spp(size, align, pos, x=undef, y=undef, z=undef) 
 {
     // check size
     // '-> it is either list of nums of size 3, or scalar
