@@ -55,6 +55,7 @@ function __solidpp__is_valid_modifier(mod) =
                 __solidpp__is_valid_bevel_bases_modifier(mod) ||
                 __solidpp__is_valid_bevel_corners_modifier(mod) ||
                 __solidpp__is_valid_bevel_edges_modifier(mod) ||
+                __solidpp__is_valid_round_bases_modifier(mod) ||
                 __solidpp__is_valid_round_corners_modifier(mod) ||
                 __solidpp__is_valid_round_edges_modifier(mod)
         )
@@ -82,9 +83,11 @@ function __solidpp__compensate_for_rounding(mod, r) =
             __solidpp__bevel_corners__compensate_for_rounding(mod, r) :
             __solidpp__is_valid_bevel_edges_modifier(mod) ?
                 __solidpp__bevel_edges__compensate_for_rounding(mod,r) :
-                __solidpp__is_valid_round_corners_modifier(mod) ?
-                    __solidpp__round_corners__compensate_for_rounding(mod,r) :
-                    __solidpp__is_valid_round_edges_modifier(mod) ? 
-                        __solidpp__round_edges__compensate_for_rounding(mod,r):
-                        assert(false, "[MODIFIERS] unkown modifier!")
-                        undef;
+                __solidpp__is_valid_round_bases_modifier(mod) ?
+                    __solidpp__round_bases__compensate_for_rounding(mod,r):
+                    __solidpp__is_valid_round_corners_modifier(mod) ?
+                        __solidpp__round_corners__compensate_for_rounding(mod,r) :
+                        __solidpp__is_valid_round_edges_modifier(mod) ? 
+                            __solidpp__round_edges__compensate_for_rounding(mod,r):
+                            assert(false, "[MODIFIERS] unkown modifier!")
+                            undef;
