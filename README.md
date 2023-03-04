@@ -163,11 +163,22 @@ TODO
 
 TODO
 
-#### Tube (`tubepp()`)
+#### Tube (`tubepp(t, r|d, R|D, h, align=undef, zet="z", mod_list=undef, inner_mod_list=undef, outer_mod_list=undef)`)
 
-TODO
+This module allows creation of the general cube using exactly two arguments inner radius/diameter (`r|d`), outer radius/diameter (`R|D`) or the shell thickness (`t`).
+The height of the tube is defined by `h`.
 
-How to distinguish between the beveling/rounding inner hole edge and/or outer edge using current parameters.
+Both inner radius/diameter (`r|d`) or outer radius/diameter (`R|D`) can be either a single number or a vector 2D.
+In case of the 2D vector the first number expresses the radius/diameter of the cylinder bottom base and the second number expresses the radius/diameter of the cylider top base similarly to the cylinder `r1,r2|d1,d2`.
+
+The tube can be modified using the there arguments: `mod_list`, `inner_mod_list` and `outer_mod_list`.
+The argument `mod_list` defines the modifications to be applied to the tube itself.
+The argument `inner_mod_list` defines the modifications for the inner cylinder (hole) only.
+Similarlym, the argument `outer_mod_list` defines the modifications for the bounding-cylinder only (cylinder without drilled hole).
+Using the combination of these list, one can create tube with edges beveled/rounded differently for the shell and the hole.
+Note that the all list arguments must contain only the compatible modifiers (see bellow).
+
+TODO: how the size is managed?
 
 #### Torus (`toruspp()`)
 
@@ -196,7 +207,7 @@ As seen in the table, `spherepp` cannot be modified by any means, `cubepp` provi
 |----------------:|:---------:|:-----------:|:-------------:|:--------:|:---------:|
 |   `round_bases` |    YES    |     ???     |     ???       |   YES    |    NO     |
 | `round_corners` |    YES    |     YES     |     YES       |   NO     |    NO     |
-|   `round_edges` |    YES    |     ???     |     NO        |   ???    |    NO     |
+|   `round_edges` |    YES    |     ???     |     NO        |   NO     |    NO     |
 |   `bevel_bases` |    YES    |     YES     |     NO        |   YES    |    NO     |
 | `bevel_corners` |    NO     |     NO      |     NO        |   NO     |    NO     |
 |   `bevel_edges` |    NO     |     NO      |     NO        |   NO     |    NO     |
