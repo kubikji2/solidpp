@@ -59,4 +59,24 @@ function __solidpp__is_valid_round_bases_modifier(modifier) =
     )
 
 
+// returns new copy of the modifier that compensate for the rounding
+// '-> argument 'r' is the vector 3D describin rounding semi-axis
+// WARNING: assume that argument 'round_bases_mod' is valid bevel bases mod
+// WARNING: rely that argument 'r' is vector 3D
+function __solidpp__round_bases__compensate_for_rounding(round_bases_mod, r) =
+    [
+        __ROUND_BASES_MOD_ID,
+        // remains the same
+        round_bases_mod[1],
+        // TODO compute the precise numbers
+        round_bases_mod[2],
+        // TODO compute the precise numbers
+        round_bases_mod[3],
+        // TODO compute the precise numbers
+        round_bases_mod[4],
+        // TODO compute the precise numbers
+        round_bases_mod[5]
+    ];
+
+
 // round_bases(r|d, axis='z', r_bottom|d_bottom=undef, r_top|d_top=undef)
