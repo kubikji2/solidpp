@@ -1,9 +1,22 @@
-
+use<__round_bases_modifier.scad>
 use<__round_corners_modifier.scad>
 use<__round_edges_modifier.scad>
-use<__bevel_corners_modifier.scad>
+
 use<__bevel_bases_modifier.scad>
+use<__bevel_corners_modifier.scad>
 use<__bevel_edges_modifier.scad>
+
+
+function round_bases(r=undef, d=undef, axis="z",
+                        r_bottom=undef, d_bottom=undef,
+                        r_top=undef, d_top=undef) = 
+    let(ret = __solidpp__new_round_bases(
+                r=r,d=d, r_top=r_top, d_top=d_top,
+                r_bottom=r_bottom, d_bottom=d_bottom)
+        )
+        assert(!is_undef(ret[0]), str("[MODIFIER-round bases] ", ret[1], "!"))
+        ret;
+
 
 
 function round_corners(r=undef, d=undef) = 
