@@ -1,4 +1,5 @@
 include<../utils/vector_operations.scad>
+include<../utils/solidpp_utils.scad>
 
 __BEVEL_BASES_MOD_ID = "__BEVEL_BASES__";
 
@@ -43,7 +44,7 @@ function __spp__get_bevel_for_axis(b,h,axis) =
             [b,b,h];
 
 
-// returns the 'bevel_corners' modifier if possible
+// returns the 'bevel_bases' modifier if possible
 // '-> otherwise return the [undef, <message>] standard modifier format
 // '-> expected format is:
 //     '-> "__BEVEL_BASES__"
@@ -64,8 +65,8 @@ function __solidpp__new_bevel_bases(bevel=undef, axis="z", bevel_bottom=undef, b
                         [__BEVEL_BASES_MOD_ID, axis, bevel, bevel ] :
                         is_vector_2D(bevel) ?
                             [   __BEVEL_BASES_MOD_ID, axis,
-                                __spp__get_bevel_for_axis(bevel[0], bevel[1], axis),
-                                __spp__get_bevel_for_axis(bevel[0], bevel[1], axis)
+                                __solidpp__expand_a_and_h_based_on_axis(bevel[0], bevel[1], axis),
+                                __solidpp__expand_a_and_h_based_on_axis(bevel[0], bevel[1], axis)
                             ] : 
                             [undef, "argument 'bevel' must either be a vector 3D, vector 2D or a number"] :
                 let(
@@ -79,12 +80,12 @@ function __solidpp__new_bevel_bases(bevel=undef, axis="z", bevel_bottom=undef, b
                         is_num(_bevel_bottom) ?
                             [_bevel_bottom, _bevel_bottom, _bevel_bottom] :
                             is_vector_2D(_bevel_bottom) ?
-                                __spp__get_bevel_for_axis(_bevel_bottom[0], _bevel_bottom[1], axis) :
+                                __solidpp__expand_a_and_h_based_on_axis(_bevel_bottom[0], _bevel_bottom[1], axis) :
                                 _bevel_bottom,
                         is_num(_bevel_top) ?
                             [_bevel_top, _bevel_top, _bevel_top] :
                             is_vector_2D(_bevel_top) ?
-                                __spp__get_bevel_for_axis(_bevel_top[0], _bevel_top[1], axis) :
+                                __solidpp__expand_a_and_h_based_on_axis(_bevel_top[0], _bevel_top[1], axis) :
                                 _bevel_top
                     ] :
                     [undef, "both arguments 'bevel_bottom' and 'bevel_top' must either be a vector 3D, vector 2D or a number"];

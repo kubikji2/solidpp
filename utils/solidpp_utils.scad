@@ -214,3 +214,11 @@ function __solidpp__expand_edge_modifier(data, axes_mask, axes_cnt) =
                 axes_mask.x && axes_mask.z ?
                     [_data[0], 0, _data[1]] :
                     [0, _data[0], _data[1]];
+
+// __protected__ function expands 'a' and 'h' based on the 'axis' into the vector 3D
+function __solidpp__expand_a_and_h_based_on_axis(a, h, axis) =
+    axis == "x" || axis == "X" ? 
+        [h,a,a] :
+        axis == "y" || axis == "Y" ?
+            [a,h,a] :
+            [a,a,h];

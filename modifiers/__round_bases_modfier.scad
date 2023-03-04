@@ -79,4 +79,13 @@ function __solidpp__round_bases__compensate_for_rounding(round_bases_mod, r) =
     ];
 
 
+// returns the 'bevel_corners' modifier if possible
+// '-> otherwise return the [undef, <message>] standard modifier format
+// '-> expected format is:
+//     '-> "__BEVEL_BASES__"
+//     '-> argument 'axis' as a string
+//     '-> argument 'bevel_bottom' as vector3D
+//     '-> argument 'bevel_top' as vector3D
+function __solidpp__new_bevel_bases(bevel=undef, axis="z", bevel_bottom=undef, bevel_top=undef) = 
+    undef;
 // round_bases(r|d, axis='z', r_bottom|d_bottom=undef, r_top|d_top=undef)
