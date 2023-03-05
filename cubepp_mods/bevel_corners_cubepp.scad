@@ -53,6 +53,10 @@ module bevel_corners_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cen
     // '-> if number, fill array
     __bevel = is_undef(bevel) ? 0.1 : bevel;
 
+    // TODO check mod
+    
+    // TODO check both mod and bevel
+
     // processing data using the modifier constructor back-end
     parsed_data = !is_undef(mod) ? 
                     mod :

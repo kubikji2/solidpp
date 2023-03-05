@@ -32,6 +32,10 @@ mod=undef, __mod_queue = undef)
     // construct _r
     __r = is_undef(r) && is_undef(d) ? 0.1 : r;
 
+    // TODO check mod
+    
+    // TODO check both mod and r and d
+
     // processing data using the modifier constructor back-end
     parsed_data = !is_undef(mod) ?
                     mod :
