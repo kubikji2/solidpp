@@ -145,10 +145,13 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
             if (_b_h > 0)
             {   
                 _k = _d1 > _d2 ? 0 : _b_h;
+
                 _a = __solidpp__lerp(__a*_d1, __a*_d2, _k);
                 _b = __solidpp__lerp(__b*_d1, __b*_d2, _k);
+
                 _semi_axis_a = __solidpp__lerp(__a*_d1, __a*_d2, _k) - 2*__b_a;
                 _semi_axis_b = __solidpp__lerp(__b*_d1, __b*_d2, _k) - 2*__b_a;
+                
                 _area_size = [_a, _b, __b_h];
                 _diff_size = scale_vec(1.1,_area_size);
 
@@ -169,7 +172,6 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                             
                     }
                 }
-            }                
-
+            }
         }
 }   
