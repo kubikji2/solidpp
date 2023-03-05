@@ -73,11 +73,11 @@ module bevel_bases_cubepp(size=undef, bevel=undef, align=undef, zet=undef, cente
 
     // expand data
     _zet = parsed_data[__BEVEL_AXIS_IDX];
-    _bevel_bottom = parsed_data[__BEVEL_BASES_BOTTOM_IDX];
-    _bevel_top = parsed_data[__BEVEL_BASES_TOP_IDX];
+    _bevel_bottom = parsed_data[__BEVEL_BASES_BOTTOM_3D_IDX];
+    _bevel_top = parsed_data[__BEVEL_BASES_TOP_3D_IDX];
 
     _mask = __solidpp__get_normal_from_zet(_zet);
-    _size_offset = add_vecs(pwm_vecs(_mask, _bevel_top),pwm_vecs(_mask, _bevel_bottom));
+    _size_offset = add_vecs(pwm_vecs(_mask, _bevel_top), pwm_vecs(_mask, _bevel_bottom));
     _size = sub_vecs(__size,_size_offset);
 
     // process the align and center to produce offset
