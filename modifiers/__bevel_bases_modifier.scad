@@ -135,7 +135,9 @@ function __solidpp__new_bevel_bases(bevel=undef, axis="z", bevel_bottom=undef, b
                                 // bevel_bottom as vector 2D
                                 is_vector_2D(_bevel_bottom) ?
                                     _bevel_bottom :
-                                    undef,
+                                    is_num(_bevel_bottom) ?
+                                        [_bevel_bottom, _bevel_bottom] :
+                                        undef,
                                 // bevel_top as vector 3D
                                 is_num(_bevel_top) ?
                                     [_bevel_top, _bevel_top, _bevel_top] :
@@ -145,6 +147,8 @@ function __solidpp__new_bevel_bases(bevel=undef, axis="z", bevel_bottom=undef, b
                                 // bevel_top as vector 2D
                                 is_vector_2D(_bevel_top) ?
                                     _bevel_top :
-                                    undef
+                                    is_num(_bevel_top) ?
+                                        [_bevel_top, _bevel_top] :
+                                        undef
                             ] :
                             [undef, "arguments 'bevel_bottom' and 'bevel_top' must either be a vector 3D, vector 2D or a number"];
