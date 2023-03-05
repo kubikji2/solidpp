@@ -4,17 +4,6 @@ include<utils/vector_operations.scad>
 // cylinderpp default alignment
 CYLINDERPP_DEF_ALIGN = "z";
 
-// single-use function to construct bounding box from the diameter, height and zet
-function __solidpp__construct_cylinderpp_size(d,h,zet) =
-    is_undef(zet) ?
-        [d,d,h] :
-        (zet == "x") || (zet == "X") ?
-            [h,d,d] :
-            (zet == "y") || (zet == "Y") ?
-                [d,h,d] :
-                [d,d,h];
-
-
 // improved version of cylinder module
 // - argument 'size' defines the size of bounding box
 //   '-> it can either be:
@@ -86,7 +75,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     // check r and d
     assert(is_undef(r) || is_num(r) || is_vector_2D(r), "[CYLINDERPP] argument 'r' is neither a number nor vector 2D!");
     assert(is_undef(d) || is_num(d) || is_vector_2d(d), "[CYLINDERPP] argument 'd' is neither a number nor vector 2D!");
-    assert(!is_undef(r) || !is_undef(d), "[CYLINDERPP] defining both 'd' and 'r' is not permitted!");
+    assert(is_undef(r) || is_undef(d), "[CYLINDERPP] defining both 'd' and 'r' is not permitted!");
     // process r and d
     _d = !is_undef(d) ?
             d :  
