@@ -1,4 +1,5 @@
 include<utils/solidpp_utils.scad>
+include<utils/vector_operations.scad>
 
 // cylinderpp default alignment
 CYLINDERPP_DEF_ALIGN = "z";
@@ -24,11 +25,13 @@ function __solidpp__construct_cylinderpp_size(d,h,zet) =
 // - argument 'r' defines the cylinder radius
 //   '-> it can either be:
 //       - a single number,
+//       - a vector 2D,
 //       - 'undef' (default value) to use default radius
 //   '-> note that you cannot define both 'r' and 'd'
 // - argument 'd' defines the cylinder diameter
 //   '-> it can either be:
 //       - a single number,
+//       - a vector 2D,
 //       - 'undef' (default value) to use default radius
 //   '-> note that you cannot define both 'r' and 'd'
 // - argument 'align' defines the cylinder alignment
@@ -72,48 +75,57 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
 
     __module_name = "CYLINDERPP";
 
-    // h, d|r and size is illegal
+    // {h, r|d} and size is illegal
     assert(is_undef(size) || (is_undef(r) && is_undef(d) && is_undef(h)) , "[CYLINDERPP] defining both 'size' and ('r'|'d'),'h' is not permited!");
 
     // check h
-    assert(is_undef(h) || is_num(h), "[CYLINDERPP] argument 'h' is either undefined or scalar value!");
+    assert(is_undef(h) || is_num(h), "[CYLINDERPP] argument 'h' is not a number!");
     // process heigh
     _h = !is_undef(h) ? h : 1;
 
     // check r and d
-    assert(is_undef(r) || is_num(r), "[CYLINDERPP] argument 'r' is either undefined or scalar value!");
-    assert(is_undef(d) || is_num(d), "[CYLINDERPP] argument 'd' is either undefined or scalar value!");
-    assert(!is_undef(r) || !is_num(d), "[CYLINDERPP] defining both 'd' and 'r' is not permitted!");
+    assert(is_undef(r) || is_num(r) || is_vector_2D(r), "[CYLINDERPP] argument 'r' is neither a number nor vector 2D!");
+    assert(is_undef(d) || is_num(d) || is_vector_2d(d), "[CYLINDERPP] argument 'd' is neither a number nor vector 2D!");
+    assert(!is_undef(r) || !is_undef(d), "[CYLINDERPP] defining both 'd' and 'r' is not permitted!");
     // process r and d
     _d = !is_undef(d) ?
             d :  
             !is_undef(r) ?
-                2*r :
+                is_num(d) ?  // this is not necessary in recent openscad releases
+                    2*r :
+                    scale_vector(2,r) :
                 undef;
 
     // d1,d2 and r1,r2 must be defined in pairs
     assert(is_undef(d1)==is_undef(d2), "[CYLINDERPP] either none or both arguments 'd1','d2' must be defined!");
     assert(is_undef(r1)==is_undef(r2), "[CYLINDERPP] either none or both arguments 'r1','r2' must be defined!");
+
     // d1, d2, r1, r2 are either undefined or numbers
-    assert(is_undef(r1) || is_num(r1), "[CYLINDERPP] argument 'r1' is either undefined or scalar value!");
-    assert(is_undef(d1) || is_num(d1), "[CYLINDERPP] argument 'd1' is either undefined or scalar value!");
-    assert(is_undef(r2) || is_num(r2), "[CYLINDERPP] argument 'r2' is either undefined or scalar value!");
-    assert(is_undef(d2) || is_num(d2), "[CYLINDERPP] argument 'd2' is either undefined or scalar value!");
+    assert(is_undef(r1) || is_num(r1), "[CYLINDERPP] argument 'r1' is not a number!");
+    assert(is_undef(d1) || is_num(d1), "[CYLINDERPP] argument 'd1' is not a number!");
+    assert(is_undef(r2) || is_num(r2), "[CYLINDERPP] argument 'r2' is not a number!");
+    assert(is_undef(d2) || is_num(d2), "[CYLINDERPP] argument 'd2' is not a number!");
+
     // both r1,r2 and d1,d2 pairs cannod be defined at the same time
-    assert(!((!is_undef(d1) && !is_undef(d2)) && (!is_undef(r1) && !is_undef(r2))), "[CYLINDERPP] you cannot define both 'r1','r2' and 'd1','d2'!");
+    assert(is_undef(r1) || is_undef(d1), "[CYLINDERPP] you cannot define both 'r1' and 'd1' at the same time!");
+    assert(is_undef(r2) || is_undef(d2), "[CYLINDERPP] you cannot define both 'r2' and 'd2' at the same time!");
     
     // process r1,r2 or d1,d2 or _d to absolute diameters __d1,__d2
     __d1 = !is_undef(d1) ?
             d1 :
             !is_undef(r1) ?
                 2*r1 :
-                _d;
+                is_vector_2D(_d) ?
+                    _d[0] :
+                    _d;
     
     __d2 = !is_undef(d2) ?
             d2 :
             !is_undef(r2) ?
                 2*r2 :
-                _d;
+                is_vector_2D(_d) ?
+                    _d[1] :
+                    _d;
     
     // get maximum of the the diameters __d1,__d2
     _d_max = !is_undef(__d1) && ! is_undef(__d2) ?
@@ -129,26 +141,18 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
             __d2/_d_max :
             1;
 
-    // check zet
-    // '-> it is string or undef
-    assert(is_undef(zet) || is_string(zet), "[CYLINDERPP] arguments 'zet' is eithter 'undef' or a string!");
-    
-    // construct rotation
-    _r = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
-
     // check size
     __solidpp__assert_size_like(size, "size", __module_name);
     
     // create bounding box from size
     __size = __solidpp__get_argument_as_3Dlist(size, undef);
+
     // create bounding box, possibly using cylinder-specific arguments
     _size = !is_undef(__size) ?
                 __size :
-                !is_undef(__size) ?
-                    __size :
-                    !is_undef(_d_max) && !is_undef(_h) ?
-                        __solidpp__construct_cylinderpp_size(_d_max, _h, zet) :
-                        [1,1,1];
+                !is_undef(_d_max) && !is_undef(_h) ?
+                    __solidpp__construct_cylinderpp_size(_d_max, _h, zet) :
+                    [1,1,1];
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
@@ -158,11 +162,18 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
             center=center,
             solidpp_name=__module_name,
             def_align=CYLINDERPP_DEF_ALIGN);
+
+    // check zet
+    // '-> it is string or undef
+    assert(is_undef(zet) || is_string(zet), "[CYLINDERPP] arguments 'zet' is eithter 'undef' or a string!");
     
+    // construct rotation
+    _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
+
     // construct the solid
     translate(_o)
         resize(_size)
-            rotate(_r)
+            rotate(_rot)
                 cylinder(d1=_d1,d2=_d2,h=1, center=true);
 }
 
