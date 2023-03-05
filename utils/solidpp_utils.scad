@@ -263,3 +263,16 @@ function __solidpp__lerp(a,b,k) =
     assert (k <= 1 && k >= 0, "[LERP] cannot interpolate outside of range [0,1]!")
     a*(1-k) + b*(k);
 
+
+// __private__ recursive implementaion of __solidpp__count_undef_in_list
+function __spp__count_undef_in_list(l, idx, res) = 
+    len(l) == idx ?
+        res :
+        __spp__count_undef_in_list(l, idx+1, res + (is_undef(l[idx]) ? 1 : 0));
+
+// __protected__ function to compute number of undef elements in the array
+function __solidpp__count_undef_in_list(l) =
+    is_list(l) ?
+        __spp__count_undef_in_list(l, 0, 0) :
+        undef;
+
