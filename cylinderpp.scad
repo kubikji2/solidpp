@@ -1,6 +1,6 @@
 include<utils/solidpp_utils.scad>
 include<utils/vector_operations.scad>
-include<utils/cylinderpp_utils.scad>
+include<utils/__cylinderpp_utils.scad>
 
 // cylinderpp default alignment
 CYLINDERPP_DEF_ALIGN = "z";
