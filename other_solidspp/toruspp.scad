@@ -1,55 +1,21 @@
 include<../utils/solidpp_utils.scad>
+include<../utils/__toroidpp_utils.scad>
 include<../shapespp/circlepp.scad>
 
 TORUSPP_DEF_ALIGN = "";
 
-
 // TODO documentation
-module toruspp(t=undef, r=undef, d=undef, R=undef, D=undef, align=undef, h=undef, zet="z", center=false)
+module toruspp(t=undef, r=undef, d=undef, R=undef, D=undef, h=undef, align=undef, zet="z", center=false)
 {
     // module name
     __module_name = "TORUSPP";
 
-    // raw argument mutex group
-    _raw_mutex = [  t, 
-                        is_undef(r) ? d : r,
-                        is_undef(R) ? D : R
-                    ];
-    _raw_undef = __solidpp__count_undef_in_list(_raw_mutex);
-
-    // first parameter processing
-    __t = t;
-    __r = _raw_undef == 3 ?
-            0.5 :
-            !is_undef(d) ?
-                d/2 :
-                r;
-    __R = _raw_undef == 3 ?
-            1 :
-            !is_undef(D) ?
-                D/2 :
-                R;
-
-    // computing user-defined parameters
-    _mutex_group = [__t, __r, __R];
-    _n_undef = __solidpp__count_undef_in_list(_mutex_group);
-
-    // check the new mutex group
-    assert(_n_undef == 1,
-            str("[", __module_name, "] exactly two arguments {'r|d', 'R|D', 't'} must be defined!"));
-    assert(is_undef(r) || is_undef(d),
-            str("[", __module_name, "] cannot define both 'r' and 'd'!"));
-    assert(is_undef(R) || is_undef(D),
-            str("[", __module_name, "] cannot define both 'R' and 'D'!"));
-    
-
-    _r = !is_undef(__t) && !is_undef(__R) ? __R-__t : __r;
-    _R = !is_undef(__t) && !is_undef(__r) ? __r+__t : __R;
-    _t = !is_undef(__R) && !is_undef(__r) ? __R-__r : __t;
-
-    _h = is_undef(h) ?
-            _t :
-            h;
+    // checking and processing toroidpp parameters
+    parsed_data = __solidpp__toroidpp__check_parameters(t=t, r=r, d=d, R=R, D=D, h=h);
+    _r = parsed_data[0];
+    _R = parsed_data[1];
+    _t = parsed_data[2];
+    _h = parsed_data[3];
 
     // check zet
     // '-> it is string or undef
