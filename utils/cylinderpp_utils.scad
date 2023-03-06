@@ -26,7 +26,7 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
             str("[", module_name, "] argument 'h' is not a number!"))
     
     // process heigh
-    let (_h = !is_undef(h) ? h : def_h)
+    let (_h = !is_undef(h) || !is_undef(size) ? h : def_h)
 
     // check r and d
     assert( is_undef(r) || is_num(r) || is_vector_2D(r),

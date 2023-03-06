@@ -68,10 +68,13 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     // check size
     __solidpp__assert_size_like(size, "size", __module_name);
 
+    // handlign default zet
+    _zet = is_undef(zet) ? "z" : zet;
+
     // parsing and checking cylinder-related data
     cyl_data = __solidpp__cylinderpp__check_params(
                     module_name=__module_name, size=size, r=r, d=d, h=h,
-                    r1=r1, r2=r2, d1=d1, d2=d2, zet=zet);
+                    r1=r1, r2=r2, d1=d1, d2=d2, zet=_zet);
     
     // data extraction
     _h = cyl_data[__CYLINDERPP_UTILS__h_idx];

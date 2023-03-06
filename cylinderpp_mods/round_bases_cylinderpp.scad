@@ -3,8 +3,10 @@ include<../utils/cylinderpp_utils.scad>
 include<../modifiers/__round_bases_modifier.scad>
 include<../transforms/transform_to_spp.scad>
 include<../other_solidspp/toruspp.scad>
+include<../shapespp/circlepp.scad>
 
 assert(!is_undef(__DEF_CYLINDERPP__), "[ROUND-BASES-CYLINDER++] cylinderpp.scad must be included!");
+assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-CORNERS-CUBE++] spherepp.scad must be included!");
 
 
 module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef, 
@@ -21,12 +23,15 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     // check size
     __solidpp__assert_size_like(size, "size", __module_name);
 
+    // handlign default zet
+    _zet = is_undef(zet) ? "z" : zet;
+
     // parse and checked data
     cyl_data = __solidpp__cylinderpp__check_params(
                     module_name=__module_name, size=size, r=r, d=d, h=h,
-                    r1=r1, r2=r2, d1=d1, d2=d2, zet=zet);
+                    r1=r1, r2=r2, d1=d1, d2=d2, zet=_zet);
     
-    _h = cyl_data[__CYLINDERPP_UTILS__h_idx];
+    __h = cyl_data[__CYLINDERPP_UTILS__h_idx];
     _size = cyl_data[__CYLINDERPP_UTILS__size_idx];
     _d1 = cyl_data[__CYLINDERPP_UTILS__d1_idx];
     _d2 = cyl_data[__CYLINDERPP_UTILS__d2_idx];
@@ -34,14 +39,13 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     __d1 = cyl_data[__CYLINDERPP_UTILS___d1_idx];
     __d2 = cyl_data[__CYLINDERPP_UTILS___d2_idx];
     
+    _h = !is_undef(__h) ? __h :  __solidpp__get_a_b_h_from_size_and_zet(_size, _zet)[2];
+
     // handling default bevel
     _round_r =  !is_undef(r_both) || !is_undef(d_both) || !is_undef(r_top) ||
                 !is_undef(d_top) || !is_undef(r_bottom) || !is_undef(d_bottom)? 
                     r_both :
                     0.1;
-
-    // handlign default zet
-    _zet = is_undef(zet) ? "z" : zet;
 
     // bevel base oriented parsing
 
@@ -118,8 +122,8 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                 _a = __solidpp__lerp(__a*_d2, __a*_d1, _k);
                 _b = __solidpp__lerp(__b*_d2, __b*_d1, _k);
 
-                //_semi_axis_a = __solidpp__lerp(__a*_d2, __a*_d1, _k) - 2*__t_r;
-                //_semi_axis_b = __solidpp__lerp(__b*_d2, __b*_d1, _k) - 2*__t_r;
+                _semi_axis_a = _a - 2*__t_r;
+                _semi_axis_b = _b - 2*__t_r;
                 
                 _area_size = [_a, _b, __t_h];
                 _diff_size = scale_vec(1.1,_area_size);
@@ -130,10 +134,13 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                 {
                     transform_to_spp(_area_size,align="Z",pos="z")                    
                         cylinderpp(_diff_size, align="z");
-
-                    toruspp(D=_a, d=_a-4*__t_r, h=2*__t_h,align="Z");
-
-                    cylinderpp(d=_a-2*__t_r, h=__t_h, align="Z");
+                    
+                    minkowski()
+                    {
+                        translate([0,0,-__t_h])    
+                            cylinderpp([_semi_axis_a,_semi_axis_b,__t_h], align="Z");
+                        spherepp(scale_vec(2,[__t_r,__t_r,__t_h]));
+                    }
                 }
             }
 
@@ -146,8 +153,8 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                 _a = __solidpp__lerp(__a*_d1, __a*_d2, _k);
                 _b = __solidpp__lerp(__b*_d1, __b*_d2, _k);
                 
-                //_semi_axis_a = __solidpp__lerp(__a*_d1, __a*_d2, _k) - 2*__b_r;
-                //_semi_axis_b = __solidpp__lerp(__b*_d1, __b*_d2, _k) - 2*__b_r;
+                _semi_axis_a = _a - 2*__b_r;
+                _semi_axis_b = _b - 2*__b_r;
                 
                 _area_size = [_a, _b, __b_h];
                 _diff_size = scale_vec(1.1,_area_size);
@@ -160,9 +167,12 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                     transform_to_spp(_area_size,align="z",pos="Z")             
                         cylinderpp(_diff_size, align="Z");
                     
-                    toruspp(D=_a, d=_a-4*__b_r, h=2*__b_h, align="z");
-
-                    cylinderpp(d=_a-2*__b_r, h=__b_h, align="z");
+                    minkowski()
+                    {
+                        translate([0,0,__b_h])    
+                            cylinderpp([_semi_axis_a,_semi_axis_b,__b_h], align="z");
+                        spherepp(scale_vec(2,[__b_r,__b_r,__b_h]));
+                    }
                 }
             }
 
