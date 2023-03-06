@@ -168,6 +168,7 @@ TODO
 TODO
 
 How to distinguish between the beveling/rounding inner hole edge and/or outer edge using current parameters.
+TODO separate modifiers for the outer and the inner cylinder
 
 #### Torus (`toruspp()`)
 
@@ -329,17 +330,17 @@ If the argument `h` is missing, the height is considered to be the same as the s
   - [x] modifier `bevel_edges`
 - [ ] integrate constructors into the solid++
   - [ ] modifier `round_corners`
-    - [ ] `cubepp`
+    - [x] `cubepp`
     - [ ] `cylinderpp`
   - [ ] modifier `round_edges`
-    - [ ] `cubepp`
+    - [x] `cubepp`
     - [ ] `cylinderpp`
   - [ ] modifier `bevel_base`
-    - [ ] `cubepp`
+    - [x] `cubepp`
     - [ ] `cylinderpp`
   - [ ] modifier `bevel_corners`
-    - [ ] `cubepp`
+    - [x] `cubepp`
     - [ ] `cylinderpp`
   - [ ] modifier `bevel_edges`
-    - [ ] `cubepp`
+    - [x] `cubepp`
     - [ ] `cylinderpp`
