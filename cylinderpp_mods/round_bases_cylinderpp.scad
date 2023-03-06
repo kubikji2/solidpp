@@ -2,12 +2,9 @@ include<../utils/solidpp_utils.scad>
 include<../utils/cylinderpp_utils.scad>
 include<../modifiers/__round_bases_modifier.scad>
 include<../transforms/transform_to_spp.scad>
-include<../other_solidspp/toruspp.scad>
-include<../shapespp/circlepp.scad>
 
 assert(!is_undef(__DEF_CYLINDERPP__), "[ROUND-BASES-CYLINDER++] cylinderpp.scad must be included!");
-assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-CORNERS-CUBE++] spherepp.scad must be included!");
-
+assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-BASES-CYLINDER++] spherepp.scad must be included!");
 
 module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef, 
                                 align=undef, zet=undef, center=false,
