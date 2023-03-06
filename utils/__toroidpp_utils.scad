@@ -14,12 +14,12 @@ function __solidpp__toroidpp__check_parameters(module_name, r, d, R, D, t, h, de
         // first parameter processing
         __t = t,
         __r = _raw_undef == 3 ?
-                0.5 :
+                def_r :
                 !is_undef(d) ?
                     d/2 :
                     r,
         __R = _raw_undef == 3 ?
-                1 :
+                def_R :
                 !is_undef(D) ?
                     D/2 :
                     R,
