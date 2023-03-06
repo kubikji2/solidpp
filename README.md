@@ -163,16 +163,30 @@ TODO
 
 TODO
 
-#### Tube (`tubepp()`)
+#### Tube (`tubepp(t, r|d, R|D, h, align=undef, zet="z", mod_list=undef, inner_mod_list=undef, outer_mod_list=undef)`)
 
-TODO
+This module allows creation of the general cube using exactly two arguments inner radius/diameter (`r|d`), outer radius/diameter (`R|D`) or the shell thickness (`t`).
+The height of the tube is defined by `h`.
 
-How to distinguish between the beveling/rounding inner hole edge and/or outer edge using current parameters.
-TODO separate modifiers for the outer and the inner cylinder
+Both inner radius/diameter (`r|d`) or outer radius/diameter (`R|D`) can be either a single number or a vector 2D.
+In case of the 2D vector the first number expresses the radius/diameter of the cylinder bottom base and the second number expresses the radius/diameter of the cylider top base similarly to the cylinder `r1,r2|d1,d2`.
 
-#### Torus (`toruspp()`)
+The tube can be modified using the there arguments: `mod_list`, `inner_mod_list` and `outer_mod_list`.
+The argument `mod_list` defines the modifications to be applied to the tube itself.
+The argument `inner_mod_list` defines the modifications for the inner cylinder (hole) only.
+Similarlym, the argument `outer_mod_list` defines the modifications for the bounding-cylinder only (cylinder without drilled hole).
+Using the combination of these list, one can create tube with edges beveled/rounded differently for the shell and the hole.
+Note that the all list arguments must contain only the compatible modifiers (see bellow).
 
-TODO
+QTA: how the size is managed?
+
+#### Torus (`toruspp(t, r|d, R|D, h=undef, align=undef, zet="z")`)
+
+Ths module provides torus implementation.
+If projected to the dominant plane (xy-plane in case of `zet="z"`, i.e. top-down vier) the torus shriks to annulus and the argument `r|d` is the inner circle radius/diameter, argument `R|D` is the outer circle radius/diameter and argument `t` is the annulus thickness.
+Argument `h` automatically computed such that torus intersection in dominant plane (any plane containing the the dominant axis, for `zet="z"` any plane containing z-axis) contain two circles if `h` is not provided, othrwise it defines the annulus height.
+
+QTA: how the size is managed?
 
 ### Modifiers
 
@@ -197,7 +211,7 @@ As seen in the table, `spherepp` cannot be modified by any means, `cubepp` provi
 |----------------:|:---------:|:-----------:|:-------------:|:--------:|:---------:|
 |   `round_bases` |    YES    |     ???     |     ???       |   YES    |    NO     |
 | `round_corners` |    YES    |     YES     |     YES       |   NO     |    NO     |
-|   `round_edges` |    YES    |     ???     |     NO        |   ???    |    NO     |
+|   `round_edges` |    YES    |     ???     |     NO        |   NO     |    NO     |
 |   `bevel_bases` |    YES    |     YES     |     NO        |   YES    |    NO     |
 | `bevel_corners` |    NO     |     NO      |     NO        |   NO     |    NO     |
 |   `bevel_edges` |    NO     |     NO      |     NO        |   NO     |    NO     |
@@ -205,11 +219,18 @@ As seen in the table, `spherepp` cannot be modified by any means, `cubepp` provi
 
 TODO
 
-#### Round bases (`round_bases(r|d, axis='z', r_base|d_base=undef, r_top|d_top=undef)`)
+#### Round bases (`round_bases(r|d, axis='z', r_bottom|d_bottom=undef, r_top|d_top=undef)`)
 
-TODO description
+Round bases of solidpp the using the rounding radius/diameter `r|d` of the both bases, or the bottom base rounding radius/diameter `r_bottom|d_bottom` and/or top base rounding radius/diamter `r_top|d_top`.
 
-TODO: how to round other edges, then the bases? - using rounded sides can be achieved by nesting the modifiers
+In case of multiple possible bases orientation, argument `axis` is used to define the dominant axis as a string containg a single (upper or lower case) letter. 
+Note that `axis` is ignored for `cyliderpp`, `prismpp` and `tubepp`.
+
+The radius/diameter arguments can be a single number or a vector 2D for any compatible solidpp.
+In case of single number, the uniform base rounding is use and the number denotes radius/diameter of rounding sphere.
+In case of 2D vector, the first number  denotes distance (distance times two) between the original bases and the new bases and the second number denotes distance between the original and new base.
+Moreover, for the `cubepp`, vector 3D is also a viable option.
+In this case the defines the semi/axes of the rounding elipsoid in the [`x`, `y`, `z`]-axis.
 
 #### Round corners (`round_corners(r|d)`)
 

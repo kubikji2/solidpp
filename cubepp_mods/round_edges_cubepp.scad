@@ -32,6 +32,10 @@ mod=undef, __mod_queue = undef)
     // define axes
     _axes = is_undef(axes) ? "xy" : axes;
 
+    // TODO check mod
+    
+    // TODO check both mod and r or d or axes
+
     // processing data using the modifier constructor back-end
     parsed_data =!is_undef(mod) ?
                     mod :

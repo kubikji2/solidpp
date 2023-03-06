@@ -214,3 +214,65 @@ function __solidpp__expand_edge_modifier(data, axes_mask, axes_cnt) =
                 axes_mask.x && axes_mask.z ?
                     [_data[0], 0, _data[1]] :
                     [0, _data[0], _data[1]];
+
+
+// __protected__ function expands 'a' and 'h' based on the 'axis' into the vector 3D
+function __solidpp__expand_a_and_h_based_on_axis(a, h, axis) =
+    axis == "x" || axis == "X" ? 
+        [h,a,a] :
+        axis == "y" || axis == "Y" ?
+            [a,h,a] :
+            [a,a,h];
+
+
+// __protected__ function to construct bounding box from the diameter, height and zet for cylinder-like structures
+function __solidpp__construct_cylinderpp_size(d, h, zet) =
+    is_undef(zet) ?
+        [d,d,h] :
+        (zet == "x") || (zet == "X") ?
+            [h,d,d] :
+            (zet == "y") || (zet == "Y") ?
+                [d,h,d] :
+                [d,d,h];
+
+
+// __protected__ function to construct bounding box size from 'a', 'b' and 'h' given the orientation 'zet'
+function __solidpp__construct_size_from_a_b_h_and_zet(a, b, h, zet) =
+    is_undef(zet) ?
+        [a,b,h] :
+        (zet == "x") || (zet == "X") ?
+            [h,a,b] :
+            (zet == "y") || (zet == "Y") ?
+                [a,h,b] :
+                [a,b,h];
+
+
+// __protected__ function to extractr 'a', 'b' and 'h' from bounding box given the orientation 'zet'
+function __solidpp__get_a_b_h_from_size_and_zet(size, zet) =
+    is_undef(zet) ?
+        [size.x, size.y, size.z] :
+        (zet == "x") || (zet == "X") ?
+            [size.z, size.y, size.x] :
+            (zet == "y") || (zet == "Y") ?
+                [size.x, size.z, size.y] :
+                [size.x, size.y, size.z];
+
+
+// __protected__ function to linearly interpolate between point a and point b using k in range [0,1]
+function __solidpp__lerp(a,b,k) = 
+    assert (k <= 1 && k >= 0, "[LERP] cannot interpolate outside of range [0,1]!")
+    a*(1-k) + b*(k);
+
+
+// __private__ recursive implementaion of __solidpp__count_undef_in_list
+function __spp__count_undef_in_list(l, idx, res) = 
+    len(l) == idx ?
+        res :
+        __spp__count_undef_in_list(l, idx+1, res + (is_undef(l[idx]) ? 1 : 0));
+
+// __protected__ function to compute number of undef elements in the array
+function __solidpp__count_undef_in_list(l) =
+    is_list(l) ?
+        __spp__count_undef_in_list(l, 0, 0) :
+        undef;
+
