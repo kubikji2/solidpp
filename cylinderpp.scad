@@ -5,6 +5,7 @@ include<utils/__cylinderpp_utils.scad>
 // cylinder mods
 include<cylinderpp_mods/bevel_bases_cylinderpp.scad>
 include<cylinderpp_mods/round_bases_cylinderpp.scad>
+include<cylinderpp_mods/round_corners_cylinderpp.scad>
 
 // mod queue management
 include<modifiers/modifiers.scad>
@@ -129,7 +130,6 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         _mod_queue = __solidpp__queue_size(_ret[1]) > 0 ? _ret[1] : undef;
 
         translate(_o)
-        resize(_size)
         rotate(_rot)
         if (__solidpp__is_valid_bevel_bases_modifier(_mod))
         {
@@ -144,7 +144,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         else if (__solidpp__is_valid_round_corners_modifier(_mod))
         {
             // round corners
-            echo("Not yet supported!");
+            round_corners_cylinderpp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
         }
         else if (__solidpp__is_valid_modifier(_mod))
         {
