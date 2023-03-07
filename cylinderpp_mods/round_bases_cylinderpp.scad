@@ -11,7 +11,7 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                                 r1=undef, r2=undef, d1=undef, d2=undef,
                                 r_both=undef, d_both=undef, r_top=undef,
                                 d_top=undef, r_bottom=undef, d_bottom=undef,
-                                mod=undef)
+                                mod=undef, __mod_queue=undef)
 {
 
     // module name
@@ -103,7 +103,7 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
             // basic geometry
             resize(_size)
                 rotate(_rot)
-                    cylinderpp(d1=_d1, d2=_d2, h=1, center=true);
+                    cylinderpp(d1=_d1, d2=_d2, h=1, center=true, __mod_queue=__mod_queue);
 
             // parse size based on the orientation difined by zet
             base_dims = __solidpp__get_a_b_h_from_size_and_zet(_size, _zet);

@@ -10,7 +10,7 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                                 align=undef, zet=undef, center=false,
                                 r1=undef, r2=undef, d1=undef, d2=undef,
                                 bevel=undef, bevel_top=undef, bevel_bottom=undef,
-                                mod=undef)
+                                mod=undef, __mod_queue=undef)
 {
 
     // module name
@@ -19,12 +19,15 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     // check size
     __solidpp__assert_size_like(size, "size", __module_name);
 
+    // handlign default zet
+    _zet = is_undef(zet) ? "z" : zet;
+
     // parse and checked data
     cyl_data = __solidpp__cylinderpp__check_params(
                     module_name=__module_name, size=size, r=r, d=d, h=h,
                     r1=r1, r2=r2, d1=d1, d2=d2, zet=zet);
     
-    _h = cyl_data[__CYLINDERPP_UTILS__h_idx];
+    __h = cyl_data[__CYLINDERPP_UTILS__h_idx];
     _size = cyl_data[__CYLINDERPP_UTILS__size_idx];
     _d1 = cyl_data[__CYLINDERPP_UTILS__d1_idx];
     _d2 = cyl_data[__CYLINDERPP_UTILS__d2_idx];
@@ -32,6 +35,8 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     __d1 = cyl_data[__CYLINDERPP_UTILS___d1_idx];
     __d2 = cyl_data[__CYLINDERPP_UTILS___d2_idx];
     
+    _h = !is_undef(__h) ? __h :  __solidpp__get_a_b_h_from_size_and_zet(_size, _zet)[2];
+
     // bevel base oriented parsing
 
     // TODO check mod
@@ -42,9 +47,6 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     _bevel = !is_undef(bevel) || (!is_undef(bevel_top) || !is_undef(bevel_bottom)) ? 
                 bevel :
                 0.1;
-
-    // handlign default zet
-    _zet = is_undef(zet) ? "z" : zet;
 
     // processing data using the modifier constructor back-end
     parsed_data = !is_undef(mod) ? 
@@ -100,7 +102,7 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
             // basic geometry
             resize(_size)
                 rotate(_rot)
-                    cylinderpp(d1=_d1, d2=_d2, h=1, center=true);
+                    cylinderpp(d1=_d1, d2=_d2, h=1, center=true, __mod_queue=__mod_queue);
 
             // parse size based on the orientation difined by zet
             base_dims = __solidpp__get_a_b_h_from_size_and_zet(_size, _zet);

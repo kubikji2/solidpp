@@ -2,6 +2,14 @@ include<utils/solidpp_utils.scad>
 include<utils/vector_operations.scad>
 include<utils/__cylinderpp_utils.scad>
 
+// cylinder mods
+include<cylinderpp_mods/bevel_bases_cylinderpp.scad>
+include<cylinderpp_mods/round_bases_cylinderpp.scad>
+
+// mod queue management
+include<modifiers/modifiers.scad>
+include<modifiers/__modifiers_queue.scad>
+
 // cylinderpp default alignment
 CYLINDERPP_DEF_ALIGN = "z";
 
@@ -60,13 +68,20 @@ CYLINDERPP_DEF_ALIGN = "z";
 //   '-> note that it is possible to combine 'size' and the 'r1','r2' or 'd1','d2'
 //       in this case, the greater facet of the cylinder is resized to fit the bounding box facet
 //       and both cylinder facets are squezed according to the bounding box dimensions.
-module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef, center=false, r1=undef, r2=undef, d1=undef, d2=undef)
+module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef, center=false,
+                    r1=undef, r2=undef, d1=undef, d2=undef, mod_list=undef, __mod_queue=undef)
 {
 
     __module_name = "CYLINDERPP";
 
     // check size
     __solidpp__assert_size_like(size, "size", __module_name);
+
+    // check mod_list
+    assert(
+            is_undef(mod_list) || __solidpp__is_valid_modifier_list(mod_list),
+            str("[", __module_name, "] argument 'mod_list' be either undef or list of valid 'modifiers'!")
+            );
 
     // handlign default zet
     _zet = is_undef(zet) ? "z" : zet;
@@ -99,10 +114,50 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
 
     // construct the solid
-    translate(_o)
+    if(is_undef(mod_list) && is_undef(__mod_queue))
+    {
+        translate(_o)
+            resize(_size)
+                rotate(_rot)
+                    cylinder(d1=_d1,d2=_d2,h=1, center=true);
+    }
+    else
+    {
+        _tmp_queue = is_undef(__mod_queue) ? __solidpp__new_queue(mod_list) : __mod_queue;
+        _ret = __solidpp__pop(_tmp_queue);
+        _mod = _ret[0];
+        _mod_queue = __solidpp__queue_size(_ret[1]) > 0 ? _ret[1] : undef;
+
+        translate(_o)
         resize(_size)
-            rotate(_rot)
-                cylinder(d1=_d1,d2=_d2,h=1, center=true);
+        rotate(_rot)
+        if (__solidpp__is_valid_bevel_bases_modifier(_mod))
+        {
+            // bevel bases
+            bevel_bases_cylinderpp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
+        }
+        else if (__solidpp__is_valid_round_bases_modifier(_mod))
+        {
+            // round bases 
+            round_bases_cylinderpp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
+        }
+        else if (__solidpp__is_valid_round_corners_modifier(_mod))
+        {
+            // round corners
+            echo("Not yet supported!");
+        }
+        else if (__solidpp__is_valid_modifier(_mod))
+        {
+            // bevel edges
+            assert(false,
+            str("[", __module_name, "] unsupported modifier!"));
+        }
+        else
+        {
+            assert(false,
+            str("[", __module_name, "] something went wrong regarding modifiers!"));
+        }
+    }
 }
 
 // defining the cylinderpp 
