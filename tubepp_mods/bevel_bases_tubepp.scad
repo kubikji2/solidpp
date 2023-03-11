@@ -10,7 +10,7 @@ module bevel_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
 {
 
     // module name
-    __module_name = "TUBEPP";
+    __module_name = "BAVEL-BASES-TUBE++";
 
     // set default height if undef
     __h = is_undef(h) ? 1 : h;
@@ -65,10 +65,10 @@ module bevel_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
             str("[", __module_name, "] using 3D vector for beveling cylinder is not allowed!"));
 
     // expand bevels
-    __b_a = _bevel_bottom[0];
-    __b_h = _bevel_bottom[1];
-    __t_a = _bevel_top[0];
-    __t_h = _bevel_top[1];
+    _b_a = _bevel_bottom[0];
+    _b_h = _bevel_bottom[1];
+    _t_a = _bevel_top[0];
+    _t_h = _bevel_top[1];
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
@@ -91,9 +91,9 @@ module bevel_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
                 inner_mod_list=inner_mod_list, outer_mod_list=outer_mod_list);
 
         // top bevel
-        if (__t_h > 0)
+        if (_t_h > 0)
         {   
-            _area_size = [2*_R, 2*_R, __t_h];
+            _area_size = [2*_R, 2*_R, _t_h];
             _diff_size = scale_vec(1.1, _area_size);
 
             // transform to the top of the bounding box cube
@@ -106,21 +106,21 @@ module bevel_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
                 // not a cylinderpp, coz difference between base axis are not relateve, but absolute
                 difference()
                 {
-                    cylinderpp(r1=_R, r2=_R-__t_a, h=__t_h, align="Z");
+                    cylinderpp(r1=_R, r2=_R-_t_a, h=_t_h, align="Z");
 
                     // eps affects only preview
                     _eps = $preview ? 0.0001 : 0;
                     translate([0,0,_eps])
-                        cylinderpp(r1=_r, r2=_r+__t_a, h=__t_h+_eps, align="Z");
+                        cylinderpp(r1=_r, r2=_r+_t_a, h=_t_h+_eps, align="Z");
 
                 }
             }            
         }
 
         // bottom bevel
-        if (__b_h > 0)
+        if (_b_h > 0)
         {   
-            _area_size = [2*_R, 2*_R, __b_h];
+            _area_size = [2*_R, 2*_R, _b_h];
             _diff_size = scale_vec(1.1, _area_size);
 
             // transform to the top of the bounding box cube
@@ -133,12 +133,12 @@ module bevel_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
                 // not a cylinderpp, coz difference between base axis are not relateve, but absolute
                 difference()
                 {
-                    cylinderpp(r2=_R, r1=_R-__t_a, h=__t_h, align="z");
+                    cylinderpp(r2=_R, r1=_R-_b_a, h=_b_h, align="z");
 
                     // eps affects only preview
                     _eps = $preview ? 0.0001 : 0;
                     translate([0,0,-_eps])
-                        cylinderpp(r2=_r, r1=_r+__t_a, h=__t_h+_eps, align="z");
+                        cylinderpp(r2=_r, r1=_r+_b_a, h=_b_h+_eps, align="z");
 
                 }
             }            
