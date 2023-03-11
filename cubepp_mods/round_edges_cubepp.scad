@@ -5,7 +5,7 @@ include<../transforms/transform_if.scad>
 
 assert(!is_undef(__DEF_CUBEPP__), "[ROUND-EDGES-CUBE++] cubepp.scad must be included!");
 assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-EDGES-CUBE++] spherepp.scad must be included!");
-assert(!is_undef(__DEF_CYLINDERPP__), "[ROUND-EDGES-CUBE++] cylinder.scad must be included!");
+assert(!is_undef(__DEF_CYLINDERPP__), "[ROUND-EDGES-CUBE++] cylinderpp.scad must be included!");
 
 
 // TODO add readme
