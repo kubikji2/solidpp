@@ -198,7 +198,7 @@ Modifiers are created using constructors in `modifiers.scad` that are basically 
 |                 | `spherepp` | `cubepp` | `cylinderpp` |
 |----------------:|:----------:|:--------:|:------------:|
 | `round_bases`   |    NO      |   YES    |     YES      |
-| `round_corners` |    NO      |   YES    |     NO       |
+| `round_corners` |    NO      |   YES    |     YES      |
 | `round_edges`   |    NO      |   YES    |     NO       |
 | `bevel_bases`   |    NO      |   YES    |     YES      |
 | `bevel_corners` |    NO      |   YES    |     NO       |
@@ -210,7 +210,7 @@ As seen in the table, `spherepp` cannot be modified by any means, `cubepp` provi
 |                 | `prismpp` | `pyramidpp` | `trapezoidpp` | `tubepp` | `toruspp` |
 |----------------:|:---------:|:-----------:|:-------------:|:--------:|:---------:|
 |   `round_bases` |    YES    |     ???     |     ???       |   YES    |    NO     |
-| `round_corners` |    YES    |     YES     |     YES       |   NO     |    NO     |
+| `round_corners` |    YES    |     YES     |     YES       |   YES    |    NO     |
 |   `round_edges` |    YES    |     ???     |     NO        |   NO     |    NO     |
 |   `bevel_bases` |    YES    |     YES     |     NO        |   YES    |    NO     |
 | `bevel_corners` |    NO     |     NO      |     NO        |   NO     |    NO     |
@@ -328,40 +328,46 @@ If the argument `h` is missing, the height is considered to be the same as the s
 
 ### Modifiers roadmap
 
-- [x] interfaces defined
-- [ ] implement the back-end solids
-  - [x] round_bases_cubepp
-  - [x] round_corners_cubepp
-  - [x] round_edges_cubepp
-  - [x] bevel_bases_cubepp
-  - [x] bevel_edges_cubepp
-  - [x] bevel_corners_cubepp
-  - [ ] round_bases_cylinderpp
-  - [ ] bevel_bases_cylinderpp
-- [ ] implement the utilities for the back-end solids
+#### Stage 1 - basic solidpp (`cubepp`, `spherepp`, `cylinderpp`) and their modifier
+
+- [x] define interfaces
+- [x] implement the utilities for the back-end solids
   - [x] trapezoid
   - [x] tetrahedron
   - [x] prism
-- [ ] implement constructors
-  - [ ] modifier `round_bases`
+  - [x] toruspp
+- [x] implement constructors
+  - [x] modifier `round_bases`
   - [x] modifier `round_corners`
   - [x] modifier `round_edges`
   - [x] modifier `bevel_bases`
   - [x] modifier `bevel_corners`
   - [x] modifier `bevel_edges`
+- [ ] implement the `cubepp` back-end
+  - [ ] round_bases_cubepp
+  - [x] round_corners_cubepp
+  - [x] round_edges_cubepp
+  - [x] bevel_bases_cubepp
+  - [x] bevel_edges_cubepp
+  - [x] bevel_corners_cubepp
+- [x] implement the `cylinderpp` back-ends 
+  - [x] round_bases_cylinderpp
+  - [x] round_corners_cylinderpp
+  - [x] bevel_bases_cylinderpp
 - [ ] integrate constructors into the solid++
-  - [ ] modifier `round_corners`
+  - [ ] modifier `round_bases`
+    - [ ] `cubepp`
+    - [x] `cylinderpp`
+  - [x] modifier `round_corners`
     - [x] `cubepp`
-    - [ ] `cylinderpp`
-  - [ ] modifier `round_edges`
+    - [x] `cylinderpp`
+  - [x] modifier `round_edges`
     - [x] `cubepp`
-    - [ ] `cylinderpp`
-  - [ ] modifier `bevel_base`
+  - [x] modifier `bevel_bases`
     - [x] `cubepp`
-    - [ ] `cylinderpp`
-  - [ ] modifier `bevel_corners`
+    - [x] `cylinderpp`
+  - [x] modifier `bevel_corners`
     - [x] `cubepp`
-    - [ ] `cylinderpp`
-  - [ ] modifier `bevel_edges`
+  - [x] modifier `bevel_edges`
     - [x] `cubepp`
-    - [ ] `cylinderpp`
+
