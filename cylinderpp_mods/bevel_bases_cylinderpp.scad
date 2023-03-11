@@ -131,8 +131,8 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                     transform_to_spp(_area_size,align="Z",pos="z")                    
                         cylinderpp(_diff_size, align="z");
 
-                    // not a cylinderpp, coz differnce between base axis are not relateve, but absolute
-                    // TODO fix it in the future
+                    // not a cylinderpp, coz difference between base axis are not relateve, but absolute
+                    // TODO fix it in the future by a single geometry
                     hull()
                     {
                         cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001]);
@@ -164,8 +164,8 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                     // cylinderpp aligned to the the top of the beveled cylinder
                     transform_to_spp(_area_size,align="z",pos="Z")             
                         cylinderpp(_diff_size, align="Z");
-                    // not a cylinderpp, coz differnce between base axis are not relateve, but absolute
-                    // TODO fix it in the future
+                    // not a cylinderpp, coz difference between base axis are not relateve, but absolute
+                    // TODO fix it in the future by a single geometry
                     hull()
                     {
                         cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001]);
