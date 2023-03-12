@@ -32,7 +32,7 @@ module round_corners_tubepp(    size=undef, t=undef, r=undef, d=undef, R=undef, 
     // check zet
     // '-> it is string or undef
     assert(is_undef(zet) || is_string(zet),
-            str("[", __module_name, "] arguments 'zet' is eithter 'undef' or a string!"));
+            str("[", __module_name, "] arguments 'zet' is either 'undef' or a string!"));
 
     _size = __solidpp__construct_cylinderpp_size(d=2*_R,h=_h, zet=zet);
 
@@ -84,6 +84,21 @@ module round_corners_tubepp(    size=undef, t=undef, r=undef, d=undef, R=undef, 
 
     translate(_o)
     rotate(_rot)
+    tubepp( r=_r, R=_R, h=_h, center=true, __mod_queue=__mod_queue,
+        inner_mod_list=inner_mod_list, outer_mod_list=outer_mod_list)
+        {
+            offset(_round_r)
+                offset(-_round_r)
+                    if($children==0)
+                    {
+                        __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                    }
+                    else 
+                    {
+                        children();
+                    }
+        }
+    /*
     minkowski()
     {
         __r = _r + _round_r;
@@ -95,5 +110,6 @@ module round_corners_tubepp(    size=undef, t=undef, r=undef, d=undef, R=undef, 
 
         spherepp(scale_vec(2,__round_r));
     }
-    
+    */
+
 }
