@@ -87,12 +87,71 @@ module round_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
 
     translate(_o)
     rotate(_rot)
-    difference()
-    {
+    //difference()
+    //{
         // basic tube
         tubepp( r=_r, R=_R, h=_h, center=true, __mod_queue=__mod_queue,
-                inner_mod_list=inner_mod_list, outer_mod_list=outer_mod_list);
+                inner_mod_list=inner_mod_list, outer_mod_list=outer_mod_list)
+            difference()
+            {
+                if($children==0)
+                {
+                    __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                }
+                else 
+                {
+                    children();
+                }
 
+                // top cuts
+                translate([_r,_h/2])
+                if (_t_h > 0)
+                {
+                    _square_size = [_t_r,_t_h];
+                    _circ_size = scale_vec(2,[_t_r,_t_h]);
+
+                    // inner cut
+                    difference()
+                    {
+                        squarepp(_square_size, align="xY");
+                        circlepp(_circ_size, align="xY");
+                    }
+                    
+                    // outer cut
+                    translate([_t,0])
+                    difference()
+                    {
+                        squarepp(_square_size, align="XY");
+                        circlepp(_circ_size, align="XY");
+                    }
+                }
+
+                translate([_r,-_h/2])
+                // bottom cuts
+                if (_b_h > 0)
+                {
+                    _square_size = [_t_r,_t_h];
+                    _circ_size = scale_vec(2,[_t_r,_t_h]);
+
+                    // inner cut
+                    difference()
+                    {
+                        squarepp(_square_size, align="xy");
+                        circlepp(_circ_size, align="xy");
+                    }
+                    
+                    // outer cut
+                    translate([_t,0])
+                    difference()
+                    {
+                        squarepp(_square_size, align="Xy");
+                        circlepp(_circ_size, align="Xy");
+                    }
+                }
+
+            }
+
+        /*
         // top rounding
         if (_t_h > 0)
         {
@@ -165,6 +224,7 @@ module round_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
                 }
             }    
         }
+        */
 
-    }
+    //}
 }
