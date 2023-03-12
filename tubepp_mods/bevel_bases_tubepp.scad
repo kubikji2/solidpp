@@ -1,5 +1,7 @@
 include<../utils/solidpp_utils.scad>
 include<../utils/__toroidpp_utils.scad>
+include<../shapespp/circlepp.scad>
+include<../shapespp/squarepp.scad>
 
 assert(!is_undef(__DEF_TUBEPP__), "[BEVEL-BASES-TUBE++] tubepp.scad must be included!");
 assert(!is_undef(__DEF_CYLINDERPP__), "[BEVEL-BASES-TUBE++] cylinderpp.scad must be included!");
