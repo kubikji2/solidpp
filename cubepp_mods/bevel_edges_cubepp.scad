@@ -1,7 +1,7 @@
 include<../modifiers/__bevel_edges_modifier.scad>
 include<../transforms/replicate.scad>
 include<../other_solidspp/prism.scad>
-include<../transforms/mirror.scad>
+include<../transforms/mirrorpp.scad>
 include<../utils/vector_operations.scad>
 
 assert(!is_undef(__DEF_CUBEPP__), "[BEVEL-EDGES-CUBE++] cubepp.scad must be included!");

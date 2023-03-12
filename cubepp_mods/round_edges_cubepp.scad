@@ -1,6 +1,6 @@
 include<../modifiers/__round_edges_modifier.scad>
 include<../utils/vector_operations.scad>
-include<../transforms/mirror.scad>
+include<../transforms/mirrorpp.scad>
 include<../transforms/transform_if.scad>
 
 assert(!is_undef(__DEF_CUBEPP__), "[ROUND-EDGES-CUBE++] cubepp.scad must be included!");
