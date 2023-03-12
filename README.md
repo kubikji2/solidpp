@@ -336,7 +336,7 @@ If the argument `h` is missing, the height is considered to be the same as the s
   - [x] tetrahedron
   - [x] prism
   - [x] toruspp
-- [x] implement constructors
+- [x] implement modifiers constructors
   - [x] modifier `round_bases`
   - [x] modifier `round_corners`
   - [x] modifier `round_edges`
@@ -370,4 +370,20 @@ If the argument `h` is missing, the height is considered to be the same as the s
     - [x] `cubepp`
   - [x] modifier `bevel_edges`
     - [x] `cubepp`
+
+#### Stage 2 - Cylinder class (`toruspp` and `tubepp`) advanced solidpp and their modifiers
+
+- [x] define interfaces
+  - [x] toruspp
+  - [x] tubepp
+- [x] implement `toruspp`
+- [x] implement `tubepp`
+- [x] implement `tubepp` modifiers extends
+  - [x] implement `round_corners_tubepp`
+  - [x] implement `round_bases_tubepp`
+  - [x] implement `bevel_bases_tubepp`
+- [x] integrate modifiers into cylinder class solidpp
+  - [x] `bevel_bases_cylinderpp`
+  - [x] `round_bases_cylinderpp`
+  - [x] `round_corners_cylinderpp`
 
