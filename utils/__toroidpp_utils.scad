@@ -48,3 +48,18 @@ function __solidpp__toroidpp__check_parameters(module_name, r, d, R, D, t, h, de
     )
     
     [_r, _R, _t, _h];
+
+
+
+// create basic plane from the tube plane
+module __solidpp__toroidpp__get_def_plane(r,t,h)
+{
+    _h2 = h/2;
+    _pts =  [   [0, -_h2],
+                [t, -_h2],
+                [t,  _h2],
+                [0,  _h2]
+            ];
+    translate([r,0])
+        polygon(_pts);
+}
