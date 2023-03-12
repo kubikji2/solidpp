@@ -3,6 +3,9 @@ include<../utils/__cylinderpp_utils.scad>
 include<../modifiers/__bevel_bases_modifier.scad>
 include<../transforms/transform_to_spp.scad>
 
+include<../shapespp/circlepp.scad>
+include<../shapespp/squarepp.scad>
+
 assert(!is_undef(__DEF_CYLINDERPP__), "[BEVEL-BASES-CYLINDER++] cylinderpp.scad must be included!");
 
 
@@ -32,9 +35,13 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     _d1 = cyl_data[__CYLINDERPP_UTILS__d1_idx];
     _d2 = cyl_data[__CYLINDERPP_UTILS__d2_idx];
     _d_max = cyl_data[__CYLINDERPP_UTILS__d_max_idx];
+    
+    // for uniform size
+    _is_non_uniform = cyl_data[__CYLINDERPP_UTILS__non_uniform];
     __d1 = cyl_data[__CYLINDERPP_UTILS___d1_idx];
     __d2 = cyl_data[__CYLINDERPP_UTILS___d2_idx];
-    
+
+    // extracting height
     _h = !is_undef(__h) ? __h :  __solidpp__get_a_b_h_from_size_and_zet(_size, _zet)[2];
 
     // bevel base oriented parsing
@@ -96,84 +103,133 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
 
     // construct the solid
-    translate(_o)
-        difference()
-        {   
-            // basic geometry
-            resize(_size)
-                rotate(_rot)
-                    cylinderpp(d1=_d1, d2=_d2, h=1, center=true, __mod_queue=__mod_queue);
-
-            // parse size based on the orientation difined by zet
-            base_dims = __solidpp__get_a_b_h_from_size_and_zet(_size, _zet);
-            __a = base_dims[0];
-            __b = base_dims[1];
-            
-            // top cut
-            rotate(_rot)
-            if (_t_h > 0)
+    if (_is_non_uniform)
+    {
+        translate(_o)
+            difference()
             {   
-                _k = _d1 < _d2 ? 0 : _t_h;
+                // basic geometry
+                resize(_size)
+                    rotate(_rot)
+                        cylinderpp(d1=_d1, d2=_d2, h=1, center=true, __mod_queue=__mod_queue);
 
-                _a = __solidpp__lerp(__a*_d2, __a*_d1, _k);
-                _b = __solidpp__lerp(__b*_d2, __b*_d1, _k);
-
-                _semi_axis_a = __solidpp__lerp(__a*_d2, __a*_d1, _k) - 2*__t_a;
-                _semi_axis_b = __solidpp__lerp(__b*_d2, __b*_d1, _k) - 2*__t_a;
+                // parse size based on the orientation difined by zet
+                base_dims = __solidpp__get_a_b_h_from_size_and_zet(_size, _zet);
+                __a = base_dims[0];
+                __b = base_dims[1];
                 
-                _area_size = [_a, _b, __t_h];
-                _diff_size = scale_vec(1.1,_area_size);
+                // top cut
+                rotate(_rot)
+                if (_t_h > 0)
+                {   
+                    _k = _d1 < _d2 ? 0 : _t_h;
 
-                // transform to the top of the bounding box cube
-                transform_to_spp([_a, _b, _h],"",pos="Z")
-                difference()
-                {
-                    transform_to_spp(_area_size,align="Z",pos="z")                    
-                        cylinderpp(_diff_size, align="z");
+                    _a = __solidpp__lerp(__a*_d2, __a*_d1, _k);
+                    _b = __solidpp__lerp(__b*_d2, __b*_d1, _k);
 
-                    // not a cylinderpp, coz difference between base axis are not relateve, but absolute
-                    // TODO fix it in the future by a single geometry
-                    hull()
+                    _semi_axis_a = __solidpp__lerp(__a*_d2, __a*_d1, _k) - 2*__t_a;
+                    _semi_axis_b = __solidpp__lerp(__b*_d2, __b*_d1, _k) - 2*__t_a;
+                    
+                    _area_size = [_a, _b, __t_h];
+                    _diff_size = scale_vec(1.1,_area_size);
+
+                    // transform to the top of the bounding box cube
+                    transform_to_spp([_a, _b, _h],"",pos="Z")
+                    difference()
                     {
-                        cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001]);
-                        translate([0,0,-__t_h])
-                            cylinderpp([_a, _b, 0.0001]);
+                        transform_to_spp(_area_size,align="Z",pos="z")                    
+                            cylinderpp(_diff_size, align="z");
+
+                        // not a cylinderpp, coz difference between base axis are not relateve, but absolute
+                        // TODO fix it in the future by a single geometry
+                        hull()
+                        {
+                            cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001]);
+                            translate([0,0,-__t_h])
+                                cylinderpp([_a, _b, 0.0001]);
+                        }
+                    }
+                }
+
+                // bottom cut
+                rotate(_rot)
+                if (_b_h > 0)
+                {   
+                    _k = _d1 > _d2 ? 0 : _b_h;
+
+                    _a = __solidpp__lerp(__a*_d1, __a*_d2, _k);
+                    _b = __solidpp__lerp(__b*_d1, __b*_d2, _k);
+
+                    _semi_axis_a = __solidpp__lerp(__a*_d1, __a*_d2, _k) - 2*__b_a;
+                    _semi_axis_b = __solidpp__lerp(__b*_d1, __b*_d2, _k) - 2*__b_a;
+
+                    _area_size = [_a, _b, __b_h];
+                    _diff_size = scale_vec(1.1,_area_size);
+
+                    // transform to the bottom of the bounding box cube
+                    transform_to_spp([_a, _b, _h],"",pos="z")
+                    difference()
+                    {
+                        // cylinderpp aligned to the the top of the beveled cylinder
+                        transform_to_spp(_area_size,align="z",pos="Z")             
+                            cylinderpp(_diff_size, align="Z");
+                        // not a cylinderpp, coz difference between base axis are not relateve, but absolute
+                        // TODO fix it in the future by a single geometry
+                        hull()
+                        {
+                            cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001]);
+                            translate([0,0,__b_h])
+                                cylinderpp([_a, _b, 0.0001]);
+                                
+                        }
                     }
                 }
             }
-
-            // bottom cut
+    }
+    else
+    {
+        // uniform cylinder
+        translate(_o)   
             rotate(_rot)
-            if (_b_h > 0)
-            {   
-                _k = _d1 > _d2 ? 0 : _b_h;
-
-                _a = __solidpp__lerp(__a*_d1, __a*_d2, _k);
-                _b = __solidpp__lerp(__b*_d1, __b*_d2, _k);
-
-                _semi_axis_a = __solidpp__lerp(__a*_d1, __a*_d2, _k) - 2*__b_a;
-                _semi_axis_b = __solidpp__lerp(__b*_d1, __b*_d2, _k) - 2*__b_a;
-
-                _area_size = [_a, _b, __b_h];
-                _diff_size = scale_vec(1.1,_area_size);
-
-                // transform to the bottom of the bounding box cube
-                transform_to_spp([_a, _b, _h],"",pos="z")
+                cylinderpp(d1=__d1, d2=__d2, h=_h, center=true, __mod_queue=__mod_queue)
                 difference()
                 {
-                    // cylinderpp aligned to the the top of the beveled cylinder
-                    transform_to_spp(_area_size,align="z",pos="Z")             
-                        cylinderpp(_diff_size, align="Z");
-                    // not a cylinderpp, coz difference between base axis are not relateve, but absolute
-                    // TODO fix it in the future by a single geometry
-                    hull()
+                    // get proper base
+                    if($children == 0)
                     {
-                        cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001]);
-                        translate([0,0,__b_h])
-                            cylinderpp([_a, _b, 0.0001]);
-                            
+                        // if no child, create default cut
+                        __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
                     }
+                    else 
+                    {
+                        // else use all children
+                        children();
+                    }
+
+                    // top cuts
+                    if (__t_h > 0)
+                    {
+                        _k = __t_h/_h;
+                        _a = __solidpp__lerp(__d2-__d2, __d1-__d2, _k)/2;
+                        _pts_i =    [   [   0,     0],
+                                        [  _a, -__t_h],
+                                        [  -__t_a,     0]];
+                        translate([__d2/2,_h/2])
+                            polygon(_pts_i);
+                    }
+
+                    // bottom cut
+                    if (__b_h > 0)
+                    {
+                        _k = __b_h/_h;
+                        _a = __solidpp__lerp(__d1-__d1, __d2-__d1, _k)/2;
+                        _pts_i =    [   [   0,     0],
+                                        [  _a, __b_h],
+                                        [  -__b_a,     0]];
+                        translate([__d1/2,-_h/2])
+                            polygon(_pts_i);
+                    }
+
                 }
-            }
-        }
+    }
 }   
