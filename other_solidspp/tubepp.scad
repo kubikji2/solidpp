@@ -25,7 +25,7 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
                         module_name=__module_name, t=t, r=r, d=d, R=R, D=D, h=__h);
     _r = parsed_data[0];
     _R = parsed_data[1];
-    //_t = parsed_data[2];
+    _t = parsed_data[2];
     _h = parsed_data[3];
 
     // check zet
@@ -52,6 +52,7 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
     {
         translate(_o)
         rotate(_rot)
+        /*
         difference()
         {
             cylinderpp(r=_R, h=_h, center=true, mod_list=outer_mod_list);
@@ -64,6 +65,16 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
             cylinderpp(r=_r, h=_h+_eps, center=true, mod_list=inner_mod_list);
 
         }
+        */
+        rotate_extrude()
+            if($children==0)
+            {
+                __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+            }
+            else 
+            {
+                children();
+            }   
     }
     else
     {
@@ -77,17 +88,41 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
         if (__solidpp__is_valid_bevel_bases_modifier(_mod))
         {
             // bevel bases
-            bevel_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
+            bevel_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue)
+                if($children==0)
+                {
+                    __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                }
+                else 
+                {
+                    children();
+                }
         }
         else if (__solidpp__is_valid_round_bases_modifier(_mod))
         {
             // round bases 
-            round_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
+            round_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue)
+                if($children==0)
+                {
+                    __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                }
+                else 
+                {
+                    children();
+                }
         }
         else if (__solidpp__is_valid_round_corners_modifier(_mod))
         {
             // round corners
-            round_corners_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
+            round_corners_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue)
+                if($children==0)
+                {
+                    __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                }
+                else 
+                {
+                    children();
+                }
         }
         else if (__solidpp__is_valid_modifier(_mod))
         {
