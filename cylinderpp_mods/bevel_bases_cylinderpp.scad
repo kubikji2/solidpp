@@ -202,8 +202,8 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                     }
                     else 
                     {
-                        // else use all children
-                        children();
+                        // else use children
+                        children(0);
                     }
 
                     // top cuts

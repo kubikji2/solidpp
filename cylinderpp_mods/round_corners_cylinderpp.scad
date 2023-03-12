@@ -122,7 +122,7 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
                             else 
                             {
                                 // else use children
-                                children();
+                                children(0);
                             }
                         }
                 // cut off left half-plane
