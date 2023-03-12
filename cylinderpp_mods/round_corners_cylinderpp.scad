@@ -2,6 +2,7 @@ include<../utils/solidpp_utils.scad>
 include<../utils/__cylinderpp_utils.scad>
 include<../modifiers/__round_corners_modifier.scad>
 include<../transforms/transform_to_spp.scad>
+include<../transforms/mirrorpp.scad>
 
 assert(!is_undef(__DEF_CYLINDERPP__), "[ROUND-CORNERS-CYLINDER++] cylinderpp.scad must be included!");
 assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-CORNERS-CYLINDER++] spherepp.scad must be included!");
@@ -32,15 +33,18 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
     _d1 = cyl_data[__CYLINDERPP_UTILS__d1_idx];
     _d2 = cyl_data[__CYLINDERPP_UTILS__d2_idx];
     _d_max = cyl_data[__CYLINDERPP_UTILS__d_max_idx];
+    
+    // for uniform size
+    __is_non_uniform = cyl_data[__CYLINDERPP_UTILS__non_uniform];
     __d1 = cyl_data[__CYLINDERPP_UTILS___d1_idx];
     __d2 = cyl_data[__CYLINDERPP_UTILS___d2_idx];
     
+    // extracting height
     _h = !is_undef(__h) ? __h :  __solidpp__get_a_b_h_from_size_and_zet(_size, _zet)[2];
 
     // handling default bevel
     __round_r = is_undef(rounding_r) && is_undef(rounding_d) ? 0.1 : rounding_r;
     
-
     // bevel base oriented parsing
 
     // TODO check mod
@@ -56,6 +60,9 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
     assert(!is_undef(parsed_data[0]), str("[", __module_name, "] ", parsed_data[1], "!"));
 
     _round_r = parsed_data[1];
+
+    // check whether both size and rounding radius are 
+    _is_non_uniform = __is_non_uniform || (_round_r[0] != _round_r[1]) || (_round_r[1] != _round_r[2]);
 
     // construct _size aka inner cube size
     __size = sub_vecs(_size, s_vec(2,_round_r));
@@ -79,15 +86,49 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
     _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
 
     // produce final product
-    translate(_o)
+    if (_is_non_uniform)
+    {
+        translate(_o)
+            rotate(_rot)
+                minkowski()
+                {   
+                    // sphrepp manages possible elipsoid
+                    spherepp(r=_round_r);
+                    
+                    // cylinderpp manages other modifications
+                    cylinderpp(size=__size, center=true, __mod_queue=__mod_queue);
+                }
+    }
+    else
+    {
+        // uniform cylinder
+        translate(_o)
         rotate(_rot)
-        minkowski()
+        cylinderpp(d1=__d1, d2=__d2, h=_h, center=true, __mod_queue=__mod_queue)
         {   
-            // sphrepp manages possible elipsoid
-            spherepp(r=_round_r);
-            
-            // cylinderpp manages other modifications
-            cylinderpp(size=__size, center=true, __mod_queue=__mod_queue);
+            difference()
+            {
+                offset(_round_r[0])
+                    offset(-_round_r[0])
+                        // expland to the left side
+                        mirrorpp([1,0,0], true)
+                        {
+                            // get proper base
+                            if($children == 0)
+                            {
+                                // if no child, create default cut
+                                __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
+                            }
+                            else 
+                            {
+                                // else use children
+                                children();
+                            }
+                        }
+                // cut off left half-plane
+                squarepp([__d1+__d2, 2*_h], align="X");
+            }
         }
+    }
 
 }
