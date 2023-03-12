@@ -97,6 +97,11 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     _size = cyl_data[__CYLINDERPP_UTILS__size_idx];
     _d1 = cyl_data[__CYLINDERPP_UTILS__d1_idx];
     _d2 = cyl_data[__CYLINDERPP_UTILS__d2_idx];
+    
+    // for uniform size
+    __d1 = cyl_data[__CYLINDERPP_UTILS___d1_idx];
+    __d2 = cyl_data[__CYLINDERPP_UTILS___d2_idx];
+    _is_non_uniform = cyl_data[__CYLINDERPP_UTILS__non_uniform];
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
@@ -115,12 +120,32 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
 
     // construct the solid
+
+    _resize_size = 0;
     if(is_undef(mod_list) && is_undef(__mod_queue))
     {
-        translate(_o)
-            resize(_size)
-                rotate(_rot)
-                    cylinder(d1=_d1,d2=_d2,h=1, center=true);
+        if (_is_non_uniform)
+        {
+            translate(_o)
+                resize(_size)
+                    rotate(_rot)
+                        cylinder(d1=_d1,d2=_d2,h=1, center=true);
+        }
+        else
+        {
+            translate(_o)    
+            rotate(_rot)
+            rotate_extrude()
+                if($children==0)
+                {
+                    __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
+                }
+                else 
+                {
+                    children();
+                }
+        }
+                                 
     }
     else
     {
@@ -134,17 +159,44 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         if (__solidpp__is_valid_bevel_bases_modifier(_mod))
         {
             // bevel bases
-            bevel_bases_cylinderpp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
+            bevel_bases_cylinderpp(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
+                                    center=true, mod=_mod, __mod_queue=_mod_queue)
+            if ($children==0)
+            {
+                __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
+            }
+            else
+            {
+                children();
+            }
         }
         else if (__solidpp__is_valid_round_bases_modifier(_mod))
         {
             // round bases 
-            round_bases_cylinderpp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
+            round_bases_cylinderpp(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
+                                    center=true, mod=_mod, __mod_queue=_mod_queue)
+            if ($children==0)
+            {
+                __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
+            }
+            else
+            {
+                children();
+            }
         }
         else if (__solidpp__is_valid_round_corners_modifier(_mod))
         {
             // round corners
-            round_corners_cylinderpp(_size, center=true, mod=_mod, __mod_queue=_mod_queue);
+            round_corners_cylinderpp(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
+                                    center=true, mod=_mod, __mod_queue=_mod_queue)
+            if ($children==0)
+            {
+                __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
+            }
+            else
+            {
+                children();
+            }
         }
         else if (__solidpp__is_valid_modifier(_mod))
         {
