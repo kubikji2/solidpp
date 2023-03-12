@@ -70,7 +70,8 @@ CYLINDERPP_DEF_ALIGN = "z";
 //       in this case, the greater facet of the cylinder is resized to fit the bounding box facet
 //       and both cylinder facets are squezed according to the bounding box dimensions.
 module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef, center=false,
-                    r1=undef, r2=undef, d1=undef, d2=undef, mod_list=undef, __mod_queue=undef)
+                    r1=undef, r2=undef, d1=undef, d2=undef, mod_list=undef, __mod_queue=undef,
+                    __rotate_extrude=true)
 {
 
     __module_name = "CYLINDERPP";
@@ -121,7 +122,6 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
 
     // construct the solid
 
-    _resize_size = 0;
     if(is_undef(mod_list) && is_undef(__mod_queue))
     {
         if (_is_non_uniform)
@@ -135,7 +135,20 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         {
             translate(_o)    
             rotate(_rot)
-            rotate_extrude()
+            if(__rotate_extrude)
+            {
+                rotate_extrude()
+                    if($children==0)
+                    {
+                        __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
+                    }
+                    else 
+                    {
+                        children();
+                    }
+            }
+            else
+            {
                 if($children==0)
                 {
                     __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
@@ -144,6 +157,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
                 {
                     children();
                 }
+            }
         }
                                  
     }
@@ -160,7 +174,8 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         {
             // bevel bases
             bevel_bases_cylinderpp(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
-                                    center=true, mod=_mod, __mod_queue=_mod_queue)
+                                    center=true, mod=_mod, __mod_queue=_mod_queue,
+                                    __rotate_extrude=__rotate_extrude)
             if ($children==0)
             {
                 __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
@@ -174,7 +189,8 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         {
             // round bases 
             round_bases_cylinderpp(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
-                                    center=true, mod=_mod, __mod_queue=_mod_queue)
+                                    center=true, mod=_mod, __mod_queue=_mod_queue,
+                                    __rotate_extrude=__rotate_extrude)
             if ($children==0)
             {
                 __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
@@ -188,7 +204,8 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         {
             // round corners
             round_corners_cylinderpp(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
-                                    center=true, mod=_mod, __mod_queue=_mod_queue)
+                                    center=true, mod=_mod, __mod_queue=_mod_queue,
+                                    __rotate_extrude=__rotate_extrude)
             if ($children==0)
             {
                 __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);

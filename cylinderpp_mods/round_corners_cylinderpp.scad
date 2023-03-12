@@ -11,7 +11,7 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
                                     align=undef, zet=undef, center=false,
                                     r1=undef, r2=undef, d1=undef, d2=undef,
                                     rounding_r=undef, rounding_d=undef,
-                                    mod=undef, __mod_queue=undef)
+                                    mod=undef, __mod_queue=undef,__rotate_extrude=true)
 {
 
     // module name
@@ -104,7 +104,8 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
         // uniform cylinder
         translate(_o)
         rotate(_rot)
-        cylinderpp(d1=__d1, d2=__d2, h=_h, center=true, __mod_queue=__mod_queue)
+        cylinderpp(d1=__d1, d2=__d2, h=_h, center=true,
+                    __mod_queue=__mod_queue, __rotate_extrude=__rotate_extrude)
         {   
             difference()
             {
