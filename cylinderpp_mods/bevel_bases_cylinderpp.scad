@@ -2,6 +2,7 @@ include<../utils/solidpp_utils.scad>
 include<../utils/__cylinderpp_utils.scad>
 include<../modifiers/__bevel_bases_modifier.scad>
 include<../transforms/transform_to_spp.scad>
+include<../transforms/transform_if.scad>
 
 include<../shapespp/circlepp.scad>
 include<../shapespp/squarepp.scad>
@@ -193,32 +194,34 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
             rotate(_rot)
                 cylinderpp(d1=__d1, d2=__d2, h=_h, center=true,
                             __mod_queue=__mod_queue,__rotate_extrude=__rotate_extrude)
-                difference()
+                difference_if(__b_h > 0, __b_a < 0)
                 {
-                    // get proper base
-                    if($children == 0)
+                    difference_if(__t_h > 0, __t_a < 0)
                     {
-                        // if no child, create default cut
-                        __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
-                    }
-                    else 
-                    {
-                        // else use children
-                        children(0);
-                    }
+                        // get proper base
+                        if($children == 0)
+                        {
+                            // if no child, create default cut
+                            __solidpp__cylinderpp__get_def_plane(d1=__d1, d2=__d2, h=_h);
+                        }
+                        else 
+                        {
+                            // else use children
+                            children(0);
+                        }
 
-                    // top cuts
-                    if (__t_h > 0)
-                    {
-                        _k = __t_h/_h;
-                        _a = __solidpp__lerp(__d2-__d2, __d1-__d2, _k)/2;
-                        _pts_i =    [   [   0,     0],
-                                        [  _a, -__t_h],
-                                        [  -__t_a,     0]];
-                        translate([__d2/2,_h/2])
-                            polygon(_pts_i);
+                        // top cuts
+                        if (__t_h > 0)
+                        {
+                            _k = __t_h/_h;
+                            _a = __solidpp__lerp(__d2-__d2, __d1-__d2, _k)/2;
+                            _pts_i =    [   [   0,     0],
+                                            [  _a, -__t_h],
+                                            [  -__t_a,     0]];
+                            translate([__d2/2,_h/2])
+                                polygon(_pts_i);
+                        }
                     }
-
                     // bottom cut
                     if (__b_h > 0)
                     {
@@ -232,5 +235,6 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                     }
 
                 }
+                
     }
 }   
