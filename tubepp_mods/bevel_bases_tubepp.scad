@@ -21,7 +21,7 @@ module bevel_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
 
     _r = toroid_pars[0];
     _R = toroid_pars[1];
-    //_t = toroid_pars[2];
+    _t = toroid_pars[2];
     _h = toroid_pars[3];
 
     // check zet
@@ -84,12 +84,57 @@ module bevel_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
 
     translate(_o)
     rotate(_rot)
-    difference()
-    {
+    //difference()
+    //{
         // basic tube
         tubepp( r=_r, R=_R, h=_h, center=true, __mod_queue=__mod_queue,
-                inner_mod_list=inner_mod_list, outer_mod_list=outer_mod_list);
+                inner_mod_list=inner_mod_list, outer_mod_list=outer_mod_list)
+            difference()
+            {
+                if($children==0)
+                {
+                    __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                }
+                else 
+                {
+                    children();
+                }
 
+                // top cuts
+                translate([_r,_h/2])
+                if (_t_h > 0)
+                {
+                    _pts_i =    [   [   0,     0],
+                                    [   0, -_t_h],
+                                    [_t_a,     0]];
+                    polygon(_pts_i);
+
+                    _pts_o =    [   [    0,     0],
+                                    [    0, -_t_h],
+                                    [-_t_a,     0]];
+                    translate([_t,0])
+                        polygon(_pts_o);
+                }
+
+                translate([_r,-_h/2])
+                // bottom cuts
+                if (_b_h > 0)
+                {
+                    _pts_i =    [   [   0,    0],
+                                    [   0, _b_h],
+                                    [_b_a,    0]];
+                    polygon(_pts_i);
+
+                    _pts_o =    [   [    0,    0],
+                                    [    0, _b_h],
+                                    [-_b_a,    0]];
+                    translate([_t,0])
+                        polygon(_pts_o);
+                }
+
+            }
+
+        /*
         // top bevel
         if (_t_h > 0)
         {   
@@ -143,7 +188,8 @@ module bevel_bases_tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=un
                 }
             }            
         }
+        */
 
-    }
+    //}
 
 }
