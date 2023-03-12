@@ -14,6 +14,8 @@ __CYLINDERPP_UTILS__d_max_idx = 4;
 __CYLINDERPP_UTILS___d1_idx = 5;
 // '__d2' idx
 __CYLINDERPP_UTILS___d2_idx = 6;
+// '_non_uniform'
+__CYLINDERPP_UTILS__non_uniform = 7;
 
 
 function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2, d1, d2, zet, def_h=1, def_d=1, def_size=[1,1,1]) = 
@@ -108,7 +110,23 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
                     __size :
                     !is_undef(_d_max) && !is_undef(_h) ?
                         __solidpp__construct_cylinderpp_size(_d_max, _h, zet) :
-                        def_size
+                        def_size,
+        
+        // define whether the non-uniform scaling has been used
+        _extracted_data = __solidpp__get_a_b_h_from_size_and_zet(__size),
+        _is_non_uniform = !is_undef(__size) && _extracted_data[0] != _extracted_data[1]
     )
     
-    [_h, _size, _d1, _d2, _d_max, __d1, __d2];
+    [_h, _size, _d1, _d2, _d_max, __d1, __d2, _is_non_uniform];
+
+
+// __protected__ module creating the default cylinder plane
+module __solidpp__cylinderpp__get_def_plane(d1, d2, h)
+{
+    _h2 = h/2;
+    _pts = [    [    0, -_h2],
+                [ d1/2, -_h2],
+                [ d2/2,  _h2],
+                [    0,  _h2]];
+    polygon(_pts);
+}
