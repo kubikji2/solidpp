@@ -106,7 +106,8 @@ function __solidpp__new_bevel_bases(bevel=undef, axis="z", bevel_bottom=undef, b
                     !is_undef(bevel) ?
                         is_num(bevel) ?
                             bevel <= 0 ?
-                                [undef, "argument 'bevel' must be positive"] :
+                                //[undef, "argument 'bevel' must be positive"] :
+                                [__BEVEL_BASES_MOD_ID, axis, [-bevel,-bevel,-bevel], [-bevel, bevel], [-bevel,-bevel,-bevel], [-bevel, bevel] ] :
                                 [__BEVEL_BASES_MOD_ID, axis, [bevel,bevel,bevel], [bevel, bevel], [bevel,bevel,bevel], [bevel, bevel] ] :
                             is_vector_3D(bevel) ?
                                 [__BEVEL_BASES_MOD_ID, axis, bevel, undef, bevel, undef ] :
