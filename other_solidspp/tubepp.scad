@@ -10,6 +10,22 @@ assert(!is_undef(__DEF_CYLINDERPP__), "[TUBE++] cylinderpp.scad must be included
 
 TUBEPP_DEF_ALIGN="z";
 
+// __protected__ function to create plane from outer and inner mod list
+module __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list)
+{
+    difference()
+    {
+        cylinderpp( r=_R, h=_h, center=true,
+                    mod_list=outer_mod_list, __rotate_extrude=false);
+        
+        // eps affects only preview
+        _eps = $preview ? 0.001 : 0;
+        cylinderpp( r=_r, h=_h+_eps, center=true, 
+                    mod_list=inner_mod_list, __rotate_extrude=false);
+    }  
+}
+
+// TODO add documentation
 module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef, center=false,
                 align=undef, zet="z", __mod_queue = undef,
                 mod_list=undef, inner_mod_list=undef, outer_mod_list=undef)
@@ -52,29 +68,17 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
     {
         translate(_o)
         rotate(_rot)
-        /*
-        difference()
-        {
-            cylinderpp(r=_R, h=_h, center=true, mod_list=outer_mod_list);
-
-            // TODO inverse inner mods
-            __iner_mod_list = inner_mod_list;
-
-            // eps affects only preview
-            _eps = $preview ? 0.001 : 0;
-            cylinderpp(r=_r, h=_h+_eps, center=true, mod_list=inner_mod_list);
-
-        }
-        */
         rotate_extrude()
-            if($children==0)
+        {
+            if($children == 0)
             {
-                __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list);
             }
             else 
             {
-                children();
-            }   
+                children(0);
+            }
+        }
     }
     else
     {
@@ -88,40 +92,43 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
         if (__solidpp__is_valid_bevel_bases_modifier(_mod))
         {
             // bevel bases
-            bevel_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue)
-                if($children==0)
+            bevel_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue,
+                                outer_mod_list=outer_mod_list, inner_mod_list=inner_mod_list)
+                if($children == 0)
                 {
-                    __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                    __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list);
                 }
                 else 
                 {
-                    children();
-                }
+                    children(0);
+                }  
         }
         else if (__solidpp__is_valid_round_bases_modifier(_mod))
         {
             // round bases 
-            round_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue)
-                if($children==0)
+            round_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue,
+                                outer_mod_list=outer_mod_list, inner_mod_list=inner_mod_list)
+                if($children == 0)
                 {
-                    __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                    __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list);
                 }
                 else 
                 {
-                    children();
+                    children(0);
                 }
         }
         else if (__solidpp__is_valid_round_corners_modifier(_mod))
         {
             // round corners
-            round_corners_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue)
-                if($children==0)
+            round_corners_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue,
+                                    outer_mod_list=outer_mod_list, inner_mod_list=inner_mod_list)
+                if($children == 0)
                 {
-                    __solidpp__toroidpp__get_def_plane(r=_r,t=_t,h=_h);
+                    __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list);
                 }
                 else 
                 {
-                    children();
+                    children(0);
                 }
         }
         else if (__solidpp__is_valid_modifier(_mod))
