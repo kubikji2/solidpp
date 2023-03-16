@@ -19,6 +19,17 @@ __CYLINDERPP_UTILS__non_uniform = 7;
 
 
 function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2, d1, d2, zet, def_h=1, def_d=1, def_size=[1,1,1]) = 
+    
+    // pre processing the size
+    let(
+            // create bounding box from size
+            __size = __solidpp__get_argument_as_3Dlist(size, undef),
+            
+            // define whether the non-uniform scaling has been used
+            _extracted_data = __solidpp__get_a_b_h_from_size_and_zet(__size),
+            _is_non_uniform = !is_undef(__size) && _extracted_data[0] != _extracted_data[1]
+        )
+    
     // {h, r|d} and size is illegal
     assert( is_undef(size) || (is_undef(r) && is_undef(d) && is_undef(h)) ,
             str("[", module_name, "] defining both 'size' and ('r'|'d'),'h' is not permited!"))
@@ -28,7 +39,14 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
             str("[", module_name, "] argument 'h' is not a number!"))
     
     // process heigh
-    let (_h = !is_undef(h) || !is_undef(size) ? h : def_h)
+    let (
+        
+        _h = !is_undef(h) || (!is_undef(size) && _is_non_uniform) ?
+                h :
+                !is_undef(size) ? 
+                    _extracted_data[3] :
+                    def_h
+        )
 
     // check r and d
     assert( is_undef(r) || is_num(r) || is_vector_2D(r),
@@ -101,20 +119,13 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
         _d2 = !is_undef(__d2) && !is_undef(_d_max) ?
                 __d2/_d_max :
                 1,
-
-        // create bounding box from size
-        __size = __solidpp__get_argument_as_3Dlist(size, undef),
     
         // create bounding box, possibly using cylinder-specific arguments
         _size = !is_undef(__size) ?
                     __size :
                     !is_undef(_d_max) && !is_undef(_h) ?
                         __solidpp__construct_cylinderpp_size(_d_max, _h, zet) :
-                        def_size,
-        
-        // define whether the non-uniform scaling has been used
-        _extracted_data = __solidpp__get_a_b_h_from_size_and_zet(__size),
-        _is_non_uniform = !is_undef(__size) && _extracted_data[0] != _extracted_data[1]
+                        def_size
     )
     
     [_h, _size, _d1, _d2, _d_max, __d1, __d2, _is_non_uniform];
