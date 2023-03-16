@@ -44,7 +44,7 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
         _h = !is_undef(h) || (!is_undef(size) && _is_non_uniform) ?
                 h :
                 !is_undef(size) ? 
-                    _extracted_data[3] :
+                    _extracted_data[2] :
                     def_h
         )
 
