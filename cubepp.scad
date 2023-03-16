@@ -117,8 +117,8 @@ module cubepp(size=undef, align=undef, zet=undef, center=false, mod_list=undef, 
         }
         else
         {
-            assert(false,
-            "[", __module_name, "] something went wrong regarding modifiers!");
+            assert(false, str(
+            "[", __module_name, "] something went wrong regarding modifiers!"));
         }
         
         
