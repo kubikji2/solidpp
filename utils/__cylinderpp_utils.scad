@@ -63,7 +63,9 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
                     is_num(r) ?  // this is not necessary in recent openscad releases
                         2*r :
                         scale_vector(2,r) :
-                    def_d
+                    !_is_non_uniform ?
+                        _extracted_data[0] :
+                        def_d
     )
 
     // d1,d2 and r1,r2 must be defined in pairs
