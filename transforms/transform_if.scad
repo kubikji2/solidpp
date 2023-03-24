@@ -92,7 +92,13 @@ module difference_if(condition, ommit_children=true)
     if (condition)
     {
         difference()
-            children();
+        {
+            children(0);
+            for(i=[1:$children-1])
+            {
+                children(i);
+            }
+        }
     }
     else if(ommit_children)
     {
