@@ -64,7 +64,7 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
                         2*r :
                         scale_vector(2,r) :
                     _is_non_uniform ?
-                        def_f :
+                        def_d :
                         is_undef(_extracted_data[0]) ?
                             def_d :
                            _extracted_data[0]
