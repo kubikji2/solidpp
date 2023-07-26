@@ -1,7 +1,12 @@
+// defining the sphere
+__DEF_SPHEREPP__ = true;
+
+// including utils
 include<utils/solidpp_utils.scad>
 
 // spherepp default alignment
 SPHEREPP_DEF_ALIGN = "c";
+
 
 // improved version of sphere module
 // - argument 'size' defines the size of bounding box
@@ -90,6 +95,3 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
         resize(_size)
             sphere(d=1);
 }
-
-// defining the sphere
-__DEF_SPHEREPP__ = true;

@@ -1,22 +1,27 @@
-include<utils/solidpp_utils.scad>
-
 // defining the cubepp
 __DEF_CUBEPP__ = true;
 
+// including utils
+include<utils/solidpp_utils.scad>
+
+// including utilized solidpp
 include<cylinderpp.scad>
 include<spherepp.scad>
 
+// including cube mods
 include<cubepp_mods/bevel_bases_cubepp.scad>
 include<cubepp_mods/bevel_corners_cubepp.scad>
 include<cubepp_mods/bevel_edges_cubepp.scad>
 include<cubepp_mods/round_corners_cubepp.scad>
 include<cubepp_mods/round_edges_cubepp.scad>
 
+// including mods and mod-queue management
 include<modifiers/modifiers.scad>
 include<modifiers/__modifiers_queue.scad>
 
 // cubepp default alignment
 CUBEPP_DEF_ALIGN = "xyz";
+
 
 // improved version of cube module
 // - argument 'size' defines the cube size

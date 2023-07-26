@@ -1,18 +1,26 @@
+// defining the cylinderpp 
+__DEF_CYLINDERPP__ = true;
+
+// including utils
 include<utils/solidpp_utils.scad>
 include<utils/vector_operations.scad>
 include<utils/__cylinderpp_utils.scad>
 
-// cylinder mods
+// including utilized solidpp
+include<spherepp.scad>
+
+// including cylinder mods
 include<cylinderpp_mods/bevel_bases_cylinderpp.scad>
 include<cylinderpp_mods/round_bases_cylinderpp.scad>
 include<cylinderpp_mods/round_corners_cylinderpp.scad>
 
-// mod queue management
+// including mods and mod-queue management
 include<modifiers/modifiers.scad>
 include<modifiers/__modifiers_queue.scad>
 
 // cylinderpp default alignment
 CYLINDERPP_DEF_ALIGN = "z";
+
 
 // improved version of cylinder module
 // - argument 'size' defines the size of bounding box
@@ -228,6 +236,3 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         }
     }
 }
-
-// defining the cylinderpp 
-__DEF_CYLINDERPP__ = true;
