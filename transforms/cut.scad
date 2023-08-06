@@ -45,7 +45,7 @@ module cut(sector, align=undef, zet=undef, size=undef, center=true)
     // '-> if list, keep it
     // '-> if number, fill array
     _size = __solidpp__get_argument_as_3Dlist(size, [__solidpp_big_m,__solidpp_big_m,__solidpp_big_m]);
-    echo(_size);
+    //echo(_size);
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
