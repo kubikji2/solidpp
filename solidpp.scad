@@ -19,4 +19,4 @@ include<cylinderpp.scad>
 include<spherepp.scad>
 
 // include other solidpp
-include<other_solidpp.scad>
+include<other_solidspp.scad>
