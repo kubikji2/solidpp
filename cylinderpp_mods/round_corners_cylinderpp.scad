@@ -7,8 +7,9 @@ include<../transforms/mirrorpp.scad>
 assert(!is_undef(__DEF_CYLINDERPP__), "[ROUND-CORNERS-CYLINDER++] cylinderpp.scad must be included!");
 assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-CORNERS-CYLINDER++] spherepp.scad must be included!");
 
+// TODO add documentation
 module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef, 
-                                    align=undef, zet=undef, center=false,
+                                    align=undef, zet=undef, center=false, fn=$fn,
                                     r1=undef, r2=undef, d1=undef, d2=undef,
                                     rounding_r=undef, rounding_d=undef,
                                     mod=undef, __mod_queue=undef,__rotate_extrude=true)
@@ -26,7 +27,7 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
     // parse and checked data
     cyl_data = __solidpp__cylinderpp__check_params(
                     module_name=__module_name, size=size, r=r, d=d, h=h,
-                    r1=r1, r2=r2, d1=d1, d2=d2, zet=_zet);
+                    r1=r1, r2=r2, d1=d1, d2=d2, zet=_zet, fn=fn);
     
     __h = cyl_data[__CYLINDERPP_UTILS__h_idx];
     _size = cyl_data[__CYLINDERPP_UTILS__size_idx];
@@ -93,10 +94,10 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
                 minkowski()
                 {   
                     // sphrepp manages possible elipsoid
-                    spherepp(r=_round_r);
+                    spherepp(r=_round_r, $fn=60);
                     
                     // cylinderpp manages other modifications
-                    cylinderpp(size=__size, center=true, __mod_queue=__mod_queue);
+                    cylinderpp(size=__size, center=true, __mod_queue=__mod_queue, fn=fn);
                 }
     }
     else
@@ -104,7 +105,7 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
         // uniform cylinder
         translate(_o)
         rotate(_rot)
-        cylinderpp(d1=__d1, d2=__d2, h=_h, center=true,
+        cylinderpp(d1=__d1, d2=__d2, h=_h, center=true, fn=fn,
                     __mod_queue=__mod_queue, __rotate_extrude=__rotate_extrude)
         {   
             difference()

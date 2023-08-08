@@ -18,7 +18,7 @@ __CYLINDERPP_UTILS___d2_idx = 6;
 __CYLINDERPP_UTILS__non_uniform = 7;
 
 
-function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2, d1, d2, zet, def_h=1, def_d=1, def_size=[1,1,1]) = 
+function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2, d1, d2, zet, fn, def_h=1, def_d=1, def_size=[1,1,1]) = 
     
     // pre processing the size
     let(
@@ -37,6 +37,10 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
     // check h
     assert( is_undef(h) || is_num(h),
             str("[", module_name, "] argument 'h' is not a number!"))
+
+   // check fn
+   assert ( is_num(fn) && fn > 2,
+            str("[", module_name, "] argument 'fn' is not a number greater then 2!"))
     
     // process heigh
     let (
