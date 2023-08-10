@@ -124,4 +124,10 @@ function vector_sum(v) =
 
 // shorter vector sum alias
 function vec_sum(v) = vector_sum(v);
-        
+
+// rotate 2D point around the z axis given the angle
+function rotate_2D_z(vector, angle) = 
+    is_vector_2D(vector) && is_num(angle) ?
+        [cos(angle)*vector[0] - sin(angle)*vector[1], sin(angle)*vector[0] + cos(angle)*vector[1]] :
+        undef;
+
