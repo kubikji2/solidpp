@@ -135,14 +135,14 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
     )
 
     // check fn
-    assert ( is_undef(fn) || (is_num(fn) && fn > 2),
+    assert ( is_undef(fn) || (is_num(fn) && (fn > 2 || fn == 0)),
             str("[", module_name, "] argument 'fn' is not a number greater then 2!"))
 
     // handling the fn
     let(
-        _fn = !is_undef(fn) ?
+        _fn = !is_undef(fn) && fn > 2 ?
                 fn :
-                !is_undef($fn) ?
+                $fn > 2 ?
                     $fn : 32
     )
     
