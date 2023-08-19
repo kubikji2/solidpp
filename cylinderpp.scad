@@ -79,7 +79,7 @@ CYLINDERPP_DEF_ALIGN = "z";
 //       and both cylinder facets are squezed according to the bounding box dimensions.
 module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef, center=false,
                     r1=undef, r2=undef, d1=undef, d2=undef, mod_list=undef, __mod_queue=undef,
-                    __rotate_extrude=true, fn=$fn)
+                    __rotate_extrude=true, fn=undef)
 {
 
     __module_name = "CYLINDERPP";
@@ -110,7 +110,10 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     // for uniform size
     __d1 = cyl_data[__CYLINDERPP_UTILS___d1_idx];
     __d2 = cyl_data[__CYLINDERPP_UTILS___d2_idx];
-    _is_non_uniform = cyl_data[__CYLINDERPP_UTILS__non_uniform];
+    _is_non_uniform = cyl_data[__CYLINDERPP_UTILS__is_non_uniform_idx];
+
+    // extract the fn
+    _fn = cyl_data[__CYLINDERPP_UTILS__fn_idx];
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
@@ -137,7 +140,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
             translate(_o)
                 resize(_size)
                     rotate(_rot)
-                        cylinder(d1=_d1,d2=_d2,h=1, center=true, $fn=fn);
+                        cylinder(d1=_d1,d2=_d2,h=1, center=true, $fn=_fn);
         }
         else
         {
@@ -145,8 +148,8 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
             rotate(_rot)
             if(__rotate_extrude)
             {
-                _fn = $fn;
-                $fn=fn;
+                __fn = $fn;
+                $fn=_fn;
                 rotate_extrude()
                     if($children==0)
                     {
@@ -154,7 +157,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
                     }
                     else 
                     {
-                        $fn=_fn;
+                        $fn=__fn;
                         children();
                     }
             }
@@ -185,7 +188,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         {
             // bevel bases
             bevel_bases_cylinderpp(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
-                                    center=true, mod=_mod, __mod_queue=_mod_queue, fn=fn,
+                                    center=true, mod=_mod, __mod_queue=_mod_queue, fn=_fn,
                                     __rotate_extrude=__rotate_extrude)
             if ($children==0)
             {
@@ -200,7 +203,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         {
             // round bases 
             round_bases_cylinderpp(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
-                                    center=true, mod=_mod, __mod_queue=_mod_queue, fn=fn,
+                                    center=true, mod=_mod, __mod_queue=_mod_queue, fn=_fn,
                                     __rotate_extrude=__rotate_extrude)
             if ($children==0)
             {
@@ -215,7 +218,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
         {
             // round corners
             round_corners_cylinderpp(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
-                                    center=true, mod=_mod, __mod_queue=_mod_queue, fn=fn,
+                                    center=true, mod=_mod, __mod_queue=_mod_queue, fn=_fn,
                                     __rotate_extrude=__rotate_extrude)
             if ($children==0)
             {

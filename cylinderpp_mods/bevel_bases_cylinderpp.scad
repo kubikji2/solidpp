@@ -38,7 +38,7 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     _d_max = cyl_data[__CYLINDERPP_UTILS__d_max_idx];
     
     // for uniform size
-    _is_non_uniform = cyl_data[__CYLINDERPP_UTILS__non_uniform];
+    _is_non_uniform = cyl_data[__CYLINDERPP_UTILS__is_non_uniform_idx];
     __d1 = cyl_data[__CYLINDERPP_UTILS___d1_idx];
     __d2 = cyl_data[__CYLINDERPP_UTILS___d2_idx];
 

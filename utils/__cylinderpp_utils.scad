@@ -14,8 +14,10 @@ __CYLINDERPP_UTILS__d_max_idx = 4;
 __CYLINDERPP_UTILS___d1_idx = 5;
 // '__d2' idx
 __CYLINDERPP_UTILS___d2_idx = 6;
-// '_non_uniform'
-__CYLINDERPP_UTILS__non_uniform = 7;
+// '_non_uniform' idx
+__CYLINDERPP_UTILS__is_non_uniform_idx = 7;
+// '_fn' idx
+__CYLINDERPP_UTILS__fn_idx = 8;
 
 
 function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2, d1, d2, zet, fn, def_h=1, def_d=1, def_size=[1,1,1]) = 
@@ -135,8 +137,22 @@ function __solidpp__cylinderpp__check_params(module_name, size, r, d, h, r1, r2,
                         __solidpp__construct_cylinderpp_size(_d_max, _h, zet) :
                         def_size
     )
+
+    // handling the fn
+    assert(
+            is_undef(fn) || is_num(fn),
+            str("[", module_name,"] argument 'fn' must be a number!")
+            )
+
+    // creating fn
+    let(
+        _fn = !is_undef(fn) ?
+                fn :
+                !is_undef($fn) ?
+                    $fn : 32
+    )
     
-    [_h, _size, _d1, _d2, _d_max, __d1, __d2, _is_non_uniform];
+    [_h, _size, _d1, _d2, _d_max, __d1, __d2, _is_non_uniform, _fn];
 
 
 // __protected__ module creating the default cylinder plane
