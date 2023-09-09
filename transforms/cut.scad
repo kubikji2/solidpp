@@ -2,7 +2,7 @@ include<../cubepp.scad>
 
 
 // just a really big number
-__solidpp_big_m = 10;
+__solidpp_big_m = 1000;
 
 // apply intersection to all children iff needed
 module __solidpp__cut_composer(apply_intersection)
