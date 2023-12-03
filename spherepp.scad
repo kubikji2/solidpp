@@ -55,7 +55,8 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
     __module_name = "SPHEREPP";
 
     // check r and d
-    assert(!is_undef(r) || !is_num(d), "[SPHEREPP] defining both 'd' and 'r' is not permitted!");
+    assert( __solidpp__count_undef_in_list([size,r,d]) >= 2,
+            str("[", __module_name, "]", " either use 'size', 'r' or 'd' argument to define size!"));
 
     // check r
     // '-> undef, scalar, or list of size 3
