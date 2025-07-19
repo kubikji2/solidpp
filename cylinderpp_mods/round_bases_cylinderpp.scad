@@ -12,7 +12,7 @@ assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-BASES-CYLINDER++] spherepp.scad must
 // TODO add documentation
 module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef, 
                                 align=undef, zet=undef, center=false,
-                                r1=undef, r2=undef, d1=undef, d2=undef, fn=$fn,
+                                r1=undef, r2=undef, d1=undef, d2=undef,
                                 r_both=undef, d_both=undef, r_top=undef,
                                 d_top=undef, r_bottom=undef, d_bottom=undef,
                                 mod=undef, __mod_queue=undef,__rotate_extrude=true)
@@ -30,7 +30,7 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     // parse and checked data
     cyl_data = __solidpp__cylinderpp__check_params(
                     module_name=__module_name, size=size, r=r, d=d, h=h,
-                    r1=r1, r2=r2, d1=d1, d2=d2, zet=_zet, fn=fn);
+                    r1=r1, r2=r2, d1=d1, d2=d2, zet=_zet);
     
     __h = cyl_data[__CYLINDERPP_UTILS__h_idx];
     _size = cyl_data[__CYLINDERPP_UTILS__size_idx];
@@ -113,7 +113,7 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                 // basic geometry
                 resize(_size)
                     rotate(_rot)
-                        cylinderpp(d1=_d1, d2=_d2, h=1, center=true, fn=fn,
+                        cylinderpp(d1=_d1, d2=_d2, h=1, center=true,
                                     __mod_queue=__mod_queue, __rotate_extrude=__rotate_extrude);
 
                 // parse size based on the orientation difined by zet
@@ -141,12 +141,12 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                     difference()
                     {
                         transform_to_spp(_area_size, align="Z", pos="z")                    
-                            cylinderpp(_diff_size, align="z", fn=fn);
+                            cylinderpp(_diff_size, align="z");
                         
                         minkowski()
                         {
                             translate([0,0,-__t_h])    
-                                cylinderpp([_semi_axis_a,_semi_axis_b,__t_h], align="Z", fn=fn);
+                                cylinderpp([_semi_axis_a,_semi_axis_b,__t_h], align="Z");
                             spherepp(scale_vec(2,[__t_r,__t_r,__t_h]));
                         }
                     }
@@ -173,12 +173,12 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                     {
                         // cylinderpp aligned to the the top of the beveled cylinder
                         transform_to_spp(_area_size, align="z", pos="Z")             
-                            cylinderpp(_diff_size, align="Z", fn=fn);
+                            cylinderpp(_diff_size, align="Z");
                         
                         minkowski()
                         {
                             translate([0,0,__b_h])    
-                                cylinderpp([_semi_axis_a,_semi_axis_b,__b_h], align="z", fn=fn);
+                                cylinderpp([_semi_axis_a,_semi_axis_b,__b_h], align="z");
                             spherepp(scale_vec(2,[__b_r,__b_r,__b_h]));
                         }
                     }
@@ -191,7 +191,7 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
         // uniform cylinder
         translate(_o)   
             rotate(_rot)
-                cylinderpp(d1=__d1, d2=__d2, h=_h, center=true, fn=fn,
+                cylinderpp(d1=__d1, d2=__d2, h=_h, center=true,
                             __mod_queue=__mod_queue, __rotate_extrude=__rotate_extrude)
                 difference()
                 {
@@ -220,7 +220,7 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                         difference()
                         {
                             squarepp(_square_size, align="Y");
-                            circlepp(_circ_size, align="XY", $fn=60);
+                            circlepp(_circ_size, align="XY");
                         }
 
                     }
@@ -238,7 +238,7 @@ module round_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                         difference()
                         {
                             squarepp(_square_size, align="y");
-                            circlepp(_circ_size, align="Xy", , $fn=60);
+                            circlepp(_circ_size, align="Xy");
                         }
                     }
 
