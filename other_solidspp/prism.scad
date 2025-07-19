@@ -46,7 +46,7 @@ module prism(points=undef, h=undef, n=undef)
 
     // check normal
     assert( _are_3D == !is_undef(n),
-            str("[", __module_name, "] when defining points as list of 3D points, argument 'n' must be deifned"));
+            str("[", __module_name, "] when defining points as list of 3D points, argument 'n' must be defined"));
     assert( is_undef(n) || is_vector_3D(n),
             str("[", __module_name, "] argument 'n' must be a vector 3D!") );
     

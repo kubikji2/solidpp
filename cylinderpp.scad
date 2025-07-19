@@ -112,9 +112,6 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     __d2 = cyl_data[__CYLINDERPP_UTILS___d2_idx];
     _is_non_uniform = cyl_data[__CYLINDERPP_UTILS__is_non_uniform_idx];
 
-    // extract the fn
-    //_fn = cyl_data[__CYLINDERPP_UTILS__fn_idx];
-
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
     _o = __solidpp__produce_offset_from_align_and_center(
@@ -148,8 +145,6 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
             rotate(_rot)
             if(__rotate_extrude)
             {
-                //__fn = $fn;
-                //$fn=_fn;
                 rotate_extrude()
                     if($children==0)
                     {
@@ -157,7 +152,6 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
                     }
                     else 
                     {
-                        //$fn=__fn;
                         children();
                     }
             }
