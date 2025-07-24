@@ -12,7 +12,7 @@ assert(!is_undef(__DEF_CYLINDERPP__), "[BEVEL-BASES-CYLINDER++] cylinderpp.scad 
 // TODO add documentation
 module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef, 
                                 align=undef, zet=undef, center=false,
-                                r1=undef, r2=undef, d1=undef, d2=undef, fn=$fn,
+                                r1=undef, r2=undef, d1=undef, d2=undef,
                                 bevel=undef, bevel_top=undef, bevel_bottom=undef,
                                 mod=undef, __mod_queue=undef,__rotate_extrude=true)
 {
@@ -29,7 +29,7 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
     // parse and checked data
     cyl_data = __solidpp__cylinderpp__check_params(
                     module_name=__module_name, size=size, r=r, d=d, h=h,
-                    r1=r1, r2=r2, d1=d1, d2=d2, zet=zet, fn=fn);
+                    r1=r1, r2=r2, d1=d1, d2=d2, zet=zet);
     
     __h = cyl_data[__CYLINDERPP_UTILS__h_idx];
     _size = cyl_data[__CYLINDERPP_UTILS__size_idx];
@@ -112,7 +112,7 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                 // basic geometry
                 resize(_size)
                     rotate(_rot)
-                        cylinderpp(d1=_d1, d2=_d2, h=1, center=true, __mod_queue=__mod_queue, fn=fn);
+                        cylinderpp(d1=_d1, d2=_d2, h=1, center=true, __mod_queue=__mod_queue);
 
                 // parse size based on the orientation difined by zet
                 base_dims = __solidpp__get_a_b_h_from_size_and_zet(_size, _zet);
@@ -139,15 +139,15 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                     difference()
                     {
                         transform_to_spp(_area_size, align="Z", pos="z")                    
-                            cylinderpp(_diff_size, align="z", fn=fn);
+                            cylinderpp(_diff_size, align="z");
 
                         // not a cylinderpp, coz difference between base axis are not relateve, but absolute
                         // TODO fix it in the future by a single geometry
                         hull()
                         {
-                            cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001], fn=fn);
+                            cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001]);
                             translate([0,0,-__t_h])
-                                cylinderpp([_a, _b, 0.0001], fn=fn);
+                                cylinderpp([_a, _b, 0.0001]);
                         }
                     }
                 }
@@ -173,14 +173,14 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
                     {
                         // cylinderpp aligned to the the top of the beveled cylinder
                         transform_to_spp(_area_size, align="z", pos="Z")             
-                            cylinderpp(_diff_size, align="Z", fn=fn);
+                            cylinderpp(_diff_size, align="Z");
                         // not a cylinderpp, coz difference between base axis are not relateve, but absolute
                         // TODO fix it in the future by a single geometry
                         hull()
                         {
-                            cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001], fn=fn);
+                            cylinderpp([_semi_axis_a, _semi_axis_b, 0.0001]);
                             translate([0,0,__b_h])
-                                cylinderpp([_a, _b, 0.0001], fn=fn);
+                                cylinderpp([_a, _b, 0.0001]);
                                 
                         }
                     }
@@ -192,7 +192,7 @@ module bevel_bases_cylinderpp(  size=undef, r=undef, d=undef, h=undef,
         // uniform cylinder
         translate(_o)   
             rotate(_rot)
-                cylinderpp(d1=__d1, d2=__d2, h=_h, center=true, fn=fn,
+                cylinderpp(d1=__d1, d2=__d2, h=_h, center=true,
                             __mod_queue=__mod_queue,__rotate_extrude=__rotate_extrude)
                 difference_if(__b_h > 0, __b_a < 0)
                 {
