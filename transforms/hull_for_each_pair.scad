@@ -17,7 +17,7 @@ module hull_for_each_pair(positions, rotations=undef, aligns=undef, children_ali
     assert($children > 0, "[solidpp-hull_for_each_pair] at least one children must be provided.");
     
 
-    _n_geometries = len(positions);
+    _n_geometries = $children == 1 ? len(positions) : $children;
     for (i=[0:_n_geometries-2])
     {
 
