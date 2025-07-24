@@ -10,11 +10,11 @@ include<transform_to_spp.scad>
 // - if number of children matches the number of positions, the individual children are used for each position
 module hull_for_each_pair(positions, rotations=undef, aligns=undef, children_align="", children_size=[0,0,0])
 {
-    assert is_undef(rotations) || (is_list(rotations) && is_list(rotations[0]) && len(positions)==len(rotations)), "[solidpp-hull_for_each_pair] argument rotations is either kept undefined or has the same length as the positions.";
+    assert(is_undef(rotations) || (is_list(rotations) && is_list(rotations[0]) && len(positions)==len(rotations)), "[solidpp-hull_for_each_pair] argument rotations is either kept undefined or has the same length as the positions.");
     
-    assert is_undef(aligns) || (is_list(aligns) && len(positions)==len(aligns)), "[solidpp-hull_for_each_pair] argument aligns is either kept undefined or has the same length as the positions.";
+    assert(is_undef(aligns) || (is_list(aligns) && len(positions)==len(aligns)), "[solidpp-hull_for_each_pair] argument aligns is either kept undefined or has the same length as the positions.");
 
-    assert $children > 0, "[solidpp-hull_for_each_pair] at least one children must be provided.";
+    assert($children > 0, "[solidpp-hull_for_each_pair] at least one children must be provided.");
     
 
     _n_geometries = len(positions);
