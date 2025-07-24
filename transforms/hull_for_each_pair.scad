@@ -23,27 +23,33 @@ module hull_for_each_pair(positions, rotations=undef, aligns=undef, children_ali
 
         hull()
         {
-            translate(positions[i])
-                rotate(is_undef(rotations) ? [0,0,0] : rotations[i])
-                    transform_to_spp(   size=children_size,
-                                        align=children_align,
-                                        pos=is_undef(aligns) ? "" : aligns[i])
-                        if (len(positions) == $children) {
+            if (len(positions) == $children)
+            {
+                translate(positions[i])
+                    rotate(is_undef(rotations) ? [0,0,0] : rotations[i])
+                        transform_to_spp(   size=children_size,
+                                            align=children_align,
+                                            pos=is_undef(aligns) ? "" : aligns[i])
                             children(i);
-                        } else {
-                            children();
-                        }
+            }
+            else
+            {
+                children();
+            }
 
-            translate(position[i+1])
-                rotate(is_undef[rotations] ? [0,0,0] : rotations[i+1])
-                    transform_to_spp(   size=children_size,
-                                        align=children_align,
-                                        pos=is_undef(aligns) ? "" : aligns[i+1])
-                        if (len(positions) == $children) {
+            if (len(positions) == $children)
+            {
+                translate(position[i+1])
+                    rotate(is_undef[rotations] ? [0,0,0] : rotations[i+1])
+                        transform_to_spp(   size=children_size,
+                                            align=children_align,
+                                            pos=is_undef(aligns) ? "" : aligns[i+1])
                             children(i+1);
-                        } else {
-                            children();
-                        }
+            }
+            else
+            {
+                children();
+            }
         }
     }
 }
