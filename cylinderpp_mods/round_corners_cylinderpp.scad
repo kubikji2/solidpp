@@ -106,7 +106,7 @@ module round_corners_cylinderpp(    size=undef, r=undef, d=undef, h=undef,
         translate(_o)
         rotate(_rot)
         cylinderpp(d1=__d1, d2=__d2, h=_h, center=true,
-                    __mod_queue=__mod_queue, __rotate_extrude=__rotate_extrude)
+                    __mod_queue=__mod_queue, __rotate_extrude=__rotate_extrude, __is_fancy=true)
         {   
             difference()
             {

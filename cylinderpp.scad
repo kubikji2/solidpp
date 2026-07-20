@@ -79,7 +79,7 @@ CYLINDERPP_DEF_ALIGN = "z";
 //       and both cylinder facets are squezed according to the bounding box dimensions.
 module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef, center=false,
                     r1=undef, r2=undef, d1=undef, d2=undef, mod_list=undef, __mod_queue=undef,
-                    __rotate_extrude=true)
+                    __rotate_extrude=true, __is_fancy=false)
 {
 
     __module_name = "CYLINDERPP";
@@ -128,11 +128,21 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     // construct rotation
     _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
 
-    // construct the solid
+    // this makes module use native cylinder by default,
+    // and switching to rotate extrude only if necessary
+    __is_fancy = (!is_undef(mod_list)) ? true : __is_fancy; 
 
+    // construct the solid
     if(is_undef(mod_list) && is_undef(__mod_queue))
     {
         if (_is_non_uniform)
+        {
+            translate(_o)
+                resize(_size)
+                    rotate(_rot)
+                        cylinder(d1=_d1,d2=_d2,h=1, center=true);
+        }
+        else if (!__is_fancy)
         {
             translate(_o)
                 resize(_size)
