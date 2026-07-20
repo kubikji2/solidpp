@@ -85,7 +85,7 @@ module round_corners_tubepp(    size=undef, t=undef, r=undef, d=undef, R=undef, 
     translate(_o)
     rotate(_rot)
     tubepp( r=_r, R=_R, h=_h, center=true, __mod_queue=__mod_queue,
-        inner_mod_list=inner_mod_list, outer_mod_list=outer_mod_list)
+        inner_mod_list=inner_mod_list, outer_mod_list=outer_mod_list, __is_fancy=true)
         {
             offset(_round_r)
                 offset(-_round_r)

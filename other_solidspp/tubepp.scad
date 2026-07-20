@@ -15,20 +15,55 @@ module __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list)
 {
     difference()
     {
+        // TODO what the fuck is this
         cylinderpp( r=_R, h=_h, center=true,
-                    mod_list=outer_mod_list, __rotate_extrude=false);
+                    mod_list=outer_mod_list, __rotate_extrude=false, __is_fancy=false);
         
         // eps affects only preview
         _eps = $preview ? 0.001 : 0;
         cylinderpp( r=_r, h=_h+_eps, center=true, 
-                    mod_list=inner_mod_list, __rotate_extrude=false);
+                    mod_list=inner_mod_list, __rotate_extrude=false, __is_fancy=false);
+    }  
+}
+
+
+module __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list)
+{
+    // TODO fix this mess
+    __module_name = "TUBEPP";
+    
+    inner_cyl_data = __solidpp__cylinderpp__check_params(
+                    module_name=__module_name, size=undef, r=_r, d=undef, h=_h,
+                    r1=undef, r2=undef, d1=undef, d2=undef, zet="z");
+    __d1_inner = inner_cyl_data[__CYLINDERPP_UTILS___d1_idx];
+    __d2_inner = inner_cyl_data[__CYLINDERPP_UTILS___d2_idx];
+
+    outer_cyl_data = __solidpp__cylinderpp__check_params(
+                    module_name=__module_name, size=undef, r=_R, d=undef, h=_h,
+                    r1=undef, r2=undef, d1=undef, d2=undef, zet="z");
+    __d1_outer = outer_cyl_data[__CYLINDERPP_UTILS___d1_idx];
+    __d2_outer = outer_cyl_data[__CYLINDERPP_UTILS___d2_idx];
+    
+    //echo("init plane");
+    difference()
+    {
+        // TODO what the fuck is this
+        __solidpp__cylinderpp__get_def_plane(d1=__d1_outer, d2=__d2_outer, h=_h);
+        //cylinderpp( r=_R, h=_h, center=true,
+        //            mod_list=outer_mod_list, __rotate_extrude=false);
+        
+        // eps affects only preview
+        _eps = $preview ? 0.001 : 0;
+        __solidpp__cylinderpp__get_def_plane(d1=__d1_inner, d2=__d2_inner, h=_h+_eps);
+        //cylinderpp( r=_r, h=_h+_eps, center=true, 
+        //            mod_list=inner_mod_list, __rotate_extrude=false);
     }  
 }
 
 // TODO add documentation
 module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef, center=false,
                 align=undef, zet="z", __mod_queue = undef,
-                mod_list=undef, inner_mod_list=undef, outer_mod_list=undef)
+                mod_list=undef, inner_mod_list=undef, outer_mod_list=undef, __is_fancy=false)
 {
 
     // module name
@@ -63,22 +98,29 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
     // construct rotation
     _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
 
+    // this makes module use native cylinder by default,
+    // and switching to rotate extrude only if necessary
+    __is_fancy = (!is_undef(mod_list)) ? true : __is_fancy; 
+
     // construct the solid
     if(is_undef(mod_list) && is_undef(__mod_queue))
     {
         translate(_o)
         rotate(_rot)
-        rotate_extrude()
-        {
-            if($children == 0)
+            // TODO check
+            if(!__is_fancy)
             {
                 __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list);
             }
-            else 
+            else if($children == 0)
             {
-                children(0);
+                __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list);
             }
-        }
+            else 
+            {     
+                rotate_extrude()
+                    children(0);
+            }
     }
     else
     {
@@ -96,7 +138,7 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
                                 outer_mod_list=outer_mod_list, inner_mod_list=inner_mod_list)
                 if($children == 0)
                 {
-                    __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list);
+                    __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list);
                 }
                 else 
                 {
@@ -110,7 +152,7 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
                                 outer_mod_list=outer_mod_list, inner_mod_list=inner_mod_list)
                 if($children == 0)
                 {
-                    __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list);
+                    __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list);
                 }
                 else 
                 {
@@ -124,7 +166,7 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
                                     outer_mod_list=outer_mod_list, inner_mod_list=inner_mod_list)
                 if($children == 0)
                 {
-                    __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list);
+                    __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list);
                 }
                 else 
                 {
