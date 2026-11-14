@@ -1,90 +1,60 @@
+// defining the tubepp
+__DEF_TUBEPP__ = true;
+
+// including utils and the profile engine
 include<../utils/solidpp_utils.scad>
-include<../utils/__toroidpp_utils.scad>
+include<../engine/revolved.scad>
 
-include<../tubepp_mods/bevel_bases_tubepp.scad>
-include<../tubepp_mods/round_bases_tubepp.scad>
-include<../tubepp_mods/round_corners_tubepp.scad>
+// tubepp default alignment
+TUBEPP_DEF_ALIGN = "z";
 
-// TODO might not needed
-assert(!is_undef(__DEF_CYLINDERPP__), "[TUBE++] cylinderpp.scad must be included!");
 
-TUBEPP_DEF_ALIGN="z";
-
-// __protected__ function to create plane from outer and inner mod list
-module __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list)
+// tube (hollow cylinder)
+// - exactly two of 't', 'r|d', 'R|D' must be defined (default r=0.5, R=1)
+//   '-> argument 't' is the wall thickness
+//   '-> argument 'r'|'d' is the hole radius/diameter
+//   '-> argument 'R'|'D' is the outer radius/diameter
+//   '-> each is a number, or [bottom, top]
+// - argument 'size' defines the bounding box in the parent frame (counts as 'R|D' and 'h')
+//   '-> a number, or [x, y, z]; the two base dimensions must be equal
+// - argument 'h' defines the height (default 1)
+// - argument 'align' aligns the bounding box, see README (default "z")
+// - argument 'zet' is the axis of the tube: "x", "y" or "z" (default)
+// - argument 'center' overrides 'align' if true
+// - argument 'mod_list' is a list of edge modifiers applied in reading order
+//   '-> bevel(d, where) and rounding(r, where)
+//   '-> edges: "bi", "bo", "to", "ti" (b/t bottom/top, i/o inner/outer)
+//   '-> e.g. bevel(0.5, "ti") chamfers the top of the hole (heat inserts)
+//   '-> negative values add a flare into the base plane
+// - arguments 'outer_fn', 'inner_fn' are the numbers of sides of the outer wall and of the hole
+//   '-> undef (default) uses $fn/$fa/$fs like OpenSCAD
+// - arguments 'outer_polygon', 'inner_polygon' define how a polygonal wall is measured
+//   '-> "corners" (default, as OpenSCAD) vertices lie on the circle
+//   '-> "flats" flats lie on the circle (e.g. nut traps)
+// - argument 'flare_in_align' if true, alignment includes flares (default false)
+// - argument 'flare_in_size' if true, the outer diameter includes flares, the body shrinks (default false)
+// See DESIGN.md for details.
+module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
+              align=undef, zet=undef, center=false, mod_list=undef,
+              outer_fn=undef, inner_fn=undef, outer_polygon="corners", inner_polygon="corners",
+              flare_in_align=false, flare_in_size=false)
 {
-    difference()
-    {
-        // TODO what the fuck is this
-        cylinderpp( r=_R, h=_h, center=true,
-                    mod_list=outer_mod_list, __rotate_extrude=false, __is_fancy=false);
-        
-        // eps affects only preview
-        _eps = $preview ? 0.001 : 0;
-        cylinderpp( r=_r, h=_h+_eps, center=true, 
-                    mod_list=inner_mod_list, __rotate_extrude=false, __is_fancy=false);
-    }  
-}
-
-
-module __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list)
-{
-    // TODO fix this mess
-    __module_name = "TUBEPP";
-    
-    inner_cyl_data = __solidpp__cylinderpp__check_params(
-                    module_name=__module_name, size=undef, r=_r, d=undef, h=_h,
-                    r1=undef, r2=undef, d1=undef, d2=undef, zet="z");
-    __d1_inner = inner_cyl_data[__CYLINDERPP_UTILS___d1_idx];
-    __d2_inner = inner_cyl_data[__CYLINDERPP_UTILS___d2_idx];
-
-    outer_cyl_data = __solidpp__cylinderpp__check_params(
-                    module_name=__module_name, size=undef, r=_R, d=undef, h=_h,
-                    r1=undef, r2=undef, d1=undef, d2=undef, zet="z");
-    __d1_outer = outer_cyl_data[__CYLINDERPP_UTILS___d1_idx];
-    __d2_outer = outer_cyl_data[__CYLINDERPP_UTILS___d2_idx];
-    
-    //echo("init plane");
-    difference()
-    {
-        // TODO what the fuck is this
-        __solidpp__cylinderpp__get_def_plane(d1=__d1_outer, d2=__d2_outer, h=_h);
-        //cylinderpp( r=_R, h=_h, center=true,
-        //            mod_list=outer_mod_list, __rotate_extrude=false);
-        
-        // eps affects only preview
-        _eps = $preview ? 0.001 : 0;
-        __solidpp__cylinderpp__get_def_plane(d1=__d1_inner, d2=__d2_inner, h=_h+_eps);
-        //cylinderpp( r=_r, h=_h+_eps, center=true, 
-        //            mod_list=inner_mod_list, __rotate_extrude=false);
-    }  
-}
-
-// TODO add documentation
-module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef, center=false,
-                align=undef, zet="z", __mod_queue = undef,
-                mod_list=undef, inner_mod_list=undef, outer_mod_list=undef, __is_fancy=false)
-{
-
-    // module name
     __module_name = "TUBEPP";
 
-    __h = is_undef(h) ? 1 : h;
+    _zet = __spp_check_zet(zet, __module_name);
+    _outer_fn = __spp_check_fn(outer_fn, "outer_fn", __module_name);
+    _inner_fn = __spp_check_fn(inner_fn, "inner_fn", __module_name);
+    _mods = __spp_check_edge_mod_list(mod_list, __module_name);
+    assert(is_bool(flare_in_align) && is_bool(flare_in_size),
+        str("[", __module_name, "] arguments 'flare_in_align' and 'flare_in_size' must be booleans"));
 
-    // checking and processing toroidpp parameters
-    parsed_data = __solidpp__toroidpp__check_parameters(
-                        module_name=__module_name, t=t, r=r, d=d, R=R, D=D, h=__h);
-    _r = parsed_data[0];
-    _R = parsed_data[1];
-    _t = parsed_data[2];
-    _h = parsed_data[3];
+    // [r1, r2, R1, R2, h]
+    _args = __spp_tube_args(size=size, t=t, r=r, d=d, R=R, D=D, h=h, zet=_zet, ctx=__module_name);
 
-    // check zet
-    // '-> it is string or undef
-    assert(is_undef(zet) || is_string(zet),
-            str("[", __module_name, "] arguments 'zet' is eithter 'undef' or a string!"));
+    // [outer body points, hole cutter points, alignment radius, tagged profile]
+    _spec = __spp_tube_spec(_args, _mods, flare_in_size, flare_in_align, __module_name);
 
-    _size = __solidpp__construct_cylinderpp_size(d=2*_R,h=_h, zet=zet);
+    _size = __solidpp__construct_cylinderpp_size(2*_spec[2], _args[4], _zet);
 
     // process the align and center to produce offset
     // '-> arguments 'align' and 'center' are checked within the function
@@ -94,99 +64,14 @@ module tubepp(  size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef
             center=center,
             solidpp_name=__module_name,
             def_align=TUBEPP_DEF_ALIGN);
-      
-    // construct rotation
-    _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
 
-    // this makes module use native cylinder by default,
-    // and switching to rotate extrude only if necessary
-    __is_fancy = (!is_undef(mod_list)) ? true : __is_fancy; 
+    _rot = __solidpp__get_rotation_from_zet(_zet, [0,0,0]);
 
-    // construct the solid
-    if(is_undef(mod_list) && is_undef(__mod_queue))
-    {
-        translate(_o)
+    translate(_o)
         rotate(_rot)
-            // TODO check
-            if(!__is_fancy)
+            difference()
             {
-                __tubepp__manage_init_object(_h, _r, _R, outer_mod_list, inner_mod_list);
+                __spp_revolve(_spec[0], _outer_fn, outer_polygon, __module_name);
+                __spp_revolve(_spec[1], _inner_fn, inner_polygon, __module_name);
             }
-            else if($children == 0)
-            {
-                __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list);
-            }
-            else 
-            {     
-                rotate_extrude()
-                    children(0);
-            }
-    }
-    else
-    {
-        _tmp_queue = is_undef(__mod_queue) ? __solidpp__new_queue(mod_list) : __mod_queue;
-        _ret = __solidpp__pop(_tmp_queue);
-        _mod = _ret[0];
-        _mod_queue = __solidpp__queue_size(_ret[1]) > 0 ? _ret[1] : undef;
-
-        translate(_o)
-        rotate(_rot)
-        if (__solidpp__is_valid_bevel_bases_modifier(_mod))
-        {
-            // bevel bases
-            bevel_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue,
-                                outer_mod_list=outer_mod_list, inner_mod_list=inner_mod_list)
-                if($children == 0)
-                {
-                    __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list);
-                }
-                else 
-                {
-                    children(0);
-                }  
-        }
-        else if (__solidpp__is_valid_round_bases_modifier(_mod))
-        {
-            // round bases 
-            round_bases_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue,
-                                outer_mod_list=outer_mod_list, inner_mod_list=inner_mod_list)
-                if($children == 0)
-                {
-                    __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list);
-                }
-                else 
-                {
-                    children(0);
-                }
-        }
-        else if (__solidpp__is_valid_round_corners_modifier(_mod))
-        {
-            // round corners
-            round_corners_tubepp(_size, center=true, mod=_mod, __mod_queue=_mod_queue,
-                                    outer_mod_list=outer_mod_list, inner_mod_list=inner_mod_list)
-                if($children == 0)
-                {
-                    __tubepp__manage_init_plane(_h, _r, _R, outer_mod_list, inner_mod_list);
-                }
-                else 
-                {
-                    children(0);
-                }
-        }
-        else if (__solidpp__is_valid_modifier(_mod))
-        {
-            // bevel edges
-            assert(false,
-            str("[", __module_name, "] unsupported modifier!"));
-        }
-        else
-        {
-            assert(false,
-            str("[", __module_name, "] something went wrong regarding modifiers!"));
-        }
-    }
-
 }
-
-// defining the cylinderpp 
-__DEF_TUBEPP__ = true;

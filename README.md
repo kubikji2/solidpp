@@ -190,6 +190,10 @@ QTA: how the size is managed?
 
 ### Modifiers
 
+> **Refactor in progress.** `cylinderpp` and `tubepp` now use the new edge modifiers
+> `bevel(d, where)` and `rounding(r, where)`, see [DESIGN.md](DESIGN.md).
+> The modifiers described below apply to `cubepp` only until it is ported.
+
 Solids with distinguished edges (`cubepp` and `cylinderpp`) can be further modified using modifiers such as rounding the edges, or corners, beveling, and cutting (bevelling) of edges or corners.
 Modifiers are created using constructors in `modifiers.scad` that are basically just wrappers for computing a storing data required for solid modification.
 

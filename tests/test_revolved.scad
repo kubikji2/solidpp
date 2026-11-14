@@ -1,0 +1,172 @@
+// Tests of the data layer of the revolved solids (no geometry is produced).
+// Run: openscad -o /tmp/out.echo tests/test_revolved.scad
+// A failed test stops with an assert naming the test; the last echo is "ALL TESTS PASSED".
+
+include<../solidpp.scad>
+
+// ------------------------------------------------------------------ helpers
+
+// approximate equality of numbers / nested lists, exact for other types
+function __t_eq(a, b, eps=1e-6) =
+    is_num(a) && is_num(b) ?
+        abs(a - b) <= eps :
+        is_list(a) && is_list(b) ?
+            len(a) == len(b) && len([for (i = [0:1:len(a)-1]) if (!__t_eq(a[i], b[i], eps)) 1]) == 0 :
+            a == b;
+
+function check(name, got, expected, eps=1e-6) =
+    assert(__t_eq(got, expected, eps), str("TEST FAILED: ", name, "\n  got:      ", got, "\n  expected: ", expected))
+    true;
+
+// points of a profile with given tag
+function pts(profile, tag) = [for (v = profile) if (v[2] == tag) [v[0], v[1]]];
+
+// profile of a cylinder / tube directly from the data layer
+function cyl(args, mods) = __spp_cyl_spec(args, mods, false, false, "TEST")[2];
+function tube(args, mods) = __spp_tube_spec(args, mods, false, false, "TEST")[3];
+
+$fn = 0; $fa = 12; $fs = 2;
+
+// ------------------------------------------------------------------ modifiers
+
+_t_mod = [
+    check("bevel number", bevel(1), ["__SPP_EDGE_MOD__", "bevel", [1, 1], ["all"]]),
+    check("bevel pair + list where", bevel([1, 2], ["t", "bo"]), ["__SPP_EDGE_MOD__", "bevel", [1, 2], ["t", "bo"]]),
+    check("rounding negative", rounding(-2, "b"), ["__SPP_EDGE_MOD__", "rounding", [-2, -2], ["b"]]),
+    check("is edge mod", __spp_is_edge_mod(rounding(1)), true),
+    check("legacy mod detected", __spp_is_legacy_mod(round_corners(1)), true),
+    check("new mod is not legacy", __spp_is_legacy_mod(bevel(1)), false),
+    check("mod list undef", __spp_check_edge_mod_list(undef, "TEST"), []),
+];
+
+// ------------------------------------------------------------------ fragments
+
+_t_frag = [
+    check("fragments default small", __spp_fragments(0.5), 5),
+    check("fragments $fn", __spp_fragments(10, fn=6), 6),
+    check("fragments $fn < 3", __spp_fragments(10, fn=2), 3),
+    check("fragments $fa/$fs", __spp_fragments(10, fn=0, fa=1, fs=0.1), 360),
+    check("fragments $fs bound", __spp_fragments(1, fn=0, fa=1, fs=0.5), 13),
+];
+
+// ------------------------------------------------------------------ selectors
+
+_t_sel = [
+    check("token t", __spp_select_tags(["t"], ["bi", "bo", "to", "ti"], "tboi", "T"), ["to", "ti"]),
+    check("token it (order free)", __spp_select_tags(["it"], ["bi", "bo", "to", "ti"], "tboi", "T"), ["ti"]),
+    check("token all", __spp_select_tags(["all"], ["bo", "to"], "tboi", "T"), ["bo", "to"]),
+    check("token list", __spp_select_tags(["ti", "bo"], ["bi", "bo", "to", "ti"], "tboi", "T"), ["bo", "ti"]),
+    check("selectable skips axis", __spp_selectable_tags(__spp_rev_cylinder_profile(1, 1, 1), "tboi"), ["bo", "to"]),
+];
+
+// ------------------------------------------------------------------ cylinder arguments
+
+_t_cargs = [
+    check("default", __spp_cyl_args(undef, undef, undef, undef, undef, undef, undef, undef, "z", "T"), [0.5, 0.5, 1]),
+    check("d h", __spp_cyl_args(undef, undef, 10, 4, undef, undef, undef, undef, "z", "T"), [5, 5, 4]),
+    check("r pair", __spp_cyl_args(undef, [3, 1], undef, 4, undef, undef, undef, undef, "z", "T"), [3, 1, 4]),
+    check("size z", __spp_cyl_args([10, 10, 4], undef, undef, undef, undef, undef, undef, undef, "z", "T"), [5, 5, 4]),
+    check("size x", __spp_cyl_args([4, 10, 10], undef, undef, undef, undef, undef, undef, undef, "x", "T"), [5, 5, 4]),
+    check("size y", __spp_cyl_args([10, 4, 10], undef, undef, undef, undef, undef, undef, undef, "y", "T"), [5, 5, 4]),
+    check("size scalar", __spp_cyl_args(6, undef, undef, undef, undef, undef, undef, undef, "z", "T"), [3, 3, 6]),
+    check("r1 d2", __spp_cyl_args(undef, undef, undef, 2, 3, undef, undef, 2, "z", "T"), [3, 1, 2]),
+    check("size + r1 r2 ratio", __spp_cyl_args([10, 10, 2], undef, undef, undef, 2, 1, undef, undef, "z", "T"), [5, 2.5, 2]),
+    check("cone apex", __spp_cyl_args(undef, undef, undef, 3, 2, 0, undef, undef, "z", "T"), [2, 0, 3]),
+];
+
+// ------------------------------------------------------------------ tube arguments
+
+_t_targs = [
+    check("tube default", __spp_tube_args(undef, undef, undef, undef, undef, undef, undef, "z", "T"), [0.5, 0.5, 1, 1, 1]),
+    check("tube r R", __spp_tube_args(undef, undef, 3, undef, 5, undef, 10, "z", "T"), [3, 3, 5, 5, 10]),
+    check("tube t R", __spp_tube_args(undef, 1, undef, undef, 5, undef, 2, "z", "T"), [4, 4, 5, 5, 2]),
+    check("tube t d", __spp_tube_args(undef, 1, undef, 6, undef, undef, 2, "z", "T"), [3, 3, 4, 4, 2]),
+    check("tube D d", __spp_tube_args(undef, undef, undef, 6, undef, 10, 2, "z", "T"), [3, 3, 5, 5, 2]),
+    check("tube pairs", __spp_tube_args(undef, 1, [2, 3], undef, undef, undef, 2, "z", "T"), [2, 3, 3, 4, 2]),
+    check("tube size", __spp_tube_args([10, 10, 3], 1, undef, undef, undef, undef, undef, "z", "T"), [4, 4, 5, 5, 3]),
+    check("tube size x", __spp_tube_args([3, 10, 10], undef, 2, undef, undef, undef, undef, "x", "T"), [2, 2, 5, 5, 3]),
+];
+
+// ------------------------------------------------------------------ cylinder profiles
+
+_c0 = cyl([5, 5, 4], []);
+_c_bevel_t = cyl([5, 5, 4], [bevel(1, "t")]);
+_c_bevel_pair = cyl([5, 5, 4], [bevel([1, 0.5], "b")]);
+_c_round_t = cyl([5, 5, 4], [rounding(1, "t")]);
+_c_ell = cyl([5, 5, 4], [rounding([2, 1], "t")]);
+_c_bev_round = cyl([5, 5, 4], [bevel(1, "t"), rounding(0.2, "t")]);
+_c_flare_b = cyl([5, 5, 4], [bevel(-1, "b")]);
+_c_flare_r = cyl([5, 5, 4], [rounding([-2, -1], "b")]);
+_c_cone = cyl([5, 0, 4], [bevel(1, "b")]);
+_c_noop = cyl([5, 5, 4], [bevel(0)]);
+
+_t_cprof = [
+    check("plain profile", __spp_profile_points(_c0), [[0, -2], [5, -2], [5, 2], [0, 2]]),
+    check("bevel top", pts(_c_bevel_t, "to"), [[5, 1], [4, 2]]),
+    check("bevel top keeps bottom", pts(_c_bevel_t, "bo"), [[5, -2]]),
+    check("bevel [across, along] bottom", pts(_c_bevel_pair, "bo"), [[4, -2], [5, -1.5]]),
+    check("rounding tangent points",
+        [pts(_c_round_t, "to")[0], pts(_c_round_t, "to")[len(pts(_c_round_t, "to"))-1]], [[5, 1], [4, 2]]),
+    check("rounding arc radius",
+        [for (p = pts(_c_round_t, "to")) norm(p - [4, 1])], [for (p = pts(_c_round_t, "to")) 1]),
+    check("rounding marks smooth", [for (v = _c_round_t) if (v[2] == "to") v[3]], [for (v = _c_round_t) if (v[2] == "to") false]),
+    check("elliptic tangent points",
+        [pts(_c_ell, "to")[0], pts(_c_ell, "to")[len(pts(_c_ell, "to"))-1]], [[5, 1], [3, 2]]),
+    check("elliptic on ellipse",
+        [for (p = pts(_c_ell, "to")) pow((p[0]-3)/2, 2) + pow(p[1]-1, 2)], [for (p = pts(_c_ell, "to")) 1]),
+    check("bevel then rounding: ends",
+        [pts(_c_bev_round, "to")[0], pts(_c_bev_round, "to")[len(pts(_c_bev_round, "to"))-1]],
+        [[5, 1 - 0.2*tan(22.5)], [4 - 0.2*tan(22.5), 2]]),
+    check("flare bevel", pts(_c_flare_b, "bo"), [[6, -2], [5, -1]]),
+    check("flare rounding ends",
+        [pts(_c_flare_r, "bo")[0], pts(_c_flare_r, "bo")[len(pts(_c_flare_r, "bo"))-1]], [[7, -2], [5, -1]]),
+    check("flare rounding concave",
+        [for (p = pts(_c_flare_r, "bo")) pow((p[0]-7)/2, 2) + pow(p[1]+1, 2)], [for (p = pts(_c_flare_r, "bo")) 1]),
+    check("cone bevel uses along on the wall", pts(_c_cone, "bo"), [[4, -2], [5 - 5/4, -1]]),
+    check("zero is no-op", _c_noop, _c0),
+    check("max x with flare", __spp_max_x(__spp_profile_points(_c_flare_r)), 7),
+];
+
+// ------------------------------------------------------------------ flare flags
+
+_t_flags = [
+    check("align radius without flare", __spp_cyl_spec([5, 5, 4], [bevel(-1, "b")], false, false, "T")[1], 5),
+    check("align radius with flare", __spp_cyl_spec([5, 5, 4], [bevel(-1, "b")], false, true, "T")[1], 6),
+    check("flare in size shrinks body",
+        __spp_max_x(__spp_cyl_spec([5, 5, 4], [bevel(-1, "b")], true, false, "T")[0]), 5),
+    check("flare in size body radius",
+        pts(__spp_cyl_spec([5, 5, 4], [bevel(-1, "b")], true, false, "T")[2], "to"), [[4, 2]]),
+    check("flare in size, align with flare",
+        __spp_cyl_spec([5, 5, 4], [bevel(-1, "b")], true, true, "T")[1], 5),
+    check("flare in size, align without flare",
+        __spp_cyl_spec([5, 5, 4], [bevel(-1, "b")], true, false, "T")[1], 4),
+];
+
+// ------------------------------------------------------------------ tube profiles and chains
+
+_tb = tube([3, 3, 5, 5, 6], [bevel(0.5, "ti"), rounding(-1, "bo")]);
+_tb_spec = __spp_tube_spec([3, 3, 5, 5, 6], [bevel(0.5, "ti")], false, false, "T");
+_tb_inner_flare = tube([3, 3, 5, 5, 6], [bevel(-1, "i")]);
+
+_t_tube = [
+    check("tube plain", __spp_profile_points(tube([3, 3, 5, 5, 6], [])), [[3, -3], [5, -3], [5, 3], [3, 3]]),
+    check("tube bevel ti", pts(_tb, "ti"), [[3.5, 3], [3, 2.5]]),
+    check("tube untouched to", pts(_tb, "to"), [[5, 3]]),
+    check("tube outer body", _tb_spec[0], [[0, -3], [5, -3], [5, 3], [0, 3]]),
+    check("tube hole cutter", _tb_spec[1], [[0, 10], [3.5, 10], [3.5, 3], [3, 2.5], [3, -3], [3, -10], [0, -10]]),
+    check("tube inner flare", [pts(_tb_inner_flare, "ti"), pts(_tb_inner_flare, "bi")],
+        [[[2, 3], [3, 2]], [[3, -2], [2, -3]]]),
+    check("tube bevel t takes both", [pts(tube([3, 3, 5, 5, 6], [bevel(0.5, "t")]), "to"),
+                                      pts(tube([3, 3, 5, 5, 6], [bevel(0.5, "t")]), "ti")],
+        [[[5, 2.5], [4.5, 3]], [[3.5, 3], [3, 2.5]]]),
+    check("tube conical", __spp_profile_points(tube([2, 3, 4, 5, 2], [])), [[2, -1], [4, -1], [5, 1], [3, 1]]),
+];
+
+// ------------------------------------------------------------------ polygon modes
+
+_t_poly = [
+    check("corners scale", __spp_polygon_scale("corners", 6, "T"), 1),
+    check("flats scale hex", __spp_polygon_scale("flats", 6, "T"), 2/sqrt(3)),
+];
+
+echo("ALL TESTS PASSED");

@@ -5,7 +5,21 @@ include<../transforms/transform_if.scad>
 
 assert(!is_undef(__DEF_CUBEPP__), "[ROUND-EDGES-CUBE++] cubepp.scad must be included!");
 assert(!is_undef(__DEF_SPHEREPP__), "[ROUND-EDGES-CUBE++] spherepp.scad must be included!");
-assert(!is_undef(__DEF_CYLINDERPP__), "[ROUND-EDGES-CUBE++] cylinderpp.scad must be included!");
+
+
+// __private__ elliptical cylinder used by the edge rounding below
+// '-> cylinderpp no longer supports elliptical cylinders (see DESIGN.md);
+//     this keeps the old behaviour until cubepp is ported to the new engine
+module __spp_legacy_elliptic_cylinder(size, align, zet)
+{
+    _o = __solidpp__produce_offset_from_align_and_center(
+            _size=size, align=align, center=false,
+            solidpp_name="ROUND-EDGES-CUBE++", def_align="z");
+    translate(_o)
+        resize(size)
+            rotate(__solidpp__get_rotation_from_zet(zet, [0,0,0]))
+                cylinder(d=1, h=1, center=true);
+}
 
 
 // TODO add readme
@@ -167,7 +181,7 @@ mod=undef, __mod_queue = undef)
                 mirrorpp([1,0,0],true)
                     mirrorpp([0,1,0],true)
                         translate([-_x/2,-_y/2,0])
-                            cylinderpp(size=[2*_rx,2*_ry,__z],align="xy");
+                            __spp_legacy_elliptic_cylinder(size=[2*_rx,2*_ry,__z],align="xy");
             }                
 
             // xz-place cut
@@ -177,7 +191,7 @@ mod=undef, __mod_queue = undef)
                 mirrorpp([1,0,0],true)
                     mirrorpp([0,0,1],true)
                         translate([-_x/2,0,-_z/2])
-                            cylinderpp(size=[2*_rx,__y,2*_rz],align="xz",zet="y");
+                            __spp_legacy_elliptic_cylinder(size=[2*_rx,__y,2*_rz],align="xz",zet="y");
             }
 
             // yz-plane cut
@@ -187,7 +201,7 @@ mod=undef, __mod_queue = undef)
                 mirrorpp([0,1,0],true)
                     mirrorpp([0,0,1],true)
                         translate([0,-_y/2,-_z/2])
-                            cylinderpp(size=[__x,2*_ry,2*_rz],align="yz",zet="x");
+                            __spp_legacy_elliptic_cylinder(size=[__x,2*_ry,2*_rz],align="yz",zet="x");
             }          
         }
     }
