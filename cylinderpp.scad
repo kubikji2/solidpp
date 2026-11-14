@@ -45,7 +45,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
 
     _zet = __spp_check_zet(zet, __module_name);
     _fn = __spp_check_fn(fn, "fn", __module_name);
-    _mods = __spp_check_edge_mod_list(mod_list, __module_name);
+    _mods = __spp_resolve_mod_list(mod_list, "revolved", __module_name);
     assert(is_bool(flare_in_align) && is_bool(flare_in_size),
         str("[", __module_name, "] arguments 'flare_in_align' and 'flare_in_size' must be booleans"));
 

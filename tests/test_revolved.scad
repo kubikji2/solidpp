@@ -36,7 +36,7 @@ _t_mod = [
     check("is edge mod", __spp_is_edge_mod(rounding(1)), true),
     check("legacy mod detected", __spp_is_legacy_mod(round_corners(1)), true),
     check("new mod is not legacy", __spp_is_legacy_mod(bevel(1)), false),
-    check("mod list undef", __spp_check_edge_mod_list(undef, "TEST"), []),
+    check("mod list undef", __spp_resolve_mod_list(undef, "revolved", "TEST"), []),
 ];
 
 // ------------------------------------------------------------------ fragments

@@ -8,6 +8,7 @@
 
 include<../utils/solidpp_utils.scad>
 include<profile.scad>
+include<../modifiers/legacy_modifiers.scad>
 
 // letters usable in 'where' selectors of revolved solids
 __SPP_REV_LETTERS = "tboi";

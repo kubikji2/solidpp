@@ -33,18 +33,24 @@ TUBEPP_DEF_ALIGN = "z";
 //   '-> "flats" flats lie on the circle (e.g. nut traps)
 // - argument 'flare_in_align' if true, alignment includes flares (default false)
 // - argument 'flare_in_size' if true, the outer diameter includes flares, the body shrinks (default false)
+// - arguments 'inner_mod_list', 'outer_mod_list' are deprecated, use 'mod_list' with "i"/"o" selectors
 // See DESIGN.md for details.
 module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
               align=undef, zet=undef, center=false, mod_list=undef,
               outer_fn=undef, inner_fn=undef, outer_polygon="corners", inner_polygon="corners",
-              flare_in_align=false, flare_in_size=false)
+              flare_in_align=false, flare_in_size=false,
+              inner_mod_list=undef, outer_mod_list=undef)
 {
     __module_name = "TUBEPP";
 
     _zet = __spp_check_zet(zet, __module_name);
     _outer_fn = __spp_check_fn(outer_fn, "outer_fn", __module_name);
     _inner_fn = __spp_check_fn(inner_fn, "inner_fn", __module_name);
-    _mods = __spp_check_edge_mod_list(mod_list, __module_name);
+    // '-> deprecated 'outer_mod_list'/'inner_mod_list' are translated to 'o'/'i' edges
+    _mods = concat(
+        __spp_resolve_mod_list(mod_list, "revolved", __module_name),
+        __spp_legacy_restrict(__spp_resolve_mod_list(outer_mod_list, "revolved", __module_name), "o", __module_name),
+        __spp_legacy_restrict(__spp_resolve_mod_list(inner_mod_list, "revolved", __module_name), "i", __module_name));
     assert(is_bool(flare_in_align) && is_bool(flare_in_size),
         str("[", __module_name, "] arguments 'flare_in_align' and 'flare_in_size' must be booleans"));
 

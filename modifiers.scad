@@ -1,2 +1,3 @@
 // include all modifiers
-include<modifiers/modifiers.scad>
+include<modifiers/edge_modifiers.scad>
+include<modifiers/legacy_modifiers.scad>
