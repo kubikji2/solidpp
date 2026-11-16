@@ -75,3 +75,17 @@ translate([0, 3*step, 0]) {
     translate([2*step, 0, 0]) tubepp(r=2, R=3, h=10, zet="x", align="xz", mod_list=[bevel(0.5, "ti")]);
     translate([3*step, 0, 0]) cylinderpp([10, 10, 3], center=true, mod_list=[rounding(1)]);
 }
+
+// ---- row 6: revolvepp (custom profiles, face names, concave fills)
+_shaft = [[0, 0], [5, 0], [5, 3], [3, 3], [3, 9], [0, 9]];
+show(0, 6) revolvepp(_shaft);
+show(1, 6) revolvepp(_shaft, mod_list=[rounding(0.6, "to")]);                       // 2 convex + 1 concave fill
+show(2, 6) revolvepp(_shaft, mod_list=[bevel(0.5, "t"), rounding(-1, "bo")]);       // flare
+show(3, 6) revolvepp([[0, 0], [5, 0], [5, 3, "t", "f"], [3, 4.5], [3, 9, "t1"], [0, 9]],
+                     mod_list=[bevel(1, "t1"), rounding(0.5, "to")]);               // forced, refined; t1 bevel-then-round
+show(4, 6) revolvepp([[0, 0], [5, 0], [5, 2], [4, 2.5, "g"], [5, 3], [5, 6], [2, 6], [2, 3], [0, 3]],
+                     mod_list=[rounding(0.3, "g"), rounding(0.8, "ti"), bevel(0.4, "to")]);  // groove + cup
+show(5, 6) revolvepp([[2, 0], [5, 0], [5, 3], [2, 3]], mod_list=[rounding(0.8)]);   // ring off the axis
+show(6, 6) revolvepp(_shaft, zet="x", fn=6, polygon="flats", mod_list=[bevel(0.5, "to")]);
+show(7, 6) revolvepp(_shaft, sector=[0, 270], mod_list=[rounding(0.6, "to")]);
+show(8, 6) revolvepp([[0, 4], [3, 4], [3, 7], [0, 7]], align="keep");                // floats at z = 4..7

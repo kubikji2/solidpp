@@ -84,11 +84,22 @@ cutter (a solid used in `difference()`), a negative bevel gives a countersink.
 
 ### 3.3 Selecting edges: `where`
 
-`where` is a string or a list of strings (tokens). A token selects every edge
-whose tag contains **all** letters of the token. `"all"` selects every edge.
-Letters are case-sensitive.
+`where` is a string or a list of strings (tokens). One rule for all solids:
 
-Revolved solids (`cylinderpp`, `tubepp`):
+> Faces have names. An edge is named by its two faces, a corner by its three.
+> A token selects every element whose faces include all faces of the token.
+
+- A face name is a letter optionally followed by digits: `t`, `o`, `g`, `g12`.
+- A token is a concatenation of face names: `"to"`, `"ti"`, `"xY"`, `"og1"`.
+- A bare letter matches its whole family: `"g"` matches `g`, `g1`, `g2`, ...;
+  a numbered name matches only itself (`"g1"` does not match `g2` or `g`).
+- The order of the names in a token does not matter (`"it"` = `"ti"`).
+- `"all"` selects every edge; letters are case-sensitive.
+- Every token must match at least one edge, otherwise it is an error.
+- `t`/`b` are the faces perpendicular to `zet` (top/bottom) on every solid.
+- Vertices that are not edges (on the axis, collinear points) cannot be selected.
+
+Revolved solids (`cylinderpp`, `tubepp`, `revolvepp`):
 
 | letter | meaning                                 |
 |--------|-----------------------------------------|
@@ -96,6 +107,9 @@ Revolved solids (`cylinderpp`, `tubepp`):
 | `b`    | bottom base (low end of the `zet` axis) |
 | `o`    | outer wall                              |
 | `i`    | inner wall (hole of `tubepp`)           |
+
+`revolvepp` derives these names from the profile and adds the names of user tags,
+see section 4.6.
 
 | token          | `cylinderpp`      | `tubepp`                            |
 |----------------|-------------------|-------------------------------------|
@@ -138,6 +152,12 @@ An operation acts on the *sharp* corners of the selected edges:
 - `rounding` replaces a corner with a smooth arc; selecting an already rounded
   edge again is an error.
 - A flare needs an untouched base edge.
+- On a concave edge (only in `revolvepp` profiles), `bevel` and `rounding` with a
+  positive value fill the corner (add material); a flare (negative value) is an
+  error there.
+- A broad token also matches refined edges: with a top face tagged `"t1"`,
+  `rounding(r, "to")` rounds that edge too. Put the specific modifier first
+  (a bevel can still be rounded) or use specific tokens.
 
 `cubepp` adds a rule for edges parallel to `zet` ("vertical" edges) because they
 are corners of the cross-section, see section 5.
@@ -289,13 +309,61 @@ angular range).
   or `outer_section` (those walls are not revolved). The flat end faces of the
   sector cannot be modified by `mod_list`.
 
-### 4.6 Planned
+### 4.6 `revolvepp`
 
-- `revolvepp(profile, ...)`: user profile (point list), same modifiers if tags are
-  supplied; replaces the old `children()` profile of `cylinderpp`.
+```
+revolvepp(points, align, zet, center, mod_list, fn, polygon, flare_in_align, sector)
+```
+
+The user draws the profile as a point list (x = distance from the axis, y =
+position along `zet`), so the bounding box, alignment, validation and modifiers
+work as for `cylinderpp`. A 2D child cannot be measured in OpenSCAD; revolving
+2D children is left to a transform (`rotate_extrudepp`, planned).
+
+Points: `[x, y]`, `[x, y, "tag"]` or `[x, y, "tag", "f"]`.
+
+- The profile is closed, must not intersect itself and must lie in `x >= 0`;
+  its orientation does not matter (it is normalized to counter-clockwise).
+- The segment from point `k` to point `k+1` is a face of the solid. A vertex is
+  an edge named by the faces on both sides.
+- Every segment gets an automatic name from its outward normal:
+
+| segment                              | name      |
+|--------------------------------------|-----------|
+| on the axis (`x = 0` at both ends)   | none      |
+| horizontal, facing up / down         | `t` / `b` |
+| otherwise facing away from / to axis | `o` / `i` |
+
+- A tag adds names to the segment starting at its point (several names may be
+  concatenated, e.g. `"gh"`). Tags never remove the automatic name.
+- Tag rules:
+
+| tag                                                                         | result             |
+|-----------------------------------------------------------------------------|--------------------|
+| new letter, e.g. `"g"`, `"g1"`                                              | added              |
+| default letter of the segment's own group, e.g. `"t"`, `"t1"` on a `t` face | added (refinement) |
+| default letter of another group, e.g. `"t"` on an `o` face                  | error              |
+| the same with the flag: `[x, y, "t", "f"]`                                  | added (forced)     |
+| flag `"f"` without such a letter                                            | error              |
+| letters `x X y Y z Z`                                                       | error (reserved)   |
+| tag on a segment on the axis                                                | error (not a face) |
+
+  A forced name is meant for faces that are not exactly horizontal/vertical but
+  should be treated as such (a slanted printable shoulder joins `t`).
+- Edge tags are canonical: default names in the order `t b o i`, then the others
+  (`"to"`, `"tot1"`, `"og"`).
+- Placement is by `align` as for `cylinderpp` (default `"z"`), the y offset of
+  the points is dropped. `align="keep"` places the points as given (axis through
+  the origin, y along `+zet`); `center=true` still overrides it. `polygon` modes are measured at the largest
+  radius. Sections (`teardrop`, `serration`) are not supported (a general
+  profile has no monotonic wall). Old modifiers are not supported.
+
+### 4.7 Planned
+
+- `rotate_extrudepp(zet, sector, fn)` in `transforms/`: 2D children, `zet` and
+  the `sector` convention; alignment via `transform_to_spp`.
 - `projectpp(plane=[point, normal])`: moves the plane to z=0 and runs
   `projection(cut=true)`.
-- `sector(angle)` modifier for revolved solids (just `rotate_extrude(angle=)`).
 
 ## 5. Box family (`cubepp`)
 
@@ -435,13 +503,14 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `modifiers/edge_modifiers.scad`    | `bevel()`, `rounding()`, `bevel_corners()`, validation   |
 | `modifiers/legacy_modifiers.scad`  | old constructors, translation, `mod_list` resolution     |
 | `modifiers/section_modifiers.scad` | `teardrop()`, `serration()`                              |
-| `engine/profile.scad`              | tagged polygons, corner operations, fragments, checks    |
-| `engine/revolved.scad`             | cylinder/tube profiles, chain split, argument parsing    |
+| `engine/profile.scad`              | face names, selection, corner operations, fragments      |
+| `engine/revolved.scad`             | cylinder/tube/revolvepp profiles, argument parsing       |
 | `engine/box.scad`                  | frames, selectors, stages, rings, offsets, hull geometry |
 | `engine/section.scad`              | sections: outlines, serration, wall chains, pieces       |
 | `cubepp.scad`                      | thin module over the engine                              |
 | `cylinderpp.scad`                  | thin module over the engine                              |
 | `other_solidspp/tubepp.scad`       | thin module over the engine                              |
+| `other_solidspp/revolvepp.scad`    | thin module over the engine                              |
 | `tests/test_revolved.scad`         | `assert`-based tests of the data layer (no geometry)     |
 | `tests/test_cubepp.scad`           | `assert`-based tests of the box data and legacy layer    |
 | `tests/test_sections.scad`         | `assert`-based tests of the sections                     |
@@ -449,7 +518,8 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `tests/gallery_cubepp.scad`        | visual smoke test of all combinations                    |
 | `tests/gallery_sections.scad`      | visual smoke test of sections, holes in plates           |
 
-- Vertex format: `[x, y, tag, sharp]`. `sharp=false` marks arc points.
+- Vertex format: `[x, y, tag, sharp]`. `sharp=false` marks arc points; the tag
+  `"_"` marks vertices that are not edges (axis, collinear points).
 - Modifier format: `["__SPP_EDGE_MOD__", kind, value, [tokens]]`,
   `["__SPP_CORNER_MOD__", "bevel_corners", [x, y, z], [tokens]]`,
   `["__SPP_LEGACY_MOD__", name, data, call description]`.
@@ -472,7 +542,9 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] `sector` for revolved solids (bounding box of the full cylinder).
 - [x] `polygon="polyhole"` (hole size compensation).
 - [x] Taper of `cubepp` (`size_bottom`, `size_top`), `trapezoid` deprecated.
-- [ ] `revolvepp`, `prismpp` (convex bases only), `projectpp`.
+- [x] Unified face-name grammar (section 3.3), `revolvepp` (section 4.6).
+- [ ] `prismpp` (convex bases, points + `h`, faces `t`, `b`, `s0`...; taper later).
+- [ ] `rotate_extrudepp`, `projectpp`.
 - [x] `spherepp` and `circlepp` are built at their largest diameter and scaled
       down for ellipsoids/ellipses (resolution scales with size, vertices on
       the sphere/circle as in OpenSCAD).

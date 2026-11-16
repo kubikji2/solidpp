@@ -189,4 +189,71 @@ _t_sector = [
     check("sector zet y starts at +z", __spp_check_sector([10, 100], "y", "T"), [280, 90]),
 ];
 
+// ------------------------------------------------------------------ face names (grammar)
+
+_t_names = [
+    check("names single", __spp_face_names("t"), ["t"]),
+    check("names concat", __spp_face_names("tog12"), ["t", "o", "g12"]),
+    check("names invalid digit first", __spp_face_names("1g"), undef),
+    check("names invalid char", __spp_face_names("g-1"), undef),
+    check("names empty", __spp_face_names(""), undef),
+    check("letters", __spp_letters("tog12h3"), "togh"),
+    check("family matches numbered", __spp_token_matches("g", "og1"), true),
+    check("numbered matches itself", __spp_token_matches("g1", "og1"), true),
+    check("numbered does not match other", __spp_token_matches("g1", "og2"), false),
+    check("numbered does not match bare", __spp_token_matches("g1", "og"), false),
+    check("old tokens still work", __spp_token_matches("it", "ti"), true),
+    check("axis tag not selectable", __spp_selectable_tags([[0, 0, "_", false], [1, 0, "bo", true]], "tboi"), ["bo"]),
+    check("select family", __spp_select_tags(["g"], ["og1", "og2", "to"], "tbog", "T"), ["og1", "og2"]),
+];
+
+// ------------------------------------------------------------------ revolvepp
+
+// stepped shaft: d=20 h=5 below, d=10 h=10 above
+_shaft = [[0, 0], [10, 0], [10, 5], [5, 5], [5, 15], [0, 15]];
+function revp(points) = __spp_revp_profile(points, "T");
+function tags(profile) = [for (v = profile) v[2]];
+function area(profile) = __spp_signed_area(__spp_profile_points(profile));
+
+_rp = revp(_shaft);
+_rp_tagged = revp([[0, 0], [10, 0], [10, 5], [5, 5], [5, 15, "t1"], [0, 15]]);
+// the same profile clockwise: the tag stays on the top face (segment starting at [0, 15])
+_rp_cw = revp([[0, 15, "t1"], [5, 15], [5, 5], [10, 5], [10, 0], [0, 0]]);
+// slanted shoulder forced into the top group
+_rp_forced = revp([[0, 0], [10, 0], [10, 5, "t", "f"], [5, 8], [5, 15], [0, 15]]);
+_rp_slanted = revp([[0, 0], [10, 0], [10, 5], [5, 8], [5, 15], [0, 15]]);
+// a groove tagged "g" on the outer wall, cylinder with a tube-like hole on top
+_rp_groove = revp([[0, 0], [10, 0], [10, 4], [8, 5, "g"], [10, 6], [10, 10], [4, 10], [4, 6], [0, 6]]);
+
+_t_revp = [
+    check("revp auto tags", tags(_rp[0]), ["_", "bo", "to", "to", "to", "_"]),
+    check("revp centered", [for (v = _rp[0]) v[1]], [-7.5, -7.5, -2.5, -2.5, 7.5, 7.5]),
+    check("revp height", _rp[1], 15),
+    check("revp keep", [for (v = __spp_revp_profile(_shaft, "T", true)[0]) v[1]], [0, 0, 5, 5, 15, 15]),
+    check("revp letters", _rp[2], "tboi"),
+    check("revp refined tag", tags(_rp_tagged[0]), ["_", "bo", "to", "to", "tot1", "_"]),
+    check("revp refined select", __spp_select_tags(["t1"], __spp_selectable_tags(_rp_tagged[0], "tboi"), "tboi", "T"), ["tot1"]),
+    check("revp family includes refined", __spp_select_tags(["t"], __spp_selectable_tags(_rp_tagged[0], "tboi"), "tboi", "T"), ["to", "tot1"]),
+    check("revp cw = ccw", _rp_cw, _rp_tagged),
+    check("revp slanted is o", tags(_rp_slanted[0]), ["_", "bo", "o", "o", "to", "_"]),
+    check("revp forced", tags(_rp_forced[0]), ["_", "bo", "to", "to", "to", "_"]),
+    check("revp groove", tags(_rp_groove[0]), ["_", "bo", "o", "og", "og", "to", "ti", "ti", "_"]),
+    check("revp groove letters", _rp_groove[2], "tboig"),
+    check("revp hole wall is i", tags(revp([[0, 0], [10, 0], [10, 10], [4, 10], [4, 6], [0, 6]])[0]),
+          ["_", "bo", "to", "ti", "ti", "_"]),
+    check("revp collinear point is not an edge", tags(revp([[0, 0], [10, 0], [10, 5], [10, 10], [0, 10]])[0]),
+          ["_", "bo", "_", "to", "_"]),
+    check("revp torus-like (off axis)", tags(revp([[2, 0], [4, 0], [4, 2], [2, 2]])[0]), ["bi", "bo", "to", "ti"]),
+    // rounding of the top edges: two convex (remove) and one concave (fill)
+    check("revp concave fill area", area(__spp_profile_apply_mods(_rp[0], [rounding(1, "to")], "tboi", "T", 0)),
+          100 - (1 - sin(45))),
+    check("revp concave bevel area", area(__spp_profile_apply_mods(_rp[0], [bevel(1, "to")], "tboi", "T", 0)),
+          100 - 0.5),
+    check("revp spec", let(s = __spp_revp_spec(_shaft, [rounding(-1, "bo")], true, "T")) [s[1], s[3], s[4]], [11, 10, 15]),
+    check("revp spec no flare in align", __spp_revp_spec(_shaft, [rounding(-1, "bo")], false, "T")[1], 10),
+    check("self intersection found", __spp_first_self_intersection([[0, 0], [2, 2], [2, 0], [0, 2]]), [0, 2]),
+    check("simple polygon", __spp_first_self_intersection(__spp_profile_points(_rp[0])), undef),
+    check("fold back found", __spp_first_self_intersection([[0, 0], [4, 0], [2, 0], [2, 3]]), [0, 1]),
+];
+
 echo("ALL TESTS PASSED");

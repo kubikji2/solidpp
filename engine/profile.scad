@@ -2,7 +2,8 @@
 //
 // A profile is a closed polygon (counter-clockwise) whose vertices carry edge tags:
 //   vertex = [x, y, tag, sharp]
-// - tag    edge name, e.g. "bo" (bottom outer), see DESIGN.md section 3.3
+// - tag    edge name = names of its faces, e.g. "bo" (bottom outer), "tog1", see DESIGN.md
+//          section 3.3; "_" marks a vertex that is not an edge (axis, collinear point)
 // - sharp  true for real corners, false for arc points (cannot be modified again)
 //
 // Modifiers (see modifiers/edge_modifiers.scad) replace the sharp vertices of the
@@ -48,6 +49,10 @@ function __spp_unit(v) =
     assert(l > 0, "[SOLIDPP-PROFILE] zero-length face, cannot compute its direction")
     v / l;
 
+// true iff the vertex 'V' of a counter-clockwise polygon is convex (A previous, B next vertex)
+// '-> on a concave vertex, bevel and rounding fill the corner (add material)
+function __spp_is_convex(A, V, B) = cross(V - A, B - V) > 0;
+
 // true iff the direction 'u' is horizontal (lies in a base plane)
 function __spp_is_horizontal(u) = abs(u[1]) <= 1e-9 * norm(u);
 
@@ -77,23 +82,63 @@ function __spp_dedupe(profile, eps=1e-9) =
             profile[i]];
 
 
+// ------------------------------------------------------------------ face names (DESIGN.md 3.3)
+//
+// A face name is a letter optionally followed by digits: "t", "o", "g", "g12".
+// An edge tag is the concatenation of the names of its faces: "to", "tog1".
+// A selector token is a concatenation of face names; a bare letter matches its whole family
+// ("g" matches "g", "g1", "g2", ...), a numbered name only itself.
+
+function __spp_is_letter(c) =
+    let(k = ord(c)) (k >= 65 && k <= 90) || (k >= 97 && k <= 122);
+
+function __spp_is_digit(c) =
+    let(k = ord(c)) k >= 48 && k <= 57;
+
+// substring [a, b)
+function __spp_substr(s, a, b) = b <= a ? "" : __spp_join([for (k = [a:1:b-1]) s[k]], "");
+
+// face names of the string 's' ("tog1" -> ["t", "o", "g1"]), undef if 's' is not a valid name list
+function __spp_face_names(s) =
+    !is_string(s) || len(s) == 0 || !__spp_is_letter(s[0]) ?
+        undef :
+        len([for (k = [0:1:len(s)-1]) if (!__spp_is_letter(s[k]) && !__spp_is_digit(s[k])) 1]) > 0 ?
+            undef :
+            let(starts = [for (k = [0:1:len(s)-1]) if (__spp_is_letter(s[k])) k])
+            [for (j = [0:1:len(starts)-1])
+                __spp_substr(s, starts[j], j < len(starts)-1 ? starts[j+1] : len(s))];
+
+// letters of the string 's' (digits dropped)
+function __spp_letters(s) = __spp_join([for (k = [0:1:len(s)-1]) if (__spp_is_letter(s[k])) s[k]], "");
+
+// true iff the token face name 'tn' matches the face name 'fn'
+// '-> equal names, or a bare letter matching its family
+function __spp_name_matches(tn, fn) = tn == fn || (len(tn) == 1 && fn[0] == tn);
+
+
 // ------------------------------------------------------------------ edge selection
 
 // true iff the selector token 'tk' selects the edge 'tag'
-// '-> a token selects every edge whose tag contains all letters of the token
+// '-> every face name of the token must match a face of the edge
 function __spp_token_matches(tk, tag) =
-    tk == "all" || __spp_all_chars_in(tk, tag);
+    let(tns = __spp_face_names(tk), fns = __spp_face_names(tag))
+    tk == "all" ||
+    !is_undef(tns) && !is_undef(fns) &&
+    len([for (tn = tns) if (len([for (fn = fns) if (__spp_name_matches(tn, fn)) 1]) == 0) 1]) == 0;
 
-// tags of the profile that can be selected (all letters in 'letters')
+// tags of the profile that can be selected (valid names, all letters in 'letters')
+// '-> vertices that are not edges (axis, collinear points) carry the tag "_"
 function __spp_selectable_tags(profile, letters) =
-    __spp_unique([for (v = profile) if (__spp_all_chars_in(v[2], letters)) v[2]]);
+    __spp_unique([for (v = profile)
+        if (!is_undef(__spp_face_names(v[2])) && __spp_all_chars_in(__spp_letters(v[2]), letters)) v[2]]);
 
 // resolves the 'tokens' to the list of selected tags, checks the tokens
 function __spp_select_tags(tokens, selectable, letters, ctx) =
     let(
         _checks = [for (tk = tokens)
-            assert(tk == "all" || (len(tk) > 0 && __spp_all_chars_in(tk, letters)),
-                str(ctx, ": invalid selector \"", tk, "\", use letters of \"", letters, "\" or \"all\""))
+            assert(tk == "all" || (!is_undef(__spp_face_names(tk)) && __spp_all_chars_in(__spp_letters(tk), letters)),
+                str(ctx, ": invalid selector \"", tk, "\", use face names (letters of \"", letters,
+                    "\", optionally followed by digits) or \"all\""))
             assert(len([for (tag = selectable) if (__spp_token_matches(tk, tag)) 1]) > 0,
                 str(ctx, ": selector \"", tk, "\" matches no edge, available edges are ", selectable))
             0]
@@ -188,6 +233,8 @@ function __spp_corner_flare(kind, A, V, B, val, ctx) =
         hA = __spp_is_horizontal(uA),
         hB = __spp_is_horizontal(uB)
     )
+    assert(__spp_is_convex(A, V, B),
+        str(ctx, ": a flare (negative value) needs a convex edge, use a positive value to fill a concave edge"))
     assert(hA != hB,
         str(ctx, ": a flare (negative value) needs an unmodified base edge, ",
             "i.e. exactly one adjacent face in a base plane"))
