@@ -288,11 +288,24 @@ function __spp_profile_apply_mods(profile, mods, letters, ctx, min_x=undef, idx=
 // ------------------------------------------------------------------ polygonal walls
 
 // scale applied to a revolved profile so that the polygon with 'n' sides
-// has its corners ("corners", OpenSCAD default) or its flats ("flats") on the circle
+// has its corners ("corners", OpenSCAD default) or its flats ("flats", "polyhole") on the circle
 function __spp_polygon_scale(mode, n, ctx) =
-    assert(mode == "corners" || mode == "flats",
-        str("[", ctx, "] polygon mode must be \"corners\" or \"flats\", got ", mode))
+    assert(mode == "corners" || mode == "flats" || mode == "polyhole",
+        str("[", ctx, "] polygon mode must be \"corners\", \"flats\" or \"polyhole\", got ", mode))
     mode == "corners" ? 1 : 1 / cos(180 / n);
+
+// number of sides of a polyhole (nophead) of radius 'R': max(round(2*d), 3), d in mm
+function __spp_polyhole_sides(R) = max(round(4*R), 3);
+
+// number of sides of a wall: the polyhole count for "polyhole", otherwise 'fn'
+// (undef means $fn/$fa/$fs)
+// - 'R' nominal radius of the wall
+function __spp_wall_sides(fn, mode, R, ctx) =
+    mode == "polyhole" ?
+        assert(is_undef(fn),
+            str("[", ctx, "] polygon mode \"polyhole\" chooses the number of sides, do not set 'fn'"))
+        __spp_polyhole_sides(R) :
+        fn;
 
 // checks the 'fn' argument (undef or integer >= 3)
 function __spp_check_fn(fn, name, ctx) =
@@ -302,21 +315,23 @@ function __spp_check_fn(fn, name, ctx) =
 
 // revolves 'points' (x = radius, y = axis) around the z-axis
 // - 'fn' number of sides, undef uses $fn/$fa/$fs
-// - 'polygon_mode' "corners" | "flats"
+// - 'polygon_mode' "corners" | "flats" | "polyhole"
 // - 'sector' undef (full revolution) or [start, angle] in the local frame (degrees from +x,
 //   counter-clockwise), see __spp_check_sector
-module __spp_revolve(points, fn, polygon_mode, ctx, sector=undef)
+// - 'nominal_r' nominal radius of the wall (number of sides of a polyhole)
+module __spp_revolve(points, fn, polygon_mode, ctx, sector=undef, nominal_r=undef)
 {
-    _n = is_undef(fn) ? __spp_fragments(__spp_max_x(points)) : fn;
+    _fn = __spp_wall_sides(fn, polygon_mode, nominal_r, ctx);
+    _n = is_undef(_fn) ? __spp_fragments(__spp_max_x(points)) : _fn;
     _k = __spp_polygon_scale(polygon_mode, _n, ctx);
 
     if (is_undef(sector))
         scale([_k, _k, 1])
-            rotate_extrude($fn = is_undef(fn) ? $fn : fn)
+            rotate_extrude($fn = is_undef(_fn) ? $fn : _fn)
                 polygon(points);
     else
         rotate([0, 0, sector[0]])
             scale([_k, _k, 1])
-                rotate_extrude(angle=sector[1], $fn = is_undef(fn) ? $fn : fn)
+                rotate_extrude(angle=sector[1], $fn = is_undef(_fn) ? $fn : _fn)
                     polygon(points);
 }

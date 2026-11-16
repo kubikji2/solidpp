@@ -57,6 +57,17 @@ translate([0, 4*step, 0]) {
     translate([4*step, 0, 0]) tubepp(r=3, R=5, h=12, zet="y", align="z", sector=[-90, 90], inner_section=teardrop());
 }
 
+// ---- row 5: polyholes in a plate (d = 2, 3, 4, 6, 8) and a tube
+translate([0, 5*step, 0]) {
+    difference() {
+        cubepp([5*step, 12, 5], align="xz");
+        for (i = [0:4])
+            translate([(i + 0.5)*step, 0, -1])
+                cylinderpp(d=[2, 3, 4, 6, 8][i], h=7, polygon="polyhole");
+    }
+    translate([5.5*step, 0, 0]) tubepp(d=3.2, D=10, h=6, inner_polygon="polyhole", mod_list=[bevel(0.4, "ti")]);
+}
+
 // ---- row 3: orientation and alignment (no section)
 translate([0, 3*step, 0]) {
     cylinderpp(d=6, h=10, zet="x", align="x", mod_list=[rounding(1, "t")]);

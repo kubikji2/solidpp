@@ -31,6 +31,8 @@ TUBEPP_DEF_ALIGN = "z";
 // - arguments 'outer_polygon', 'inner_polygon' define how a polygonal wall is measured
 //   '-> "corners" (default, as OpenSCAD) vertices lie on the circle
 //   '-> "flats" flats lie on the circle (e.g. nut traps)
+//   '-> "polyhole" flats on the circle with max(round(2*d), 3) sides (nophead's polyholes,
+//       printed holes keep their size); the 'fn' of that wall must not be set
 // - argument 'flare_in_align' if true, alignment includes flares (default false)
 // - argument 'flare_in_size' if true, the outer diameter includes flares, the body shrinks (default false)
 // - arguments 'outer_section', 'inner_section' are the shapes of the outer wall and of the hole
@@ -91,7 +93,7 @@ module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
             difference()
             {
                 if (__spp_is_plain_section(_osec))
-                    __spp_revolve(_spec[0], _outer_fn, outer_polygon, __module_name, _sector);
+                    __spp_revolve(_spec[0], _outer_fn, outer_polygon, __module_name, _sector, _spec[4]);
                 else
                     let(_chain = __spp_rev_outer_chain(_spec[3], _args[4], _spec[5][2], _spec[5][3]))
                     __spp_section_geometry(
@@ -99,7 +101,7 @@ module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
                                              _outer_fn, outer_polygon, __module_name));
 
                 if (__spp_is_plain_section(_isec))
-                    __spp_revolve(_spec[1], _inner_fn, inner_polygon, __module_name);
+                    __spp_revolve(_spec[1], _inner_fn, inner_polygon, __module_name, undef, max(_args[0], _args[1]));
                 else
                     let(_chain = __spp_rev_inner_chain(_spec[3], _args[4],
                                     __spp_rev_inner_protrusion(_args[0], _args[1], _args[4]), _args[0], _args[1]))

@@ -254,7 +254,8 @@ function __spp_hull_pieces(rings, deltas) =
 // - 'R' nominal radius, 'sec' resolved section, 'fn' sides, 'polygon_mode' circle mode
 function __spp_section_pieces(chain, region, R, sec, fn, polygon_mode, ctx) =
     let(
-        n = is_undef(fn) ? __spp_fragments(R) : fn,
+        _fn = __spp_wall_sides(fn, polygon_mode, R, ctx),
+        n = is_undef(_fn) ? __spp_fragments(R) : _fn,
         O = __spp_section_outline(R, n, sec[0], polygon_mode, ctx),
         bound = 4*(R + max([for (p = chain) abs(p[0])]) + 1),
         sr = sec[1],

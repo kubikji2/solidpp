@@ -34,6 +34,8 @@ CYLINDERPP_DEF_ALIGN = "z";
 // - argument 'polygon' defines how a polygonal cylinder is measured
 //   '-> "corners" (default, as OpenSCAD) vertices lie on the circle
 //   '-> "flats" flats lie on the circle (e.g. nut traps)
+//   '-> "polyhole" flats on the circle with max(round(2*d), 3) sides (nophead's polyholes,
+//       printed holes keep their size); 'fn' must not be set
 // - argument 'flare_in_align' if true, alignment includes flares (default false)
 // - argument 'flare_in_size' if true, the diameter includes flares, the body shrinks (default false)
 // - argument 'section' is the shape perpendicular to 'zet' (default undef = circle)
@@ -85,7 +87,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     translate(_o)
         rotate(_rot)
             if (__spp_is_plain_section(_sec))
-                __spp_revolve(_spec[0], _fn, polygon, __module_name, _sector);
+                __spp_revolve(_spec[0], _fn, polygon, __module_name, _sector, _spec[3]);
             else
                 let(_chain = __spp_rev_outer_chain(_spec[2], _args[2], _spec[4][0], _spec[4][1]))
                 __spp_section_geometry(

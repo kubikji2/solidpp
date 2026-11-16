@@ -167,6 +167,14 @@ _t_tube = [
 _t_poly = [
     check("corners scale", __spp_polygon_scale("corners", 6, "T"), 1),
     check("flats scale hex", __spp_polygon_scale("flats", 6, "T"), 2/sqrt(3)),
+    check("polyhole scale", __spp_polygon_scale("polyhole", 8, "T"), 1/cos(22.5)),
+    check("polyhole sides d=3", __spp_polyhole_sides(1.5), 6),
+    check("polyhole sides d=8", __spp_polyhole_sides(4), 16),
+    check("polyhole sides minimum", __spp_polyhole_sides(0.5), 3),
+    check("polyhole sides rounding", __spp_polyhole_sides(1.6), 6),
+    check("wall sides polyhole", __spp_wall_sides(undef, "polyhole", 2, "T"), 8),
+    check("wall sides fn", __spp_wall_sides(12, "flats", 2, "T"), 12),
+    check("wall sides default", __spp_wall_sides(undef, "corners", 2, "T"), undef),
 ];
 
 // ------------------------------------------------------------------ sector

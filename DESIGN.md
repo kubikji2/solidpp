@@ -1,8 +1,9 @@
 # Solid++ design: modifiers and the profile engine
 
 Status: agreed design for the modifier refactor. Implemented: the engine,
-`bevel()`/`rounding()`/`bevel_corners()`, `cylinderpp`, `tubepp`, `cubepp` and the
-translation of the old modifiers (see Roadmap for the rest).
+`bevel()`/`rounding()`/`bevel_corners()`, `cylinderpp`, `tubepp`, `cubepp`, the
+translation of the old modifiers and the sections `teardrop()`/`serration()`
+(see Roadmap for the rest).
 
 ## 1. Principles
 
@@ -166,16 +167,26 @@ are corners of the cross-section, see section 5.
 | `fn`                    | `outer_fn`, `inner_fn`           | `undef`     | number of sides; `undef` uses `$fn`/`$fa`/`$fs` |
 | `polygon`               | `outer_polygon`, `inner_polygon` | `"corners"` | `"corners"`: vertices on the circle (OpenSCAD)  |
 |                         |                                  |             | `"flats"`: flats on the circle (nut traps)      |
+|                         |                                  |             | `"polyhole"`: flats on the circle, sides chosen |
+|                         |                                  |             | automatically (nophead's polyholes)             |
 
 `fn` only sets the number of sides of the revolution. Arcs of `rounding` keep
 using `$fn`/`$fa`/`$fs`, so an octagonal standoff still gets smooth fillets.
 With `"flats"` the whole profile is measured at the flats, i.e.
 `inner_fn=6, inner_polygon="flats", d=5.5` is an M3 nut trap.
 
+`"polyhole"` is `"flats"` with max(round(2*d), 3) sides, `d` being the nominal
+diameter of the wall in mm (the larger base of a cone, the hole itself rather
+than its chamfered end). Few, long flats are printed faithfully and touch the
+nominal circle, so small printed holes keep their size. The number of sides is
+chosen automatically, setting `fn` of that wall is an error; it works with
+`serration()`, not with `teardrop()` (as `"flats"`). Unlike nophead's module the
+polygon is not rotated by 180 degrees (it only changes the phase of odd counts).
+
 ### 4.3 Arguments
 
 `cylinderpp(size, r|d, h, r1|d1, r2|d2, align, zet, center, mod_list, fn, polygon,
-flare_in_align, flare_in_size)`
+flare_in_align, flare_in_size, section)`
 
 - `size`: number or `[d, d, h]` in the parent frame (respects `zet`). The two
   base dimensions must be equal: **elliptical cylinders are not supported**.
@@ -186,13 +197,98 @@ flare_in_align, flare_in_size)`
 - default: `d=1, h=1`, `align="z"`.
 
 `tubepp(size, t, r|d, R|D, h, align, zet, center, mod_list, outer_fn, inner_fn,
-outer_polygon, inner_polygon, flare_in_align, flare_in_size)`
+outer_polygon, inner_polygon, flare_in_align, flare_in_size, outer_section,
+inner_section)`
 
 - exactly two of `t`, `r|d` (hole), `R|D` (outer) are required; `size` counts
   as `R|D` plus `h`. Each can be a number or `[bottom, top]`.
 - default: `r=0.5, R=1, h=1`, `align="z"`.
 
-### 4.4 Planned
+### 4.4 Sections: `teardrop()`, `serration()`
+
+A section is the shape of a wall perpendicular to `zet`: `section` of `cylinderpp`,
+`outer_section` and `inner_section` of `tubepp`. It is a separate argument, not a
+modifier: every wall has exactly one, and it combines with `mod_list`.
+
+```openscad
+section=teardrop()                                     // base shape
+section=serration(12, 0.4, "round")                    // circle with grooves
+section=[teardrop(cap="bridge"), serration(12, 0.4)]   // base shape, then decoration
+```
+
+- At most one base shape (the circle by default, or `teardrop()`), optionally
+  followed by `serration()`; anything else is an error.
+- The bounding box (alignment, `size`) is always the one of the circle.
+
+`teardrop(up, angle=45, cap="point")`
+
+| argument | meaning                                                                        |
+|----------|--------------------------------------------------------------------------------|
+| `up`     | face letter the tip points to (`x X y Y z Z`, lowercase = low side), must be   |
+|          | perpendicular to `zet`; default `"Z"` for `zet="x"`/`"y"`, `"x"` for `zet="z"` |
+| `angle`  | angle of the tip faces from the horizontal (printing overhang), in (0, 90)     |
+| `cap`    | `"point"`: classic teardrop; `"bridge"`: tip cut flat at the top of the circle |
+|          | (the hole stays within its diameter, the flat is a short bridge)               |
+
+`serration(n, depth, profile="triangle", width)`
+
+| argument  | meaning                                                                   |
+|-----------|---------------------------------------------------------------------------|
+| `n`       | number of grooves along the axis                                          |
+| `depth`   | depth of the grooves                                                      |
+| `profile` | `"triangle"`: zig-zag of tips and roots (knurl); `"round"`: round grooves |
+| `width`   | width of a round groove, default `2*depth` (a half circle)                |
+
+- Serration removes material from the shape; `d` is measured at the tips. On a
+  solid this gives grip (knurl), on a hole cut-out it leaves ribs in the hole
+  (crush ribs for press fits, heat inserts).
+- On a circle the grooves are evenly spaced along the whole perimeter. On a
+  teardrop they are spread over the circular part only (between the tangent
+  points, around the bottom): the tip faces and the cap do not touch the rod, and
+  grooves there would spoil the printable overhang, so they stay plain.
+- Serration runs only along the straight part of the wall. Modifiers of the bases
+  set where it starts and ends; the modified ends (chamfers, roundings, flares)
+  stay plain. On a hole this leaves a rib-free lead-in chamfer. If the modifiers
+  leave no straight part, it is an error.
+- The polygon modes (`polygon`, `outer_polygon`, `inner_polygon`) describe the
+  circle; with `teardrop()` only `"corners"` is allowed. `fn` is the number of
+  fragments of the circle in both cases.
+
+How a wall with a section is built (`engine/section.scad`):
+
+1. The nominal outline O at the nominal radius R (circle polygon or teardrop).
+2. The wall chain from the modified profile, bottom to top: every point
+   `[x, z]` gives a ring, O offset inward by `R - x`. For circles and teardrops
+   this offset is exact (a teardrop offset is the teardrop of the smaller radius),
+   so bevels and roundings follow the teardrop and cones work.
+3. Without serration the rings are hulled (one hull for the convex part, pairs of
+   rings where the outline grows, i.e. flares or widened hole ends).
+4. With serration the straight part is one stitched `polyhedron` between the
+   serrated rings at its ends (the serration plan is computed once on O, so every
+   ring has the same points); the ends are hulled rings; the pieces are united.
+5. Beyond an unmodified end, the hole cut-out continues the wall line (straight
+   part and conical holes stay exact); the protrusion is short.
+
+A wall without a section keeps the `rotate_extrude` path.
+
+### 4.5 Sector
+
+`sector` is an argument of `cylinderpp` and `tubepp` (not a modifier: a solid has one
+angular range).
+
+- `sector=90` sweeps from 0 to 90 degrees, `sector=[-45, 45]` from -45 to 45;
+  `0 < to - from <= 360`, a full turn is the plain solid.
+- Angles follow the right-hand rule around `zet` and start at the next axis of
+  the cycle x -> y -> z: +x for `zet="z"` (towards +y), +y for `zet="x"` (towards
+  +z), +z for `zet="y"` (towards +x).
+- The bounding box (alignment) is the one of the full cylinder/tube.
+- `tubepp` cuts only the outer body (a C-shape); the hole stays a full
+  revolution, so `inner_section` works.
+- Built by `rotate_extrude(angle=)`; not combinable with a non-circular `section`
+  or `outer_section` (those walls are not revolved). The flat end faces of the
+  sector cannot be modified by `mod_list`.
+
+### 4.6 Planned
 
 - `revolvepp(profile, ...)`: user profile (point list), same modifiers if tags are
   supplied; replaces the old `children()` profile of `cylinderpp`.
@@ -308,20 +404,24 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 
 - Files:
 
-| file                              | content                                                  |
-|-----------------------------------|----------------------------------------------------------|
-| `modifiers/edge_modifiers.scad`   | `bevel()`, `rounding()`, `bevel_corners()`, validation   |
-| `modifiers/legacy_modifiers.scad` | old constructors, translation, `mod_list` resolution     |
-| `engine/profile.scad`             | tagged polygons, corner operations, fragments, checks    |
-| `engine/revolved.scad`            | cylinder/tube profiles, chain split, argument parsing    |
-| `engine/box.scad`                 | frames, selectors, stages, rings, offsets, hull geometry |
-| `cubepp.scad`                     | thin module over the engine                              |
-| `cylinderpp.scad`                 | thin module over the engine                              |
-| `other_solidspp/tubepp.scad`      | thin module over the engine                              |
-| `tests/test_revolved.scad`        | `assert`-based tests of the data layer (no geometry)     |
-| `tests/test_cubepp.scad`          | `assert`-based tests of the box data and legacy layer    |
-| `tests/gallery_revolved.scad`     | visual smoke test of all combinations                    |
-| `tests/gallery_cubepp.scad`       | visual smoke test of all combinations                    |
+| file                               | content                                                  |
+|------------------------------------|----------------------------------------------------------|
+| `modifiers/edge_modifiers.scad`    | `bevel()`, `rounding()`, `bevel_corners()`, validation   |
+| `modifiers/legacy_modifiers.scad`  | old constructors, translation, `mod_list` resolution     |
+| `modifiers/section_modifiers.scad` | `teardrop()`, `serration()`                              |
+| `engine/profile.scad`              | tagged polygons, corner operations, fragments, checks    |
+| `engine/revolved.scad`             | cylinder/tube profiles, chain split, argument parsing    |
+| `engine/box.scad`                  | frames, selectors, stages, rings, offsets, hull geometry |
+| `engine/section.scad`              | sections: outlines, serration, wall chains, pieces       |
+| `cubepp.scad`                      | thin module over the engine                              |
+| `cylinderpp.scad`                  | thin module over the engine                              |
+| `other_solidspp/tubepp.scad`       | thin module over the engine                              |
+| `tests/test_revolved.scad`         | `assert`-based tests of the data layer (no geometry)     |
+| `tests/test_cubepp.scad`           | `assert`-based tests of the box data and legacy layer    |
+| `tests/test_sections.scad`         | `assert`-based tests of the sections                     |
+| `tests/gallery_revolved.scad`      | visual smoke test of all combinations                    |
+| `tests/gallery_cubepp.scad`        | visual smoke test of all combinations                    |
+| `tests/gallery_sections.scad`      | visual smoke test of sections, holes in plates           |
 
 - Vertex format: `[x, y, tag, sharp]`. `sharp=false` marks arc points.
 - Modifier format: `["__SPP_EDGE_MOD__", kind, value, [tokens]]`,
@@ -342,8 +442,13 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] Port `cubepp` to rings (section 5) and remove the old modifier internals.
 - [ ] Check render times of `cubepp` with fine `$fa`/`$fs` (function evaluation
       of the rings) on 2021.01 and on a nightly.
-- [ ] `revolvepp`, `projectpp`, `sector`.
-- [ ] `spherepp` and `circlepp` still use `resize` of a unit primitive
-      (resolution does not scale with size).
+- [x] Sections: `teardrop()` (point, bridge), `serration()` (triangle, round).
+- [x] `sector` for revolved solids (bounding box of the full cylinder).
+- [x] `polygon="polyhole"` (hole size compensation).
+- [ ] Taper of `cubepp` (top size), replacing `trapezoidpp`.
+- [ ] `revolvepp`, `prismpp` (convex bases only), `projectpp`.
+- [x] `spherepp` and `circlepp` are built at their largest diameter and scaled
+      down for ellipsoids/ellipses (resolution scales with size, vertices on
+      the sphere/circle as in OpenSCAD).
 - [ ] Update README for the new modifiers.
 - [ ] Separate task: review `transforms/`.
