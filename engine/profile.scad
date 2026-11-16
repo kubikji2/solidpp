@@ -366,7 +366,8 @@ function __spp_check_fn(fn, name, ctx) =
 // - 'sector' undef (full revolution) or [start, angle] in the local frame (degrees from +x,
 //   counter-clockwise), see __spp_check_sector
 // - 'nominal_r' nominal radius of the wall (number of sides of a polyhole)
-module __spp_revolve(points, fn, polygon_mode, ctx, sector=undef, nominal_r=undef)
+// - 'convexity' passed to rotate_extrude (preview of non-convex profiles)
+module __spp_revolve(points, fn, polygon_mode, ctx, sector=undef, nominal_r=undef, convexity=1)
 {
     _fn = __spp_wall_sides(fn, polygon_mode, nominal_r, ctx);
     _n = is_undef(_fn) ? __spp_fragments(__spp_max_x(points)) : _fn;
@@ -374,11 +375,11 @@ module __spp_revolve(points, fn, polygon_mode, ctx, sector=undef, nominal_r=unde
 
     if (is_undef(sector))
         scale([_k, _k, 1])
-            rotate_extrude($fn = is_undef(_fn) ? $fn : _fn)
+            rotate_extrude(convexity=convexity, $fn = is_undef(_fn) ? $fn : _fn)
                 polygon(points);
     else
         rotate([0, 0, sector[0]])
             scale([_k, _k, 1])
-                rotate_extrude(angle=sector[1], $fn = is_undef(_fn) ? $fn : _fn)
+                rotate_extrude(angle=sector[1], convexity=convexity, $fn = is_undef(_fn) ? $fn : _fn)
                     polygon(points);
 }

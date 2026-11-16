@@ -256,4 +256,17 @@ _t_revp = [
     check("fold back found", __spp_first_self_intersection([[0, 0], [4, 0], [2, 0], [2, 3]]), [0, 1]),
 ];
 
+// ------------------------------------------------------------------ toruspp
+
+_t_torus = [
+    check("torus defaults", __spp_torus_args(undef, undef, undef, undef, undef, undef, "T"), [0.5, 1, 0.5, 0.5]),
+    check("torus t + r", __spp_torus_args(2, 5, undef, undef, undef, undef, "T"), [5, 7, 2, 2]),
+    check("torus d + D + h", __spp_torus_args(undef, undef, 10, undef, 30, 4, "T"), [5, 15, 10, 4]),
+    check("torus t + R, r = 0", __spp_torus_args(3, undef, undef, 3, undef, undef, "T"), [0, 3, 3, 3]),
+    check("torus profile extent", let(p = __spp_torus_profile(5, 2, 4, $fn=8))
+          [min([for (q = p) q[0]]), max([for (q = p) q[0]]), min([for (q = p) q[1]]), max([for (q = p) q[1]])],
+          [5, 7, -2, 2]),
+    check("torus profile fragments", len(__spp_torus_profile(5, 2, 2)), __spp_fragments(1)),
+];
+
 echo("ALL TESTS PASSED");

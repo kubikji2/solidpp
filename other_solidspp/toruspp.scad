@@ -1,46 +1,57 @@
-include<../utils/solidpp_utils.scad>
-include<../utils/__toroidpp_utils.scad>
-include<../shapespp/circlepp.scad>
+// defining the toruspp
+__DEF_TORUSPP__ = true;
 
+// including utils and the profile engine
+include<../utils/solidpp_utils.scad>
+include<../engine/revolved.scad>
+
+// toruspp default alignment (centered)
 TORUSPP_DEF_ALIGN = "";
 
-// TODO documentation
-module toruspp(t=undef, r=undef, d=undef, R=undef, D=undef, h=undef, align=undef, zet="z", center=false)
+
+// torus (ring with an elliptical tube)
+// - exactly two of 't', 'r|d', 'R|D' must be defined (default r=0.5, R=1)
+//   '-> argument 't' is the radial width of the tube
+//   '-> argument 'r'|'d' is the inner radius/diameter (the hole), may be 0
+//   '-> argument 'R'|'D' is the outer radius/diameter
+// - argument 'h' is the height of the tube along 'zet' (default 't', i.e. a circular tube)
+// - argument 'align' aligns the bounding box, see README (default "", centered)
+// - argument 'zet' is the axis of the torus: "x", "y" or "z" (default)
+// - argument 'center' overrides 'align' if true
+// - argument 'fn' is the number of sides of the revolution
+//   '-> undef (default) uses $fn/$fa/$fs like OpenSCAD; the tube always uses $fn/$fa/$fs
+// - argument 'polygon' "corners" (default, as OpenSCAD) or "flats" (flats on the circles)
+// - argument 'sector' cuts a sector, see cylinderpp
+//   '-> the bounding box (alignment) is the one of the full torus
+// See DESIGN.md for details.
+module toruspp(t=undef, r=undef, d=undef, R=undef, D=undef, h=undef, align=undef, zet=undef, center=false,
+               fn=undef, polygon="corners", sector=undef)
 {
-    // module name
     __module_name = "TORUSPP";
 
-    // checking and processing toroidpp parameters
-    parsed_data = __solidpp__toroidpp__check_parameters(
-        module_name=__module_name, t=t, r=r, d=d, R=R, D=D, h=h);
-    _r = parsed_data[0];
-    _R = parsed_data[1];
-    _t = parsed_data[2];
-    _h = parsed_data[3];
+    _zet = __spp_check_zet(zet, __module_name);
+    _fn = __spp_check_fn(fn, "fn", __module_name);
+    _polygon = assert(polygon != "polyhole",
+        str("[", __module_name, "] polygon mode \"polyhole\" is meant for holes, use \"corners\" or \"flats\""))
+        polygon;
+    _sector = __spp_check_sector(sector, _zet, __module_name);
 
-    // check zet
-    // '-> it is string or undef
-    assert(is_undef(zet) || is_string(zet),
-            str("[", __module_name, "] arguments 'zet' is eithter 'undef' or a string!"));
+    // [r, R, t, h]
+    _args = __spp_torus_args(t=t, r=r, d=d, R=R, D=D, h=h, ctx=__module_name);
 
-    _size = __solidpp__construct_cylinderpp_size(d=2*_R,h=_h, zet=zet);
+    _size = __solidpp__construct_cylinderpp_size(2*_args[1], _args[3], _zet);
 
-    // process the align and center to produce offset
-    // '-> arguments 'align' and 'center' are checked within the function
     _o = __solidpp__produce_offset_from_align_and_center(
             _size=_size,
             align=align,
             center=center,
             solidpp_name=__module_name,
             def_align=TORUSPP_DEF_ALIGN);
-      
-    // construct rotation
-    _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
 
-    // construct the solid
+    _rot = __solidpp__get_rotation_from_zet(_zet, [0,0,0]);
+
     translate(_o)
         rotate(_rot)
-            rotate_extrude(convexity=4)
-                translate([_R-_t,0,0])
-                    circlepp([_t, _h],align="x");
+            __spp_revolve(__spp_torus_profile(_args[0], _args[2], _args[3]), _fn, _polygon, __module_name,
+                          _sector, _args[1], convexity=4);
 }

@@ -71,5 +71,5 @@ module revolvepp(points, align=undef, zet=undef, center=false, mod_list=undef,
 
     translate(_o)
         rotate(_rot)
-            __spp_revolve(_spec[0], _fn, polygon, __module_name, _sector, _spec[3]);
+            __spp_revolve(_spec[0], _fn, polygon, __module_name, _sector, _spec[3], convexity=10);
 }

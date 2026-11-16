@@ -427,3 +427,48 @@ function __spp_revp_spec(points, mods, flare_in_align, ctx, keep=false) =
         full_r = max(body_r, __spp_max_x(p))
     )
     [__spp_profile_points(p), flare_in_align ? full_r : body_r, p, body_r, pr[1]];
+
+
+// ------------------------------------------------------------------ toruspp
+
+// parses the arguments of toruspp, returns [r, R, t, h] (inner radius, outer radius,
+// radial width and height of the tube)
+// - exactly two of 't', 'r|d', 'R|D' (none: r=0.5, R=1); 'h' defaults to 't'
+function __spp_torus_args(t, r, d, R, D, h, ctx) =
+    assert(is_undef(r) || is_undef(d), str("[", ctx, "] use either 'r' or 'd', not both"))
+    assert(is_undef(R) || is_undef(D), str("[", ctx, "] use either 'R' or 'D', not both"))
+    assert(is_undef(t) || is_num(t), str("[", ctx, "] argument 't' must be a number, got ", t))
+    assert(is_undef(r) || is_num(r), str("[", ctx, "] argument 'r' must be a number, got ", r))
+    assert(is_undef(d) || is_num(d), str("[", ctx, "] argument 'd' must be a number, got ", d))
+    assert(is_undef(R) || is_num(R), str("[", ctx, "] argument 'R' must be a number, got ", R))
+    assert(is_undef(D) || is_num(D), str("[", ctx, "] argument 'D' must be a number, got ", D))
+    assert(is_undef(h) || is_num(h), str("[", ctx, "] argument 'h' must be a number, got ", h))
+    let(
+        _ri = !is_undef(d) ? d/2 : r,
+        _Ro = !is_undef(D) ? D/2 : R,
+        _n = (is_undef(_ri) ? 0 : 1) + (is_undef(_Ro) ? 0 : 1) + (is_undef(t) ? 0 : 1)
+    )
+    assert(_n == 0 || _n == 2,
+        str("[", ctx, "] exactly two of 't', 'r|d', 'R|D' must be defined"))
+    let(
+        ri = _n == 0 ? 0.5 : (is_undef(_ri) ? _Ro - t : _ri),
+        Ro = _n == 0 ? 1 : (is_undef(_Ro) ? _ri + t : _Ro),
+        _t = Ro - ri,
+        _h = is_undef(h) ? _t : h
+    )
+    assert(ri >= 0, str("[", ctx, "] inner radius must be non-negative, got ", ri))
+    assert(_t > 0, str("[", ctx, "] outer radius ", Ro, " must be greater than the inner radius ", ri))
+    assert(_h > 0, str("[", ctx, "] height must be positive, got ", _h))
+    [ri, Ro, _t, _h];
+
+// profile of a torus: ellipse with the semi-axes [t/2, h/2] centered at x = r + t/2
+// '-> built on the circle of the larger semi-axis and scaled, so the vertices lie on the ellipse
+//     and the number of fragments follows $fn/$fa/$fs as for circlepp
+function __spp_torus_profile(r, t, h) =
+    let(
+        a = t/2,
+        b = h/2,
+        m = max(a, b),
+        n = __spp_fragments(m)
+    )
+    [for (k = [0:1:n-1]) [r + a + a*cos(360*k/n), b*sin(360*k/n)]];
