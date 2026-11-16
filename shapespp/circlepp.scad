@@ -2,7 +2,15 @@ include<../utils/solidpp_utils.scad>
 
 CIRCLEPP_DEF_ALIGN = "";
 
-// TODO add documentation
+// improved version of the circle module
+// - argument 'size' defines the size of the bounding box: a number or [x, y] (an ellipse)
+// - argument 'r'|'d' defines the radius/diameter: a number or [x, y] (an ellipse)
+//   '-> only one of 'size', 'r', 'd' can be used, default size is [1, 1]
+// - argument 'align' aligns the bounding box, see README (default: centered)
+// - argument 'center' overrides 'align' if true
+// - the circle is made with the largest diameter, so $fn/$fa/$fs act as in circle(),
+//   an ellipse is that circle scaled down along the other axis
+//   '-> as in OpenSCAD, the vertices lie on the circle
 module circlepp(size=undef, r=undef, d=undef, align=undef, center=false)
 {
     // module name
@@ -28,8 +36,12 @@ module circlepp(size=undef, r=undef, d=undef, align=undef, center=false)
     
     // create size
     _size = !is_undef(__d) ?
-                [__d, __d] :
+                (is_num(__d) ? [__d, __d] : __d) :
                 __size;
+
+    assert(is_list(_size) && len(_size) == 2 && is_num(_size[0]) && is_num(_size[1]) &&
+           _size[0] > 0 && _size[1] > 0,
+        str("[", __module_name, "] the size must be a positive number or a list of 2 positive numbers, got ", _size));
     
     // process the align and center to produce offset   
     // '-> arguments 'align' and 'center' are checked within the function
@@ -44,7 +56,11 @@ module circlepp(size=undef, r=undef, d=undef, align=undef, center=false)
     _o = [__o[0], __o[1]];
     
     // construct the solid
+    // '-> circle of the largest diameter (fragments computed from the real radius),
+    //     scaled down along the other axis for an ellipse
+    _D = max(_size);
+
     translate(_o)
-        resize(_size)
-            circle();
+        scale([_size[0]/_D, _size[1]/_D])
+            circle(d=_D);
 }

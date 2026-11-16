@@ -50,6 +50,9 @@ SPHEREPP_DEF_ALIGN = "c";
 // - argument 'zet' is ignored for this module
 // - argument 'center' is a bool and has no significance other then overriding any alignment
 //   '-> note that 'center=true' overrides any 'align'
+// - the sphere is made with the largest diameter, so $fn/$fa/$fs act as in sphere(),
+//   an ellipsoid is that sphere scaled down along the other axes
+//   '-> as in OpenSCAD, the vertices lie on the sphere
 module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=false)
 {
     __module_name = "SPHEREPP";
@@ -81,7 +84,10 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
                     !is_undef(_d) ?
                         _d :
                         [1,1,1];
-    
+
+    assert(_size[0] > 0 && _size[1] > 0 && _size[2] > 0,
+        str("[", __module_name, "] all dimensions must be positive, got ", _size));
+
     // process the align and center to produce offset   
     // '-> arguments 'align' and 'center' are checked within the function
     _o = __solidpp__produce_offset_from_align_and_center(
@@ -92,7 +98,11 @@ module spherepp(size=undef, r=undef, d=undef, align=undef, zet=undef, center=fal
             def_align=SPHEREPP_DEF_ALIGN);
 
     // construct the solid
+    // '-> sphere of the largest diameter (fragments computed from the real radius),
+    //     scaled down along the other axes for an ellipsoid
+    _D = max(_size);
+
     translate(_o)
-        resize(_size)
-            sphere(d=1);
+        scale([for (s = _size) s/_D])
+            sphere(d=_D);
 }
