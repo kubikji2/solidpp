@@ -253,34 +253,92 @@ function __spp_unique_sorted(l, eps=1e-9) =
 // ------------------------------------------------------------------ box data
 
 // side profiles: for each side the chain [[x, w], ...] (x = distance of the side from the center)
-function __spp_box_side_chains(W, h, B, zet, ctx) =
+// - 'Wb', 'Wt' distances of the sides at the bottom and at the top (taper)
+function __spp_box_side_chains(Wb, Wt, h, B, zet, ctx) =
     [for (i = [0:3])
         let(
             sctx = str(ctx, "] [base edges of face ", __spp_box_local_to_parent_letter(__SPP_BOX_SIDES[i], zet),
                        " (bo = bottom, to = top)"),
-            p = __spp_profile_apply_mods(__spp_rev_cylinder_profile(W[i], W[i], h), B[i], __SPP_REV_LETTERS, sctx, 0)
+            p = __spp_profile_apply_mods(__spp_rev_cylinder_profile(Wb[i], Wt[i], h), B[i], __SPP_REV_LETTERS, sctx, 0)
         )
         [each __spp_rev_tag_points(p, "bo"), each __spp_rev_tag_points(p, "to")]];
 
+// index of the parent axis of 'zet'
+function __spp_zet_axis(zet) = zet == "x" || zet == "X" ? 0 : (zet == "y" || zet == "Y" ? 1 : 2);
+
+// full size (parent frame) of a base [a, b] (or a number) with the height 'h' along 'zet'
+// '-> [a, b] are along the two parent axes perpendicular to 'zet' in the order x, y, z:
+//     [x, y] for zet "z", [y, z] for zet "x", [x, z] for zet "y"
+function __spp_box_base_to_size(base, h, zet) =
+    let(
+        b = is_num(base) ? [base, base] : base,
+        k = __spp_zet_axis(zet)
+    )
+    k == 0 ? [h, b[0], b[1]] : (k == 1 ? [b[0], h, b[1]] : [b[0], b[1], h]);
+
+// base [a, b] of a full size (parent frame), the inverse of __spp_box_base_to_size
+function __spp_box_size_to_base(size, zet) =
+    let(k = __spp_zet_axis(zet))
+    [for (i = [0:2]) if (i != k) size[i]];
+
+// checks 'size', 'size_bottom', 'size_top' of cubepp, returns [bottom, top] full sizes (parent frame)
+// - 'size' defines the height (along 'zet') and the default base
+// - 'size_bottom' or 'size_top' (at most one) is the other base [a, b] or a number (square)
+function __spp_box_sizes(size, size_bottom, size_top, zet, ctx) =
+    assert(is_undef(size) || is_num(size) ||
+           (is_list(size) && len(size) == 3 && len([for (x = size) if (!is_num(x)) 1]) == 0),
+        str("[", ctx, "] argument 'size' must be a number or a list of 3 numbers, got ", size))
+    let(
+        _check = [for (a = [["size_bottom", size_bottom], ["size_top", size_top]])
+            assert(is_undef(a[1]) || is_num(a[1]) ||
+                   (is_list(a[1]) && len(a[1]) == 2 && is_num(a[1][0]) && is_num(a[1][1])),
+                str("[", ctx, "] argument '", a[0], "' must be a number or [a, b] (the base perpendicular to 'zet'), got ", a[1]))
+            0]
+    )
+    assert(is_undef(size_bottom) || is_undef(size_top),
+        str("[", ctx, "] use only one of 'size_bottom', 'size_top'; the other base and the height are given by 'size'"))
+    assert(!is_undef(size) || (is_undef(size_bottom) && is_undef(size_top)),
+        str("[", ctx, "] '", is_undef(size_top) ? "size_bottom" : "size_top",
+            "' needs 'size' (the height and the other base)"))
+    let(
+        s = is_undef(size) ? [1, 1, 1] : (is_num(size) ? [size, size, size] : size),
+        h = s[__spp_zet_axis(zet)],
+        b = is_undef(size_bottom) ? s : __spp_box_base_to_size(size_bottom, h, zet),
+        t = is_undef(size_top) ? s : __spp_box_base_to_size(size_top, h, zet)
+    )
+    assert(min(b) > 0 && min(t) > 0, str("[", ctx, "] all dimensions must be positive, got ", b, " and ", t))
+    [b, t];
+
+// half-sizes of the sides [x, X, y, Y] of a local size
+function __spp_box_half_sides(size) = [size[0]/2, size[0]/2, size[1]/2, size[1]/2];
+
 // complete data of a box
-// - 'size' local size, 'stages' from __spp_box_stages, 'zet' for messages
+// - 'size_b', 'size_t' local sizes of the bottom and of the top base (equal heights; taper if they differ)
+// - 'stages' from __spp_box_stages, 'zet' for messages
 // returns [rings, is_convex, cutters, local bbox of the body, local bbox with flares, [ib, it]]
 // - rings: [[w, [[u, v], ...]], ...] bottom to top
 // - cutters: list of point lists (tetrahedra) to subtract
 // - [ib, it]: rings ib..it have no flare (convex part), the rings below ib and above it
 //   are in the flare zones
-function __spp_box_spec(size, stages, flare_in_size, zet, ctx) =
+// '-> the cross-section is built on the larger base (per side), the rings are its offsets;
+//     a taper is a slanted side profile, so base modifiers work as on cones
+function __spp_box_spec(size_b, size_t, stages, flare_in_size, zet, ctx) =
     let(
-        h = size[2],
-        W0 = [size[0]/2, size[0]/2, size[1]/2, size[1]/2],
-        chains0 = __spp_box_side_chains(W0, h, stages[1], zet, ctx),
-        // flare extent of every side
-        g = [for (i = [0:3]) max(0, __spp_max_x(chains0[i]) - W0[i])],
-        W = flare_in_size ? [for (i = [0:3]) W0[i] - g[i]] : W0
+        h = size_b[2],
+        Wb0 = __spp_box_half_sides(size_b),
+        Wt0 = __spp_box_half_sides(size_t),
+        Wn0 = [for (i = [0:3]) max(Wb0[i], Wt0[i])],
+        chains0 = __spp_box_side_chains(Wb0, Wt0, h, stages[1], zet, ctx),
+        // flare extent of every side (beyond the larger base)
+        g = [for (i = [0:3]) max(0, __spp_max_x(chains0[i]) - Wn0[i])],
+        Wb = flare_in_size ? [for (i = [0:3]) Wb0[i] - g[i]] : Wb0,
+        Wt = flare_in_size ? [for (i = [0:3]) Wt0[i] - g[i]] : Wt0
     )
-    assert(min(W) > 0, str("[", ctx, "] flare_in_size: the flares are wider than the box"))
+    assert(min(Wb) > 0 && min(Wt) > 0, str("[", ctx, "] flare_in_size: the flares are wider than the box"))
     let(
-        chains = flare_in_size ? __spp_box_side_chains(W, h, stages[1], zet, ctx) : chains0,
+        // larger base of every side
+        W = [for (i = [0:3]) max(Wb[i], Wt[i])],
+        chains = flare_in_size ? __spp_box_side_chains(Wb, Wt, h, stages[1], zet, ctx) : chains0,
         // cross-section (stage A) on the rectangle [-Wx, WX] x [-Wy, WY]
         rect = [[-W[0], -W[2], __spp_box_parent_name("xy", zet), true],
                 [ W[1], -W[2], __spp_box_parent_name("Xy", zet), true],
@@ -303,26 +361,29 @@ function __spp_box_spec(size, stages, flare_in_size, zet, ctx) =
         levels = __spp_unique_sorted(__spp_sort([for (c = chains) each [for (p = c) p[1]]])),
         tables = [for (c = chains) [for (p = c) [p[1], p[0]]]],
         bound = 2*(max(W) + max(g) + 1),
-        deltas = [for (w = levels) [for (i = [0:3]) W[i] - lookup(w, tables[i])]],
+        xs = [for (w = levels) [for (i = [0:3]) lookup(w, tables[i])]],
         rings = [for (k = [0:1:len(levels)-1])
             let(
-                shifts = [for (wt = weights) wt*deltas[k]],
+                shifts = [for (wt = weights) wt*[for (i = [0:3]) W[i] - xs[k][i]]],
                 ring = __spp_convex_offset(sec_pts, shifts, bound)
             )
             [levels[k], __spp_clip_halfplanes(ring, cut_hps)]],
-        // rings without a flare
-        no_flare = [for (k = [0:1:len(levels)-1]) if (min(deltas[k]) >= -1e-9) k],
+        // a ring is in a flare zone if a side is outside its straight (possibly slanted) wall
+        side_at = function(i, w) Wb[i] + (Wt[i] - Wb[i])*(w + h/2)/h,
+        no_flare = [for (k = [0:1:len(levels)-1])
+            if (len([for (i = [0:3]) if (xs[k][i] > side_at(i, levels[k]) + 1e-9) 1]) == 0) k],
         flare_range = len(no_flare) == 0 ? [len(levels)-1, 0] : [no_flare[0], no_flare[len(no_flare)-1]],
-        is_convex = len([for (i = [0:3]) if (__spp_max_x(chains[i]) > W[i] + 1e-9) 1]) == 0,
-        // corner cutters (stage D)
+        is_convex = len(no_flare) == len(levels),
+        // corner cutters (stage D): the third point slides along the (slanted) vertical edge
+        corner_at = function(su, sv, w) [su > 0 ? side_at(1, w) : -side_at(0, w), sv > 0 ? side_at(3, w) : -side_at(2, w), w],
         cutters = [for (d = stages[3]) for (cn = d[0])
             let(
                 e = d[1],
                 s = [cn[1] == "X" ? 1 : -1, cn[2] == "Y" ? 1 : -1, cn[0] == "Z" ? 1 : -1],
-                C = [s[0] > 0 ? W[1] : -W[0], s[1] > 0 ? W[3] : -W[2], s[2]*h/2],
+                C = corner_at(s[0], s[1], s[2]*h/2),
                 P1 = C - [s[0]*e[0], 0, 0],
                 P2 = C - [0, s[1]*e[1], 0],
-                P3 = C - [0, 0, s[2]*e[2]],
+                P3 = corner_at(s[0], s[1], s[2]*(h/2 - e[2])),
                 G = (P1 + P2 + P3)/3
             )
             [P1, P2, P3, C + 2*(C - G)]],

@@ -107,13 +107,13 @@ _p_cone_hole = __spp_tube_profile([2, 3, 5, 5, 8], [], "T");
 
 _t_chain = [
     check("outer chain with bevels", __spp_rev_outer_chain(_p_bevel, 6, 5, 5),
-        [[[4, -3], [5, -2], [5, 2], [4, 3]], [-2, 2]]),
+        [[[4, -3], [5, -2], [5, 2], [4, 3]], [-2, 2], [[5, -3], [5, 3]]]),
     check("no straight part when roundings meet", __spp_rev_outer_chain(_p_meet, 2, 5, 5)[1], undef),
     check("cone apex chain", __spp_rev_outer_chain(__spp_cyl_profile(5, 0, 4, [], "T"), 4, 5, 0)[0],
         [[5, -2], [0, 2]]),
     check("inner chain: unmodified end runs through the protrusion",
         __spp_rev_inner_chain(_p_tube, 8, 1, 2, 2),
-        [[[2, -5], [2, -4], [2, 3.5], [2.5, 4], [2.5, 5]], [-5, 3.5]]),
+        [[[2, -5], [2, -4], [2, 3.5], [2.5, 4], [2.5, 5]], [-5, 3.5], [[2, -4], [2, 4]]]),
     check("inner chain of a conical hole continues the wall line",
         __spp_rev_inner_chain(_p_cone_hole, 8, 1, 2, 3)[0][0], [2 - 1/8, -5]),
     check("protrusion of a steep conical hole", __spp_rev_inner_protrusion(1, 5, 4), 0.5),
@@ -121,10 +121,10 @@ _t_chain = [
 
 // ------------------------------------------------------------------ pieces
 
-_pc_td = __spp_section_pieces([[5, -3], [5, 3]], [-3, 3], 5, [[45, "point", [0, 1]], undef], 32, "corners", "T");
-_pc_sr = __spp_section_pieces([[4, -3], [5, -2], [5, 2], [4, 3]], [-2, 2], 5,
+_pc_td = __spp_section_pieces([[5, -3], [5, 3]], [-3, 3], [[5, -3], [5, 3]], 5, [[45, "point", [0, 1]], undef], 32, "corners", "T");
+_pc_sr = __spp_section_pieces([[4, -3], [5, -2], [5, 2], [4, 3]], [-2, 2], [[5, -3], [5, 3]], 5,
                               [undef, [8, 0.3, "triangle", undef]], 32, "corners", "T");
-_pc_fl = __spp_section_pieces([[6, -3], [5, -2], [5, 3]], [-2, 3], 5, [[45, "point", [0, 1]], undef], 32, "corners", "T");
+_pc_fl = __spp_section_pieces([[6, -3], [5, -2], [5, 3]], [-2, 3], [[5, -3], [5, 3]], 5, [[45, "point", [0, 1]], undef], 32, "corners", "T");
 
 _t_pieces = [
     check("teardrop: one hull", [for (p = _pc_td) p[0]], ["hull"]),
@@ -132,6 +132,11 @@ _t_pieces = [
     check("serration prism heights", [_pc_sr[1][1][0], _pc_sr[1][2][0]], [-2, 2]),
     check("serration prism points", len(_pc_sr[1][1][1]), 16),
     check("flare: slab and hull", [for (p = _pc_fl) [p[0], len(p[1])]], [["hull", 2], ["hull", 2]]),
+    // flare at the small end of a cone: outside the slanted wall line, although inside the larger radius
+    check("cone flare at the small end",
+        [for (p = __spp_section_pieces([[5, -3], [2, 2], [3, 3]], [-3, 2], [[5, -3], [2, 3]], 5,
+                                       [[45, "point", [0, 1]], undef], 32, "corners", "T")) [p[0], len(p[1])]],
+        [["hull", 2], ["hull", 2]]),
 ];
 
 echo("ALL TESTS PASSED");

@@ -47,29 +47,31 @@ CUBEPP_DEF_ALIGN = "xyz";
 //       by them (swept); placed after a base modifier it is a straight cut
 // - argument 'flare_in_align' if true, alignment includes flares (default false)
 // - argument 'flare_in_size' if true, 'size' includes flares, the body shrinks (default false)
+// - arguments 'size_bottom', 'size_top' define a taper (frustum) along 'zet'
+//   '-> the base [a, b] perpendicular to 'zet' (or a number for a square base), along the two
+//       parent axes in the order x, y, z: [x, y] (zet "z"), [y, z] (zet "x"), [x, z] (zet "y")
+//   '-> only one of them; 'size' gives the height and the other base
+//   '-> the bounding box (alignment) is the one of the larger base
 // See DESIGN.md for details.
 module cubepp(size=undef, align=undef, zet=undef, center=false, mod_list=undef,
-              flare_in_align=false, flare_in_size=false)
+              flare_in_align=false, flare_in_size=false, size_bottom=undef, size_top=undef)
 {
     // set module name
     __module_name = "CUBEPP";
 
-    // check size
-    // '-> it is either list of nums of size 3, or scalar
-    __solidpp__assert_size_like(size, "size" , __module_name);
-
-    // define size
-    // '-> if undef use default size
-    // '-> if list, keep it
-    // '-> if number, fill array
-    _size = __solidpp__get_argument_as_3Dlist(size,[1,1,1]);
-
     _zet = __spp_check_zet(zet, __module_name);
+
+    // [bottom size, top size] in the parent frame
+    _sizes = __spp_box_sizes(size, size_bottom, size_top, _zet, __module_name);
+    _is_taper = _sizes[0] != _sizes[1];
+
+    // size of the bounding box (the larger base)
+    _size = [for (i = [0:2]) max(_sizes[0][i], _sizes[1][i])];
     _mods = __spp_resolve_mod_list(mod_list, "box", __module_name);
     assert(is_bool(flare_in_align) && is_bool(flare_in_size),
         str("[", __module_name, "] arguments 'flare_in_align' and 'flare_in_size' must be booleans"));
 
-    if (len(_mods) == 0)
+    if (len(_mods) == 0 && !_is_taper)
     {
         // process the align and center to produce offset
         // '-> arguments 'align' and 'center' are checked within the function
@@ -89,7 +91,8 @@ module cubepp(size=undef, align=undef, zet=undef, center=false, mod_list=undef,
         _stages = __spp_box_stages(_mods, _zet, __module_name);
 
         // [rings, is convex, corner cutters, local body box, local box with flares]
-        _spec = __spp_box_spec(__spp_box_to_local_extents(_size, _zet), _stages, flare_in_size, _zet, __module_name);
+        _spec = __spp_box_spec(__spp_box_to_local_extents(_sizes[0], _zet), __spp_box_to_local_extents(_sizes[1], _zet),
+                               _stages, flare_in_size, _zet, __module_name);
 
         // box used for alignment (local frame), may be off-center when flares differ per side
         _box = flare_in_align ? _spec[4] : _spec[3];

@@ -1,87 +1,35 @@
 include<../utils/solidpp_utils.scad>
+include<../cubepp.scad>
 
-// TODO documentation
+// DEPRECATED: use cubepp(size=[bottom, h], size_top=[a, b]) (a tapered cubepp, with modifiers)
+// - argument 'base' is the size of the bottom base [a, b] (default [1, 1])
+// - argument 'top' is the size of the top base [a, b] (default [0.5, 0.5])
+// - argument 'h' is the height along 'zet' (default 1)
+// - arguments 'align', 'zet', 'center' as in cubepp
+// '-> [a, b] are along the local x/y axes of the 'zet' frame (as the old polyhedron was built)
+// '-> translated to cubepp with an echo showing the replacement call
 module trapezoid(base=undef, top=undef, h=undef, align=undef, zet=undef, center=false)
 {
-
     // module name
     __module_name = "TRAPEZOID";
 
-    // check base
     __solidpp__assert_2D_vector_like(base, "base" , __module_name);
- 
-    // extract base
-    _base = __solidpp__get_argument_as_2Dlist(base,[1,1]);
-
-    // check top
     __solidpp__assert_2D_vector_like(top, "top" , __module_name);
-
-    // extract top
-    _top = __solidpp__get_argument_as_2Dlist(top,[0.5,0.5]);
-
-    // check h
     assert(is_undef(h) || is_num(h), str("[", __module_name, "] argument 'h' must be either 'undef' or a number.") );
 
-    // extract h
+    _base = __solidpp__get_argument_as_2Dlist(base, [1, 1]);
+    _top = __solidpp__get_argument_as_2Dlist(top, [0.5, 0.5]);
     _h = is_undef(h) ? 1 : h;
+    _zet = __spp_check_zet(zet, __module_name);
 
-    // get the maximal dimensions of the bases
-    _a = max(_base.x, _top.x); 
-    _b = max(_base.y, _top.y);
-    
-    // construct the size based on the 'zet' aka orientation
-    _size = zet == "x" || zet == "X" ?
-                [_h, _a, _b] :
-                zet == "y" || zet == "Y" ?
-                    [_a, _h, _b] :
-                    [_a, _b, _h];
+    // bottom size in the parent frame, top base [a, b] perpendicular to 'zet'
+    _size_bottom = __spp_box_to_parent_extents([_base[0], _base[1], _h], _zet);
+    _size_top = __spp_box_size_to_base(__spp_box_to_parent_extents([_top[0], _top[1], _h], _zet), _zet);
 
-    // compute top and down offsets
-    _tx2 = _top.x/2;
-    _ty2 = _top.y/2;
+    echo(str("[", __module_name, "] DEPRECATED: ",
+             __spp_legacy_call("trapezoid", ["base", base, "top", top, "h", h, "zet", zet]),
+             " -> use cubepp(size=", _size_bottom, ", size_top=", _size_top,
+             _zet == "z" || _zet == "Z" ? "" : str(", zet=\"", _zet, "\""), ")"));
 
-    _bx2 = _base.x/2;
-    _by2 = _base.y/2;
-
-    _h2 = _h/2;
-
-    // creating geometry
-    // inspired by: https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Primitive_Solids#polyhedron
-    _points =   [
-                    [ -_bx2, -_by2, -_h2],
-                    [ +_bx2, -_by2, -_h2],
-                    [ +_bx2, +_by2, -_h2],
-                    [ -_bx2, +_by2, -_h2],
-                    [ -_tx2, -_ty2, +_h2],
-                    [ +_tx2, -_ty2, +_h2],
-                    [ +_tx2, +_ty2, +_h2],
-                    [ -_tx2, +_ty2, +_h2]
-                ];
-
-    _facets =   [
-                    [0,1,2,3],  // bottom
-                    [4,5,1,0],  // front
-                    [7,6,5,4],  // top
-                    [5,6,2,1],  // right
-                    [6,7,3,2],  // back
-                    [7,4,0,3]   // left
-                ];
-
-    // process the align and center to produce offset
-    // '-> arguments 'align' and 'center' are checked within the function
-    _o = __solidpp__produce_offset_from_align_and_center(
-            _size=_size,
-            align=align,
-            center=center,
-            solidpp_name=__module_name,
-            def_align=CUBEPP_DEF_ALIGN);
-
-    // get rotation
-    _r = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
-
-    // create polyhedron
-    translate(_o)
-        rotate(_r)
-            polyhedron(_points,_facets);
-    
+    cubepp(size=_size_bottom, size_top=_size_top, align=align, zet=_zet, center=center);
 }

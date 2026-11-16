@@ -97,7 +97,7 @@ module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
                 else
                     let(_chain = __spp_rev_outer_chain(_spec[3], _args[4], _spec[5][2], _spec[5][3]))
                     __spp_section_geometry(
-                        __spp_section_pieces(_chain[0], _chain[1], _spec[4], _osec,
+                        __spp_section_pieces(_chain[0], _chain[1], _chain[2], _spec[4], _osec,
                                              _outer_fn, outer_polygon, __module_name));
 
                 if (__spp_is_plain_section(_isec))
@@ -106,7 +106,7 @@ module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
                     let(_chain = __spp_rev_inner_chain(_spec[3], _args[4],
                                     __spp_rev_inner_protrusion(_args[0], _args[1], _args[4]), _args[0], _args[1]))
                     __spp_section_geometry(
-                        __spp_section_pieces(_chain[0], _chain[1], max(_args[0], _args[1]), _isec,
+                        __spp_section_pieces(_chain[0], _chain[1], _chain[2], max(_args[0], _args[1]), _isec,
                                              _inner_fn, inner_polygon, __module_name));
             }
 }

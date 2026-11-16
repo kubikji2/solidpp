@@ -24,7 +24,7 @@ function sum(l) = len(l) == 0 ? 0 : l[0] + sum([for (i = [1:1:len(l)-1]) l[i]]);
 
 // box spec directly from the data layer
 function box(size, mods, zet="z", fis=false) =
-    __spp_box_spec(__spp_box_to_local_extents(size, zet),
+    __spp_box_spec(__spp_box_to_local_extents(size, zet), __spp_box_to_local_extents(size, zet),
                    __spp_box_stages(__spp_resolve_mod_list(mods, "box", "TEST"), zet, "TEST"), fis, zet, "TEST");
 
 $fn = 0; $fa = 12; $fs = 2;
@@ -129,6 +129,43 @@ _t_spec = [
     check("corner cutter plane points", [for (i = [0:2]) _b_corner[2][0][i]], [[-3, 10, 15], [-5, 8, 15], [-5, 10, 13]]),
     check("zet x: local height is x", [_b_x[0][0][0], _b_x[0][len(_b_x[0])-1][0]], [-5, 5]),
     check("zet x: top ring", area(_b_x[0][len(_b_x[0])-1][1]), 18*28),
+];
+
+// ------------------------------------------------------------------ taper
+
+// spec of a taper from cubepp-like arguments
+function taper(size, mods, size_top=undef, size_bottom=undef, zet="z") =
+    let(s = __spp_box_sizes(size, size_bottom, size_top, zet, "TEST"))
+    __spp_box_spec(__spp_box_to_local_extents(s[0], zet), __spp_box_to_local_extents(s[1], zet),
+                   __spp_box_stages(__spp_resolve_mod_list(mods, "box", "TEST"), zet, "TEST"), false, zet, "TEST");
+
+_tp = taper([20, 10, 6], [rounding(0)], size_top=[10, 10]);
+_tp_c = taper([20, 20, 10], [bevel_corners(1, "txy")], size_top=10);
+_tp_f = taper([20, 20, 10], [bevel(-1, "t")], size_top=[10, 10]);
+_tp_x = taper([6, 20, 10], [rounding(0)], size_top=[10, 4], zet="x");
+_tp_y = taper([20, 6, 10], [rounding(0)], size_bottom=[10, 4], zet="y");
+
+_t_taper = [
+    check("sizes: size only", __spp_box_sizes([1, 2, 3], undef, undef, "z", "T"), [[1, 2, 3], [1, 2, 3]]),
+    check("sizes: size + top", __spp_box_sizes([4, 4, 3], undef, [2, 1], "z", "T"), [[4, 4, 3], [2, 1, 3]]),
+    check("sizes: size + square top", __spp_box_sizes([4, 4, 3], undef, 2, "z", "T"), [[4, 4, 3], [2, 2, 3]]),
+    check("sizes: size + bottom", __spp_box_sizes([4, 4, 3], [6, 5], undef, "z", "T"), [[6, 5, 3], [4, 4, 3]]),
+    check("sizes: default", __spp_box_sizes(undef, undef, undef, "z", "T"), [[1, 1, 1], [1, 1, 1]]),
+    check("sizes: base [y, z] for zet x", __spp_box_sizes([3, 4, 4], undef, [2, 1], "x", "T"), [[3, 4, 4], [3, 2, 1]]),
+    check("sizes: base [x, z] for zet y", __spp_box_sizes([4, 3, 4], [2, 1], undef, "y", "T"), [[2, 3, 1], [4, 3, 4]]),
+    check("base round trip zet y", __spp_box_size_to_base(__spp_box_base_to_size([2, 1], 3, "y"), "y"), [2, 1]),
+    check("taper rings", [for (r = _tp[0]) [r[0], area(r[1])]], [[-3, 200], [3, 100]]),
+    check("taper is convex", _tp[1], true),
+    check("taper bbox is the larger base", _tp[3], [[-10, -5, -3], [10, 5, 3]]),
+    check("taper corner cut slides along the slanted edge", [for (i = [0:2]) _tp_c[2][0][i]],
+        [[-4, -5, 5], [-5, -4, 5], [-5.5, -5.5, 4]]),
+    // a flare at the small end is inside the larger base, but outside the slanted wall
+    check("taper flare at the small end is not convex", _tp_f[1], false),
+    // zet x: local u is the parent z, local v the parent y; the base [y, z] = [10, 4] at the top (+x)
+    check("taper zet x: height along x", [_tp_x[0][0][0], _tp_x[0][1][0]], [-3, 3]),
+    check("taper zet x: top ring", let(r = _tp_x[0][1][1]) [max([for (p = r) p[0]]), max([for (p = r) p[1]])], [2, 5]),
+    check("taper zet y: bottom ring", let(r = _tp_y[0][0][1]) [max([for (p = r) p[0]]), max([for (p = r) p[1]])], [5, 2]),
+    check("taper zet y: bbox is the larger base", _tp_y[3], [[-10, -5, -3], [10, 5, 3]]),
 ];
 
 // ------------------------------------------------------------------ legacy translation

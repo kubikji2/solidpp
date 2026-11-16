@@ -262,7 +262,8 @@ How a wall with a section is built (`engine/section.scad`):
    this offset is exact (a teardrop offset is the teardrop of the smaller radius),
    so bevels and roundings follow the teardrop and cones work.
 3. Without serration the rings are hulled (one hull for the convex part, pairs of
-   rings where the outline grows, i.e. flares or widened hole ends).
+   rings where the outline leaves the original wall line, i.e. flares or widened
+   hole ends; on a cone this is checked against the slanted line).
 4. With serration the straight part is one stitched `polyhedron` between the
    serrated rings at its ends (the serration plan is computed once on O, so every
    ring has the same points); the ends are hulled rings; the pieces are united.
@@ -349,27 +350,48 @@ Consequences:
 
 ### 5.3 Arguments
 
-`cubepp(size, align, zet, center, mod_list, flare_in_align, flare_in_size)`
+`cubepp(size, align, zet, center, mod_list, flare_in_align, flare_in_size, size_bottom,
+size_top)`
 
 - `zet` (default `"z"`) selects the base axis of the modifiers.
+- Taper (frustum) along `zet`: `size` gives the height and one base, `size_top`
+  or `size_bottom` (only one of them) the other base. The base is `[a, b]` along
+  the two parent axes perpendicular to `zet` in the order x, y, z, or a number for
+  a square base:
+
+| `zet` | base `[a, b]` | example                                          |
+|-------|---------------|--------------------------------------------------|
+| `"z"` | `[x, y]`      | `cubepp([20, 10, 6], size_top=[10, 10])`         |
+| `"x"` | `[y, z]`      | `cubepp([6, 20, 10], size_top=[10, 4], zet="x")` |
+| `"y"` | `[x, z]`      | `cubepp([20, 6, 10], size_bottom=8, zet="y")`    |
+
+  Both bases at once, or a base without `size`, is an error.
+  The bounding box (alignment) is the one of the larger base. The top stays
+  centered over the bottom; use transforms for anything else.
+- A taper is a slanted side profile, so base modifiers behave as on cones; the
+  cross-section is built on the larger base and offset, i.e. rounded vertical
+  edges get a smaller radius towards the smaller base (as a drafted extrusion).
+  Stage C cuts stay parallel to `zet`; `bevel_corners` cuts along the slanted
+  edges. A flare is detected against the slanted wall, not the larger base.
 - With `flare_in_size`, each side shrinks by its own flare, so the box may be
   off-center in its bounding box; alignment always uses the chosen bounding box.
 
 ## 6. Dropped / changed
 
-| old                                        | new                                         |
-|--------------------------------------------|---------------------------------------------|
-| elliptical `cylinderpp([a,b,h])`, `a != b` | error                                       |
-| `cylinderpp` resized unit cylinder         | `rotate_extrude` of the real profile        |
-| `cylinderpp` `children()` profile          | `revolvepp` (planned)                       |
-| `round_bases`, `bevel_bases` (cyl/tube)    | `rounding(r, "t"/"b")`, `bevel(d, "t"/"b")` |
-| `round_corners` (cyl/tube)                 | `rounding(r)` (`where="all"`)               |
-| `r_both`, `rounding_r`, `__mod_queue`, ... | removed                                     |
-| `inner_mod_list`, `outer_mod_list` (tube)  | `where` with `i` / `o`                      |
-| `bevel <= 0` silently ignored              | negative = flare, zero = no-op              |
-| first modifier applied last                | reading order                               |
-| `cubepp` `zet` ignored                     | base axis of the modifiers                  |
-| `bevel_bases(axis=)` on `cubepp`           | selectors of faces, or `zet`                |
+| old                                        | new                                           |
+|--------------------------------------------|-----------------------------------------------|
+| elliptical `cylinderpp([a,b,h])`, `a != b` | error                                         |
+| `cylinderpp` resized unit cylinder         | `rotate_extrude` of the real profile          |
+| `cylinderpp` `children()` profile          | `revolvepp` (planned)                         |
+| `round_bases`, `bevel_bases` (cyl/tube)    | `rounding(r, "t"/"b")`, `bevel(d, "t"/"b")`   |
+| `round_corners` (cyl/tube)                 | `rounding(r)` (`where="all"`)                 |
+| `r_both`, `rounding_r`, `__mod_queue`, ... | removed                                       |
+| `inner_mod_list`, `outer_mod_list` (tube)  | `where` with `i` / `o`                        |
+| `bevel <= 0` silently ignored              | negative = flare, zero = no-op                |
+| first modifier applied last                | reading order                                 |
+| `cubepp` `zet` ignored                     | base axis of the modifiers                    |
+| `bevel_bases(axis=)` on `cubepp`           | selectors of faces, or `zet`                  |
+| `trapezoid(base, top, h)`                  | `cubepp(size, size_top)` (deprecated wrapper) |
 
 ### 6.1 Old modifiers (backward compatibility)
 
@@ -399,6 +421,10 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - Non-positive old bevels (silently ignored before) are skipped with an echo.
 - `inner_mod_list` modified the cylinder cut out of the tube, so its modifiers
   become negative modifiers (flares into the hole) of the inner edges.
+- `trapezoid(base=[a, b], top=[a, b], h)` becomes `cubepp(size=[...], size_top=[a', b'])`
+  with the same geometry (`[a, b]` along the local x/y of the `zet` frame); with
+  `zet="x"` and `a != b` the old alignment box did not match the geometry, the
+  translation uses the geometry. A zero-size top (apex) is no longer supported.
 
 ## 7. Implementation notes
 
@@ -445,7 +471,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] Sections: `teardrop()` (point, bridge), `serration()` (triangle, round).
 - [x] `sector` for revolved solids (bounding box of the full cylinder).
 - [x] `polygon="polyhole"` (hole size compensation).
-- [ ] Taper of `cubepp` (top size), replacing `trapezoidpp`.
+- [x] Taper of `cubepp` (`size_bottom`, `size_top`), `trapezoid` deprecated.
 - [ ] `revolvepp`, `prismpp` (convex bases only), `projectpp`.
 - [x] `spherepp` and `circlepp` are built at their largest diameter and scaled
       down for ellipsoids/ellipses (resolution scales with size, vertices on

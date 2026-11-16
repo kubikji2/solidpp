@@ -251,18 +251,21 @@ function __spp_hull_pieces(rings, deltas) =
 
 // pieces of a wall
 // - 'chain' [[x, z], ...] bottom to top, 'region' [z_lo, z_hi] straight part of the wall
+// - 'line' [[x1, z1], [x2, z2]] original wall line: chain points outside of it are flares
 // - 'R' nominal radius, 'sec' resolved section, 'fn' sides, 'polygon_mode' circle mode
-function __spp_section_pieces(chain, region, R, sec, fn, polygon_mode, ctx) =
+function __spp_section_pieces(chain, region, line, R, sec, fn, polygon_mode, ctx) =
     let(
         _fn = __spp_wall_sides(fn, polygon_mode, R, ctx),
         n = is_undef(_fn) ? __spp_fragments(R) : _fn,
         O = __spp_section_outline(R, n, sec[0], polygon_mode, ctx),
         bound = 4*(R + max([for (p = chain) abs(p[0])]) + 1),
         sr = sec[1],
-        ring = function(x) __spp_section_ring(O, R, x, bound)
+        ring = function(x) __spp_section_ring(O, R, x, bound),
+        // distance of a chain point inside the wall line (negative: flare, the outline grows)
+        inside = function(p) line[0][0] + (line[1][0] - line[0][0])*(p[1] - line[0][1])/(line[1][1] - line[0][1]) - p[0]
     )
     is_undef(sr) ?
-        __spp_hull_pieces([for (p = chain) [p[1], ring(p[0])]], [for (p = chain) R - p[0]]) :
+        __spp_hull_pieces([for (p = chain) [p[1], ring(p[0])]], [for (p = chain) inside(p)]) :
         let(
             zlo = is_undef(region) ? 0 : region[0],
             zhi = is_undef(region) ? 0 : region[1],
@@ -284,9 +287,9 @@ function __spp_section_pieces(chain, region, R, sec, fn, polygon_mode, ctx) =
         assert(sr[1] < 0.5*min([for (p = rlo) norm(p)]),
             str("[", ctx, "] serration: the depth ", sr[1], " is too large for the radius of the wall"))
         concat(
-            __spp_hull_pieces([for (p = bottom) [p[1], ring(p[0])]], [for (p = bottom) R - p[0]]),
+            __spp_hull_pieces([for (p = bottom) [p[1], ring(p[0])]], [for (p = bottom) inside(p)]),
             [["prism", [zlo, slo], [zhi, shi]]],
-            __spp_hull_pieces([for (p = top) [p[1], ring(p[0])]], [for (p = top) R - p[0]]));
+            __spp_hull_pieces([for (p = top) [p[1], ring(p[0])]], [for (p = top) inside(p)]));
 
 
 // ------------------------------------------------------------------ walls of revolved solids
@@ -300,7 +303,7 @@ function __spp_straight_region(P, Q, A, B) =
     )
     Q[1] - P[1] > 1e-9 && on_line(P) && on_line(Q) ? [P[1], Q[1]] : undef;
 
-// outer wall chain of a cylinder or a tube: [chain, [z_lo, z_hi] or undef]
+// outer wall chain of a cylinder or a tube: [chain, [z_lo, z_hi] or undef, wall line]
 // - 'R1', 'R2' are the radii of the body (the original wall line)
 // '-> a zero radius base (cone apex) is the point on the axis
 function __spp_rev_outer_chain(profile, h, R1, R2) =
@@ -310,7 +313,7 @@ function __spp_rev_outer_chain(profile, h, R1, R2) =
         b = len(bo) == 0 ? [[0, -h/2]] : bo,
         t = len(to) == 0 ? [[0, h/2]] : to
     )
-    [concat(b, t), __spp_straight_region(b[len(b)-1], t[0], [R1, -h/2], [R2, h/2])];
+    [concat(b, t), __spp_straight_region(b[len(b)-1], t[0], [R1, -h/2], [R2, h/2]), [[R1, -h/2], [R2, h/2]]];
 
 // protrusion of the hole cut-out beyond the faces of a tube: small, and short enough that the
 // continued wall line of a conical hole keeps at least half of its radius
@@ -318,7 +321,7 @@ function __spp_rev_inner_protrusion(r1, r2, h) =
     let(s = abs(r2 - r1) / h)
     s > 0 ? min(1, 0.5*min(r1, r2)/s) : 1;
 
-// hole chain of a tube (bottom to top) protruding by 'e': [chain, [z_lo, z_hi] or undef]
+// hole chain of a tube (bottom to top) protruding by 'e': [chain, [z_lo, z_hi] or undef, wall line]
 // - 'r1', 'r2' are the radii of the hole (the original wall line)
 // '-> beyond an unmodified end the protrusion continues the wall line, so the straight part
 //     runs through it; beyond a modified end the protrusion is parallel to the axis
@@ -336,7 +339,7 @@ function __spp_rev_inner_chain(profile, h, e, r1, r2) =
         Q = len(ti) == 1 ? lt : ti[len(ti)-1]
     )
     assert(fb[0] > 0 && lt[0] > 0, "[TUBEPP] the hole is too conical for its protrusion")
-    [concat([fb], up, [lt]), __spp_straight_region(P, Q, [r1, -h/2], [r2, h/2])];
+    [concat([fb], up, [lt]), __spp_straight_region(P, Q, [r1, -h/2], [r2, h/2]), [[r1, -h/2], [r2, h/2]]];
 
 
 // ------------------------------------------------------------------ geometry

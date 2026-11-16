@@ -38,6 +38,15 @@ at(3, 2) cubepp(s, zet="x", mod_list=[rounding(2, "t"), bevel(1, "b")]);
 at(4, 2) cubepp(s, zet="y", mod_list=[rounding(-1.5, "b"), rounding(1, "y-edges")]);
 at(5, 2) cubepp(s, align="", mod_list=[rounding(1)]);
 
+// ---- row 4: taper (size + size_top / size_bottom, the base [a, b] perpendicular to zet)
+at(0, 4) cubepp(size=[12, 16, 8], size_top=[6, 10]);
+at(1, 4) cubepp(size=[12, 16, 8], size_top=[6, 10], mod_list=[rounding(1.5, "z-edges"), rounding(1, "t")]);
+at(2, 4) cubepp(size=[14, 14, 8], size_bottom=8, mod_list=[bevel(1, "z-edges"), rounding(-1.5, "b")]);
+at(3, 4) cubepp(size=[12, 16, 8], size_top=[6, 16], mod_list=[bevel_corners(1.5, "t"), rounding(-1, "t")]);
+at(4, 4) cubepp(size=[8, 12, 16], size_top=[6, 8], zet="x", mod_list=[rounding(1)]);   // base [y, z]
+at(6, 4) cubepp(size=[12, 8, 16], size_bottom=[6, 8], zet="y", mod_list=[bevel(1, "t")]);   // base [x, z]
+at(5, 4) trapezoid(base=[12, 8], top=[6, 4], h=8);   // DEPRECATED echo expected
+
 // ---- row 3: legacy modifiers (translated with DEPRECATED echoes)
 at(0, 3) cubepp(s, mod_list=[round_corners(2)]);
 at(1, 3) cubepp(s, mod_list=[round_edges(r=2, axes="xy")]);

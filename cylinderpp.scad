@@ -91,5 +91,5 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
             else
                 let(_chain = __spp_rev_outer_chain(_spec[2], _args[2], _spec[4][0], _spec[4][1]))
                 __spp_section_geometry(
-                    __spp_section_pieces(_chain[0], _chain[1], _spec[3], _sec, _fn, polygon, __module_name));
+                    __spp_section_pieces(_chain[0], _chain[1], _chain[2], _spec[3], _sec, _fn, polygon, __module_name));
 }
