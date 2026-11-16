@@ -326,6 +326,8 @@ work as for `cylinderpp`. A 2D child cannot be measured in OpenSCAD; revolving
 Points: `[x, y]`, `[x, y, "tag"]` or `[x, y, "tag", "f"]`.
 
 - The profile is closed, must not intersect itself and must lie in `x >= 0`;
+  it may touch the axis only along segments (a single point on the axis would
+  pinch the solid);
   its orientation does not matter (it is normalized to counter-clockwise).
 - The segment from point `k` to point `k+1` is a face of the solid. A vertex is
   an edge named by the faces on both sides.
@@ -361,7 +363,22 @@ Points: `[x, y]`, `[x, y, "tag"]` or `[x, y, "tag", "f"]`.
   radius. Sections (`teardrop`, `serration`) are not supported (a general
   profile has no monotonic wall). Old modifiers are not supported.
 
-### 4.7 Planned
+### 4.7 `toruspp`
+
+```
+toruspp(t, r|d, R|D, h, align, zet, center, fn, polygon, sector)
+```
+
+Unchanged arguments and defaults (exactly two of `t`, `r|d`, `R|D`, default
+`r=0.5, R=1`; `h` defaults to `t`; `align=""`, centered). The tube is an ellipse
+`t x h` built like `circlepp` (vertices on the ellipse, fragments by
+`$fn/$fa/$fs`) and revolved by the shared engine, so `fn` (sides of the
+revolution), `polygon` (`"corners"`, `"flats"`) and `sector` work as for
+`cylinderpp`. `r` must be positive: with `r = 0` the tube touches the axis in a
+single point (a pinch, not a valid solid; CGAL reports "mesh is not closed").
+A torus has no edges, so there is no `mod_list`.
+
+### 4.8 Planned
 
 - `rotate_extrudepp(zet, sector, fn)` in `transforms/`: 2D children, `zet` and
   the `sector` convention; alignment via `transform_to_spp`.
@@ -499,20 +516,22 @@ Faces and edges:
 
 ## 6. Dropped / changed
 
-| old                                        | new                                           |
-|--------------------------------------------|-----------------------------------------------|
-| elliptical `cylinderpp([a,b,h])`, `a != b` | error                                         |
-| `cylinderpp` resized unit cylinder         | `rotate_extrude` of the real profile          |
-| `cylinderpp` `children()` profile          | `revolvepp` (planned)                         |
-| `round_bases`, `bevel_bases` (cyl/tube)    | `rounding(r, "t"/"b")`, `bevel(d, "t"/"b")`   |
-| `round_corners` (cyl/tube)                 | `rounding(r)` (`where="all"`)                 |
-| `r_both`, `rounding_r`, `__mod_queue`, ... | removed                                       |
-| `inner_mod_list`, `outer_mod_list` (tube)  | `where` with `i` / `o`                        |
-| `bevel <= 0` silently ignored              | negative = flare, zero = no-op                |
-| first modifier applied last                | reading order                                 |
-| `cubepp` `zet` ignored                     | base axis of the modifiers                    |
-| `bevel_bases(axis=)` on `cubepp`           | selectors of faces, or `zet`                  |
-| `trapezoid(base, top, h)`                  | `cubepp(size, size_top)` (deprecated wrapper) |
+| old                                         | new                                           |
+|---------------------------------------------|-----------------------------------------------|
+| elliptical `cylinderpp([a,b,h])`, `a != b`  | error                                         |
+| `cylinderpp` resized unit cylinder          | `rotate_extrude` of the real profile          |
+| `cylinderpp` `children()` profile           | `revolvepp`                                   |
+| `round_bases`, `bevel_bases` (cyl/tube)     | `rounding(r, "t"/"b")`, `bevel(d, "t"/"b")`   |
+| `round_corners` (cyl/tube)                  | `rounding(r)` (`where="all"`)                 |
+| `r_both`, `rounding_r`, `__mod_queue`, ...  | removed                                       |
+| `inner_mod_list`, `outer_mod_list` (tube)   | `where` with `i` / `o`                        |
+| `bevel <= 0` silently ignored               | negative = flare, zero = no-op                |
+| first modifier applied last                 | reading order                                 |
+| `cubepp` `zet` ignored                      | base axis of the modifiers                    |
+| `bevel_bases(axis=)` on `cubepp`            | selectors of faces, or `zet`                  |
+| `trapezoid(base, top, h)`                   | `cubepp(size, size_top)` (deprecated wrapper) |
+| `prism(points, h)`, `prism(points3D, n)`    | `prismpp` / `linear_extrude` (deprecated)     |
+| `toruspp` via `circlepp` + `rotate_extrude` | revolved engine (`fn`, `polygon`, `sector`)   |
 
 ### 6.1 Old modifiers (backward compatibility)
 
@@ -546,6 +565,11 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
   with the same geometry (`[a, b]` along the local x/y of the `zet` frame); with
   `zet="x"` and `a != b` the old alignment box did not match the geometry, the
   translation uses the geometry. A zero-size top (apex) is no longer supported.
+- `prism(points, h|n)` still builds its polyhedron (the 2D path, which produced
+  nothing before, is fixed) and echoes the replacement: `prismpp(points, h)` for a
+  convex base, `linear_extrude(height=h) polygon(points)` for a concave one,
+  `translate([0, 0, z]) multmatrix(shear) linear_extrude(...)` for an oblique prism
+  with a horizontal base; other 3D bases have no direct replacement (`hull()`).
 
 ## 7. Implementation notes
 
@@ -557,7 +581,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `modifiers/legacy_modifiers.scad`  | old constructors, translation, `mod_list` resolution     |
 | `modifiers/section_modifiers.scad` | `teardrop()`, `serration()`                              |
 | `engine/profile.scad`              | face names, selection, corner operations, fragments      |
-| `engine/revolved.scad`             | cylinder/tube/revolvepp profiles, argument parsing       |
+| `engine/revolved.scad`             | cylinder/tube/torus/revolvepp profiles, argument parsing |
 | `engine/box.scad`                  | frames, selectors, stages, rings, offsets, hull geometry |
 | `engine/section.scad`              | sections: outlines, serration, wall chains, pieces       |
 | `cubepp.scad`                      | thin module over the engine                              |
@@ -565,6 +589,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `other_solidspp/tubepp.scad`       | thin module over the engine                              |
 | `other_solidspp/revolvepp.scad`    | thin module over the engine                              |
 | `other_solidspp/prismpp.scad`      | thin module over the engine                              |
+| `other_solidspp/toruspp.scad`      | thin module over the engine                              |
 | `engine/prism.scad`                | base validation, side names, selectors, blended rings    |
 | `tests/test_prismpp.scad`          | `assert`-based tests of the prism data layer             |
 | `tests/gallery_prismpp.scad`       | visual smoke test of prismpp                             |
@@ -602,6 +627,8 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] Unified face-name grammar (section 3.3), `revolvepp` (section 4.6).
 - [x] `prismpp` (convex bases, points + `h`, faces `t`, `b`, `s0`..., section 5.4).
 - [ ] Taper of `prismpp` (`top_offset` or `scale`), when needed.
+- [x] `toruspp` on the revolved engine, `prism` deprecated.
+- [ ] 2D shapes (`squarepp`, `circlepp`) and their modifiers.
 - [ ] `rotate_extrudepp`, `projectpp`.
 - [x] `spherepp` and `circlepp` are built at their largest diameter and scaled
       down for ellipsoids/ellipses (resolution scales with size, vertices on
