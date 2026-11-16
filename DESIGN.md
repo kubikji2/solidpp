@@ -132,6 +132,9 @@ faces perpendicular to `zet` (with `zet="z"`, `t` is `Z`).
 | `"txY"`, `"xYZ"`         | error (matches nothing)        | that single corner        |
 | `"x-edges"`, `"z-edges"` | 4 edges parallel to that axis  | error                     |
 
+`prismpp`: faces `t`, `b` and sides `s0`, `s1`, ... (plus tag names), e.g.
+`"s"` all sides, `"ts2"` one top edge, `"s1s2"` one vertical edge, see section 5.4.
+
 Every token must match at least one edge, otherwise it is an error.
 
 ### 3.4 Flares and the bounding box
@@ -365,7 +368,7 @@ Points: `[x, y]`, `[x, y, "tag"]` or `[x, y, "tag", "f"]`.
 - `projectpp(plane=[point, normal])`: moves the plane to z=0 and runs
   `projection(cut=true)`.
 
-## 5. Box family (`cubepp`)
+## 5. Box family (`cubepp`, `prismpp`)
 
 ### 5.1 How it is built
 
@@ -444,6 +447,56 @@ size_top)`
 - With `flare_in_size`, each side shrinks by its own flare, so the box may be
   off-center in its bounding box; alignment always uses the chosen bounding box.
 
+### 5.4 `prismpp`
+
+```
+prismpp(points, h, align, zet, center, mod_list, flare_in_align)
+```
+
+A right prism over a strictly convex base, built by the box engine generalized
+to n sides (`engine/prism.scad`).
+
+- `points`: `[x, y]` or `[x, y, "tag"]`, drawn as for `zet="z"`; the solid is
+  then turned like every solidpp solid (`zet="x"`: `rotate([0, 90, 0])`,
+  `zet="y"`: `rotate([-90, 0, 0])`). Any orientation; collinear points, concave
+  or self-intersecting bases are errors.
+- `h`: height along `zet` (default 1).
+- `align`: default `"keep"` (the points as given, base on the plane 0, top at
+  `h`, as `linear_extrude`); any other value aligns the bounding box of the base
+  polygon as for `cubepp`; `center=true` overrides both.
+- No `size`, no taper, no `flare_in_size`, no `bevel_corners`, no `[x, y, z]`
+  values (the sides are not axis-aligned). Old modifiers are not supported.
+
+Faces and edges:
+
+| face                           | name                 |
+|--------------------------------|----------------------|
+| bases                          | `t`, `b`             |
+| side from point k to point k+1 | `s<k>` (+ tag names) |
+
+| token                                 | edges                               |
+|---------------------------------------|-------------------------------------|
+| `"all"`, `"s"`                        | all edges                           |
+| `"t"`, `"b"`                          | edges of the top/bottom base        |
+| `"s2"`                                | the 4 edges of side 2               |
+| `"ts2"`                               | top edge of side 2                  |
+| `"s1s2"`                              | vertical edge between sides 1 and 2 |
+| `"g"` (tag on point k)                | the 4 edges of side k               |
+| `"x-edges"`, `"y-edges"`, `"z-edges"` | edges parallel to that parent axis  |
+
+- Side numbers follow the user's points also for clockwise input.
+- Tags: a letter optionally followed by digits; `t b s x X y Y z Z` are
+  reserved (no forcing: a prism has no slanted faces to classify).
+- Stages A-C as for `cubepp` (vertical edges before base edges are swept, after
+  them cut straight). At a modified vertical edge between sides k-1 and k, the
+  ring is offset by a blend of the two side insets with the weights
+  `sin²θ / (sin²θ + sin²(φ-θ))` (θ angle of the edge normal from side k-1, φ angle
+  of the corner); for a right angle this is the `cos²`/`sin²` blend of `cubepp`,
+  and equal insets give an exact offset.
+- Flares are mitered at the vertices (as `cubepp`); with `flare_in_align` the
+  bounding box includes them exactly.
+- The old `prism(points, h, n)` (oblique prism by a normal) is unchanged.
+
 ## 6. Dropped / changed
 
 | old                                        | new                                           |
@@ -511,6 +564,10 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `cylinderpp.scad`                  | thin module over the engine                              |
 | `other_solidspp/tubepp.scad`       | thin module over the engine                              |
 | `other_solidspp/revolvepp.scad`    | thin module over the engine                              |
+| `other_solidspp/prismpp.scad`      | thin module over the engine                              |
+| `engine/prism.scad`                | base validation, side names, selectors, blended rings    |
+| `tests/test_prismpp.scad`          | `assert`-based tests of the prism data layer             |
+| `tests/gallery_prismpp.scad`       | visual smoke test of prismpp                             |
 | `tests/test_revolved.scad`         | `assert`-based tests of the data layer (no geometry)     |
 | `tests/test_cubepp.scad`           | `assert`-based tests of the box data and legacy layer    |
 | `tests/test_sections.scad`         | `assert`-based tests of the sections                     |
@@ -543,7 +600,8 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] `polygon="polyhole"` (hole size compensation).
 - [x] Taper of `cubepp` (`size_bottom`, `size_top`), `trapezoid` deprecated.
 - [x] Unified face-name grammar (section 3.3), `revolvepp` (section 4.6).
-- [ ] `prismpp` (convex bases, points + `h`, faces `t`, `b`, `s0`...; taper later).
+- [x] `prismpp` (convex bases, points + `h`, faces `t`, `b`, `s0`..., section 5.4).
+- [ ] Taper of `prismpp` (`top_offset` or `scale`), when needed.
 - [ ] `rotate_extrudepp`, `projectpp`.
 - [x] `spherepp` and `circlepp` are built at their largest diameter and scaled
       down for ellipsoids/ellipses (resolution scales with size, vertices on
