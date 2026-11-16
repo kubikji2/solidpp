@@ -48,6 +48,28 @@ function __spp_rev_size(size, zet, ctx) =
         [_abh[0], _abh[2]];
 
 
+// checks the 'sector' argument and returns undef (full revolution) or [start, angle] in the
+// local frame of the solid (degrees from the local +x, counter-clockwise around +zet)
+// - 'sector' is undef, an angle (sweep from 0), or [from, to] with 0 < to - from <= 360
+// - angles follow the right-hand rule around 'zet' and start at the next axis of the cycle
+//   x -> y -> z: +x for zet "z", +y for zet "x", +z for zet "y"
+function __spp_check_sector(sector, zet, ctx) =
+    is_undef(sector) ?
+        undef :
+        let(s = is_num(sector) ? [0, sector] : sector)
+        assert(is_list(s) && len(s) == 2 && is_num(s[0]) && is_num(s[1]),
+            str("[", ctx, "] argument 'sector' must be an angle or [from, to], got ", sector))
+        assert(s[1] - s[0] > 0 && s[1] - s[0] <= 360,
+            str("[", ctx, "] argument 'sector' must sweep more than 0 and at most 360 degrees, got ", sector))
+        s[1] - s[0] == 360 ?
+            undef :
+            let(
+                // angle of the reference axis in the local frame (see the frame of box.scad):
+                // zet x: +y is local +v (90), zet y: +z is local -v (270)
+                ref = zet == "x" || zet == "X" ? 90 : (zet == "y" || zet == "Y" ? 270 : 0)
+            )
+            [ref + s[0], s[1] - s[0]];
+
 // ------------------------------------------------------------------ profiles
 
 function __spp_rev_cylinder_profile(R1, R2, h) =

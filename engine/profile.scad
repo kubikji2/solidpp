@@ -303,12 +303,20 @@ function __spp_check_fn(fn, name, ctx) =
 // revolves 'points' (x = radius, y = axis) around the z-axis
 // - 'fn' number of sides, undef uses $fn/$fa/$fs
 // - 'polygon_mode' "corners" | "flats"
-module __spp_revolve(points, fn, polygon_mode, ctx)
+// - 'sector' undef (full revolution) or [start, angle] in the local frame (degrees from +x,
+//   counter-clockwise), see __spp_check_sector
+module __spp_revolve(points, fn, polygon_mode, ctx, sector=undef)
 {
     _n = is_undef(fn) ? __spp_fragments(__spp_max_x(points)) : fn;
     _k = __spp_polygon_scale(polygon_mode, _n, ctx);
 
-    scale([_k, _k, 1])
-        rotate_extrude($fn = is_undef(fn) ? $fn : fn)
-            polygon(points);
+    if (is_undef(sector))
+        scale([_k, _k, 1])
+            rotate_extrude($fn = is_undef(fn) ? $fn : fn)
+                polygon(points);
+    else
+        rotate([0, 0, sector[0]])
+            scale([_k, _k, 1])
+                rotate_extrude(angle=sector[1], $fn = is_undef(fn) ? $fn : fn)
+                    polygon(points);
 }

@@ -40,11 +40,15 @@ CYLINDERPP_DEF_ALIGN = "z";
 //   '-> teardrop(up, angle, cap), serration(n, depth, profile, width), or [teardrop(), serration()]
 //   '-> serration runs along the straight part of the wall, the modified ends stay plain
 //   '-> the bounding box (alignment) is the one of the circle
+// - argument 'sector' cuts a sector: an angle (sweep from 0) or [from, to] in degrees
+//   '-> right-hand rule around 'zet', 0 at +x (zet "z"), +y (zet "x"), +z (zet "y")
+//   '-> the bounding box (alignment) is the one of the full cylinder
+//   '-> only for the circle section
 // See DESIGN.md for details.
 module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef, center=false,
                   r1=undef, r2=undef, d1=undef, d2=undef, mod_list=undef,
                   fn=undef, polygon="corners", flare_in_align=false, flare_in_size=false,
-                  section=undef)
+                  section=undef, sector=undef)
 {
     __module_name = "CYLINDERPP";
 
@@ -52,6 +56,9 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     _fn = __spp_check_fn(fn, "fn", __module_name);
     _mods = __spp_resolve_mod_list(mod_list, "revolved", __module_name);
     _sec = __spp_resolve_section(section, _zet, __module_name, "section");
+    _sector = __spp_check_sector(sector, _zet, __module_name);
+    assert(is_undef(_sector) || __spp_is_plain_section(_sec),
+        str("[", __module_name, "] argument 'sector' cannot be combined with 'section' (teardrop, serration)"));
     assert(is_bool(flare_in_align) && is_bool(flare_in_size),
         str("[", __module_name, "] arguments 'flare_in_align' and 'flare_in_size' must be booleans"));
 
@@ -78,7 +85,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     translate(_o)
         rotate(_rot)
             if (__spp_is_plain_section(_sec))
-                __spp_revolve(_spec[0], _fn, polygon, __module_name);
+                __spp_revolve(_spec[0], _fn, polygon, __module_name, _sector);
             else
                 let(_chain = __spp_rev_outer_chain(_spec[2], _args[2], _spec[4][0], _spec[4][1]))
                 __spp_section_geometry(

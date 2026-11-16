@@ -48,6 +48,15 @@ show(3, 2) tubepp(r=3, R=5, h=6, mod_list=[rounding(-1, "i"), bevel(0.5, "o")]);
 show(4, 2) tubepp(t=1, R=[5, 3], h=6, mod_list=[rounding(0.4)]);
 show(5, 2) tubepp(D=10, d=5.5, h=4, inner_fn=6, inner_polygon="flats", mod_list=[bevel(0.4)]);
 
+// ---- row 4: sectors (angles from +x for zet "z", +y for zet "x", +z for zet "y")
+translate([0, 4*step, 0]) {
+    cylinderpp(d=10, h=6, sector=90, mod_list=[rounding(1, "t")]);
+    translate([step, 0, 0]) cylinderpp(d=10, h=6, sector=[-60, 60], mod_list=[rounding(-1, "b")]);
+    translate([2*step, 0, 0]) tubepp(r=3, R=5, h=6, sector=270, mod_list=[bevel(0.5)]);
+    translate([3*step, 0, 0]) cylinderpp(d=10, h=12, zet="x", align="z", sector=[0, 180]);
+    translate([4*step, 0, 0]) tubepp(r=3, R=5, h=12, zet="y", align="z", sector=[-90, 90], inner_section=teardrop());
+}
+
 // ---- row 3: orientation and alignment (no section)
 translate([0, 3*step, 0]) {
     cylinderpp(d=6, h=10, zet="x", align="x", mod_list=[rounding(1, "t")]);

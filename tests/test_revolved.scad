@@ -169,4 +169,16 @@ _t_poly = [
     check("flats scale hex", __spp_polygon_scale("flats", 6, "T"), 2/sqrt(3)),
 ];
 
+// ------------------------------------------------------------------ sector
+
+_t_sector = [
+    check("sector undef", __spp_check_sector(undef, "z", "T"), undef),
+    check("sector full is undef", __spp_check_sector(360, "z", "T"), undef),
+    check("sector full range is undef", __spp_check_sector([-180, 180], "z", "T"), undef),
+    check("sector angle zet z", __spp_check_sector(90, "z", "T"), [0, 90]),
+    check("sector range zet z", __spp_check_sector([-45, 45], "z", "T"), [-45, 90]),
+    check("sector zet x starts at +y", __spp_check_sector(90, "x", "T"), [90, 90]),
+    check("sector zet y starts at +z", __spp_check_sector([10, 100], "y", "T"), [280, 90]),
+];
+
 echo("ALL TESTS PASSED");
