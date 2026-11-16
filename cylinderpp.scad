@@ -3,7 +3,7 @@ __DEF_CYLINDERPP__ = true;
 
 // including utils and the profile engine
 include<utils/solidpp_utils.scad>
-include<engine/revolved.scad>
+include<engine/section.scad>
 
 // cylinderpp default alignment
 CYLINDERPP_DEF_ALIGN = "z";
@@ -36,16 +36,22 @@ CYLINDERPP_DEF_ALIGN = "z";
 //   '-> "flats" flats lie on the circle (e.g. nut traps)
 // - argument 'flare_in_align' if true, alignment includes flares (default false)
 // - argument 'flare_in_size' if true, the diameter includes flares, the body shrinks (default false)
+// - argument 'section' is the shape perpendicular to 'zet' (default undef = circle)
+//   '-> teardrop(up, angle, cap), serration(n, depth, profile, width), or [teardrop(), serration()]
+//   '-> serration runs along the straight part of the wall, the modified ends stay plain
+//   '-> the bounding box (alignment) is the one of the circle
 // See DESIGN.md for details.
 module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef, center=false,
                   r1=undef, r2=undef, d1=undef, d2=undef, mod_list=undef,
-                  fn=undef, polygon="corners", flare_in_align=false, flare_in_size=false)
+                  fn=undef, polygon="corners", flare_in_align=false, flare_in_size=false,
+                  section=undef)
 {
     __module_name = "CYLINDERPP";
 
     _zet = __spp_check_zet(zet, __module_name);
     _fn = __spp_check_fn(fn, "fn", __module_name);
     _mods = __spp_resolve_mod_list(mod_list, "revolved", __module_name);
+    _sec = __spp_resolve_section(section, _zet, __module_name, "section");
     assert(is_bool(flare_in_align) && is_bool(flare_in_size),
         str("[", __module_name, "] arguments 'flare_in_align' and 'flare_in_size' must be booleans"));
 
@@ -53,7 +59,7 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
     _args = __spp_cyl_args(size=size, r=r, d=d, h=h, r1=r1, r2=r2, d1=d1, d2=d2,
                            zet=_zet, ctx=__module_name);
 
-    // [points, alignment radius, tagged profile]
+    // [points, alignment radius, tagged profile, body radius, [R1, R2] of the body]
     _spec = __spp_cyl_spec(_args, _mods, flare_in_size, flare_in_align, __module_name);
 
     _size = __solidpp__construct_cylinderpp_size(2*_spec[1], _args[2], _zet);
@@ -71,5 +77,10 @@ module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef,
 
     translate(_o)
         rotate(_rot)
-            __spp_revolve(_spec[0], _fn, polygon, __module_name);
+            if (__spp_is_plain_section(_sec))
+                __spp_revolve(_spec[0], _fn, polygon, __module_name);
+            else
+                let(_chain = __spp_rev_outer_chain(_spec[2], _args[2], _spec[4][0], _spec[4][1]))
+                __spp_section_geometry(
+                    __spp_section_pieces(_chain[0], _chain[1], _spec[3], _sec, _fn, polygon, __module_name));
 }

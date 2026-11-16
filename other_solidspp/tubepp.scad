@@ -3,7 +3,7 @@ __DEF_TUBEPP__ = true;
 
 // including utils and the profile engine
 include<../utils/solidpp_utils.scad>
-include<../engine/revolved.scad>
+include<../engine/section.scad>
 
 // tubepp default alignment
 TUBEPP_DEF_ALIGN = "z";
@@ -33,12 +33,16 @@ TUBEPP_DEF_ALIGN = "z";
 //   '-> "flats" flats lie on the circle (e.g. nut traps)
 // - argument 'flare_in_align' if true, alignment includes flares (default false)
 // - argument 'flare_in_size' if true, the outer diameter includes flares, the body shrinks (default false)
+// - arguments 'outer_section', 'inner_section' are the shapes of the outer wall and of the hole
+//   '-> teardrop(up, angle, cap), serration(n, depth, profile, width), or [teardrop(), serration()]
+//   '-> e.g. inner_section=serration(6, 0.25, "round") gives crush ribs in the hole
 // - arguments 'inner_mod_list', 'outer_mod_list' are deprecated, use 'mod_list' with "i"/"o" selectors
 // See DESIGN.md for details.
 module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
               align=undef, zet=undef, center=false, mod_list=undef,
               outer_fn=undef, inner_fn=undef, outer_polygon="corners", inner_polygon="corners",
               flare_in_align=false, flare_in_size=false,
+              outer_section=undef, inner_section=undef,
               inner_mod_list=undef, outer_mod_list=undef)
 {
     __module_name = "TUBEPP";
@@ -51,13 +55,15 @@ module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
         __spp_resolve_mod_list(mod_list, "revolved", __module_name),
         __spp_legacy_restrict(__spp_resolve_mod_list(outer_mod_list, "revolved", __module_name), "o", __module_name),
         __spp_legacy_restrict(__spp_resolve_mod_list(inner_mod_list, "revolved", __module_name), "i", __module_name));
+    _osec = __spp_resolve_section(outer_section, _zet, __module_name, "outer_section");
+    _isec = __spp_resolve_section(inner_section, _zet, __module_name, "inner_section");
     assert(is_bool(flare_in_align) && is_bool(flare_in_size),
         str("[", __module_name, "] arguments 'flare_in_align' and 'flare_in_size' must be booleans"));
 
     // [r1, r2, R1, R2, h]
     _args = __spp_tube_args(size=size, t=t, r=r, d=d, R=R, D=D, h=h, zet=_zet, ctx=__module_name);
 
-    // [outer body points, hole cutter points, alignment radius, tagged profile]
+    // [outer body points, hole cutter points, alignment radius, tagged profile, body radius, body args]
     _spec = __spp_tube_spec(_args, _mods, flare_in_size, flare_in_align, __module_name);
 
     _size = __solidpp__construct_cylinderpp_size(2*_spec[2], _args[4], _zet);
@@ -77,7 +83,21 @@ module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
         rotate(_rot)
             difference()
             {
-                __spp_revolve(_spec[0], _outer_fn, outer_polygon, __module_name);
-                __spp_revolve(_spec[1], _inner_fn, inner_polygon, __module_name);
+                if (__spp_is_plain_section(_osec))
+                    __spp_revolve(_spec[0], _outer_fn, outer_polygon, __module_name);
+                else
+                    let(_chain = __spp_rev_outer_chain(_spec[3], _args[4], _spec[5][2], _spec[5][3]))
+                    __spp_section_geometry(
+                        __spp_section_pieces(_chain[0], _chain[1], _spec[4], _osec,
+                                             _outer_fn, outer_polygon, __module_name));
+
+                if (__spp_is_plain_section(_isec))
+                    __spp_revolve(_spec[1], _inner_fn, inner_polygon, __module_name);
+                else
+                    let(_chain = __spp_rev_inner_chain(_spec[3], _args[4],
+                                    __spp_rev_inner_protrusion(_args[0], _args[1], _args[4]), _args[0], _args[1]))
+                    __spp_section_geometry(
+                        __spp_section_pieces(_chain[0], _chain[1], max(_args[0], _args[1]), _isec,
+                                             _inner_fn, inner_polygon, __module_name));
             }
 }

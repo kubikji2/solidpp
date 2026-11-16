@@ -141,7 +141,7 @@ function __spp_cyl_profile(R1, R2, h, mods, ctx) =
     __spp_profile_apply_mods(__spp_rev_cylinder_profile(R1, R2, h), mods, __SPP_REV_LETTERS, ctx, 0);
 
 // complete data of a cylinder
-// returns [profile points, radius used for alignment, modified tagged profile]
+// returns [profile points, radius used for alignment, modified tagged profile, body radius, [R1, R2] of the body]
 function __spp_cyl_spec(args, mods, flare_in_size, flare_in_align, ctx) =
     let(
         R1 = args[0], R2 = args[1], h = args[2],
@@ -159,7 +159,7 @@ function __spp_cyl_spec(args, mods, flare_in_size, flare_in_align, ctx) =
         body_r = nominal - shrink,
         full_r = max(body_r, __spp_max_x(p))
     )
-    [__spp_profile_points(p), flare_in_align ? full_r : body_r, p];
+    [__spp_profile_points(p), flare_in_align ? full_r : body_r, p, body_r, [_R1, _R2]];
 
 
 // ------------------------------------------------------------------ tubepp
@@ -211,7 +211,8 @@ function __spp_tube_profile(a, mods, ctx) =
         mods, __SPP_REV_LETTERS, ctx, 0);
 
 // complete data of a tube
-// returns [outer body points, hole cutter points, radius used for alignment, modified tagged profile]
+// returns [outer body points, hole cutter points, radius used for alignment, modified tagged profile,
+//          body radius, [r1, r2, R1, R2, h] of the body]
 function __spp_tube_spec(args, mods, flare_in_size, flare_in_align, ctx) =
     let(
         p0 = __spp_tube_profile(args, mods, ctx),
@@ -227,4 +228,4 @@ function __spp_tube_spec(args, mods, flare_in_size, flare_in_align, ctx) =
         body_r = nominal - shrink,
         full_r = max(body_r, __spp_max_x(p))
     )
-    [__spp_rev_outer_body(p), __spp_rev_hole_cutter(p, args[4] + 1), flare_in_align ? full_r : body_r, p];
+    [__spp_rev_outer_body(p), __spp_rev_hole_cutter(p, args[4] + 1), flare_in_align ? full_r : body_r, p, body_r, _args];
