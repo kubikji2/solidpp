@@ -390,6 +390,15 @@ function __spp_revp_profile(points, ctx, keep=false) =
     let(area = __spp_signed_area(P))
     assert(abs(area) > __SPP_REVP_EPS, str("[", ctx, "] the profile has zero area"))
     let(
+        on_axis = function(p) p[0] <= __SPP_REVP_EPS,
+        pinch = [for (k = [0:1:n-1])
+            if (on_axis(P[k]) && !on_axis(P[(k+n-1)%n]) && !on_axis(P[(k+1)%n])) k]
+    )
+    assert(len(pinch) == 0,
+        str("[", ctx, "] point(s) ", pinch, " touch the axis in a single point (both neighbours are off ",
+            "the axis), the revolved solid would be pinched there, which is not a valid solid; ",
+            "move the point(s) off the axis or add a segment along the axis"))
+    let(
         s = area > 0 ? 1 : -1,
         seg = [for (k = [0:1:n-1])
             __spp_revp_segment_names(__spp_revp_auto_name(P[k], P[(k+1)%n], s), Q[k], k, ctx)],
@@ -456,7 +465,8 @@ function __spp_torus_args(t, r, d, R, D, h, ctx) =
         _t = Ro - ri,
         _h = is_undef(h) ? _t : h
     )
-    assert(ri >= 0, str("[", ctx, "] inner radius must be non-negative, got ", ri))
+    assert(ri > 0, str("[", ctx, "] inner radius must be positive, got ", ri,
+        "; with r = 0 the tube touches the axis in a single point, which is not a valid solid"))
     assert(_t > 0, str("[", ctx, "] outer radius ", Ro, " must be greater than the inner radius ", ri))
     assert(_h > 0, str("[", ctx, "] height must be positive, got ", _h))
     [ri, Ro, _t, _h];

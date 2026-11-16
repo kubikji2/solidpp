@@ -12,7 +12,7 @@ TORUSPP_DEF_ALIGN = "";
 // torus (ring with an elliptical tube)
 // - exactly two of 't', 'r|d', 'R|D' must be defined (default r=0.5, R=1)
 //   '-> argument 't' is the radial width of the tube
-//   '-> argument 'r'|'d' is the inner radius/diameter (the hole), may be 0
+//   '-> argument 'r'|'d' is the inner radius/diameter (the hole), must be positive
 //   '-> argument 'R'|'D' is the outer radius/diameter
 // - argument 'h' is the height of the tube along 'zet' (default 't', i.e. a circular tube)
 // - argument 'align' aligns the bounding box, see README (default "", centered)

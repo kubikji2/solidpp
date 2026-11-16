@@ -15,8 +15,12 @@ function __spp__prism_shell_idx(n_sides) =
     ];
 
 
-// TODO decumentation
-
+// DEPRECATED: use prismpp(points, h) (a right prism over a convex base, with modifiers),
+// linear_extrude for concave bases, multmatrix + linear_extrude for oblique prisms
+// - argument 'points' is the base: 2D points (with 'h') or 3D points (with the normal 'n')
+// - argument 'h' is the height of a right prism over 2D points
+// - argument 'n' is the translation of the top base for 3D points (oblique prism)
+// '-> still builds the old polyhedron, the echo shows the replacement call
 module prism(points=undef, h=undef, n=undef)
 {
 
@@ -30,7 +34,7 @@ module prism(points=undef, h=undef, n=undef)
     _points = _are_3D ? 
                 points :
                 _are_2D ?
-                    [ for (_p=_points) [_p[0], _p[1], 0 ] ] :
+                    [ for (_p=points) [_p[0], _p[1], 0 ] ] :
                     is_undef(points) ?
                         [[0,0,0], [1,0,0], [0,1,0]] :
                         undef;
@@ -58,6 +62,10 @@ module prism(points=undef, h=undef, n=undef)
                     [0,0,1];
 
 
+    echo(str("[", __module_name, "] DEPRECATED: ",
+             __spp_legacy_call("prism", ["points", points, "h", h, "n", n]),
+             " -> use ", __spp_prism_replacement(_points, _normal)));
+
     // create vertices (points) for polyhedron
     _base_points = _points;
     _top_points = [ for (_point=_points) add_vecs(_point,_normal) ];
@@ -81,3 +89,27 @@ module prism(points=undef, h=undef, n=undef)
     polyhedron(_final_points, _faces);
 
 }
+
+// __private__ text of the call replacing prism(points, h|n)
+// - 'points' 3D points of the base, 'nv' translation of the top base
+// '-> right prism, convex base: prismpp; right prism, concave base: linear_extrude;
+//     oblique prism with a horizontal base: multmatrix (shear) + linear_extrude
+function __spp_prism_replacement(points, nv) =
+    let(
+        z0 = points[0][2],
+        flat = len([for (p = points) if (abs(p[2] - z0) > 1e-9) 1]) == 0,
+        p2 = [for (p = points) [p[0], p[1]]],
+        m = len(p2),
+        orient = [for (k = [0:1:m-1]) __spp_orient(p2[(k+m-1)%m], p2[k], p2[(k+1)%m])],
+        convex = len([for (o = orient) if (o > 0) 1]) == m || len([for (o = orient) if (o < 0) 1]) == m,
+        right = abs(nv[0]) <= 1e-9 && abs(nv[1]) <= 1e-9,
+        lift = abs(z0) <= 1e-9 ? "" : str("translate([0, 0, ", z0, "]) ")
+    )
+    !flat || nv[2] <= 0 ?
+        "hull() of the base and its translated copy (no direct replacement for a non-horizontal base)" :
+        right ?
+            (convex ?
+                str(lift, "prismpp(", p2, ", h=", nv[2], ")") :
+                str(lift, "linear_extrude(height=", nv[2], ") polygon(", p2, ")")) :
+            str(lift, "multmatrix([[1, 0, ", nv[0]/nv[2], ", 0], [0, 1, ", nv[1]/nv[2], ", 0], [0, 0, 1, 0]]) ",
+                "linear_extrude(height=", nv[2], ") polygon(", p2, ")");

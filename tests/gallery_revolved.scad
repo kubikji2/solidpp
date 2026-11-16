@@ -93,7 +93,7 @@ show(8, 6) revolvepp([[0, 4], [3, 4], [3, 7], [0, 7]], align="keep");           
 // ---- row 7: toruspp (and the deprecated prism, which echoes its replacement)
 show(0, 7) toruspp(t=2, R=6);
 show(1, 7) toruspp(t=2, r=3, h=4);                         // elliptical tube
-show(2, 7) toruspp(t=3, r=0);                              // touching the axis
+show(2, 7) toruspp(t=3, r=0.5);                            // almost touching the axis
 show(3, 7) toruspp(t=2, R=6, fn=8, polygon="flats");
 show(4, 7) toruspp(t=2, R=6, sector=[0, 270]);
 show(5, 7) toruspp(t=2, R=6, zet="x", align="x");
