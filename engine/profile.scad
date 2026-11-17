@@ -303,7 +303,7 @@ function __spp_profile_apply_mod(profile, mod, letters, ctx, min_x=undef, metric
         kind = mod[__SPP_EDGE_MOD_KIND_IDX],
         val = mod[__SPP_EDGE_MOD_VALUE_IDX],
         tokens = mod[__SPP_EDGE_MOD_WHERE_IDX],
-        mctx = str("[", ctx, "] ", kind, "(", val, ", where=", tokens, ")"),
+        mctx = str("[", ctx, "] ", __spp_mod_call(mod, val[0] == val[1] ? val[0] : val)),
         selectable = __spp_selectable_tags(profile, letters),
         sel = __spp_select_tags(tokens, selectable, letters, mctx)
     )

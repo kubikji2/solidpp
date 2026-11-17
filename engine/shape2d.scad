@@ -121,7 +121,7 @@ function __spp_2d_apply_mod(profile, mod, orig, letters, metric, ctx) =
         val = mod[__SPP_EDGE_MOD_VALUE_IDX],
         tokens = mod[__SPP_EDGE_MOD_WHERE_IDX],
         shown = val[0] == val[1] ? val[0] : val,
-        mctx = str("[", ctx, "] ", kind, "(", shown, tokens == ["all"] ? "" : str(", where=", tokens), ")")
+        mctx = str("[", ctx, "] ", __spp_mod_call(mod, shown))
     )
     assert(metric == "projected" || val[0] == val[1],
         str(mctx, ": the value must be a single number (the sides have any direction)"))

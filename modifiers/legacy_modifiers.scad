@@ -242,5 +242,5 @@ function __spp_resolve_mod_list(mod_list, family, ctx) =
         assert(family == "box" || len(corner) == 0,
             str("[", ctx, "] bevel_corners() is supported only by cubepp"))
         family == "revolved" ?
-            [for (m = out) [m[0], m[1], __spp_edge_mod_pair(m, ctx), m[3]]] :
+            [for (m = out) __spp_mod_keep_name([m[0], m[1], __spp_edge_mod_pair(m, ctx), m[3]], m)] :
             out;

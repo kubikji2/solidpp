@@ -224,7 +224,7 @@ function __spp_plat_mods(mod_list, spec, ctx) =
                 kind = md[1],
                 v = md[2],
                 shown = len([for (x = v) if (x != v[0]) 1]) == 0 ? v[0] : v,
-                mctx = str("[", ctx, "] ", kind, "(", shown, md[3] == ["all"] ? "" : str(", where=", md[3]), ")")
+                mctx = str("[", ctx, "] ", __spp_mod_call(md, shown))
             )
             assert(md[3] == ["all"],
                 str(mctx, ": all edges and corners of a Platonic solid are equivalent, use where=\"all\""))

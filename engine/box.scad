@@ -127,7 +127,8 @@ function __spp_box_select(tokens, names, zet, ctx) =
 // ------------------------------------------------------------------ stages
 
 // modifier record for the 2D profile engine
-function __spp_box_mod2d(kind, val, tags) = [__SPP_EDGE_MOD_ID, kind, val, tags];
+// - 'src' the record of the user (keeps its alias for the messages)
+function __spp_box_mod2d(kind, val, tags, src=[]) = __spp_mod_keep_name([__SPP_EDGE_MOD_ID, kind, val, tags], src);
 
 // splits the modifiers into stages
 // returns [A, B, C, D]
@@ -141,7 +142,7 @@ function __spp_box_stages(mods, zet, ctx, idx=0, A=[], B=[[], [], [], []], C=[],
         let(m = mods[idx], tokens = m[__SPP_EDGE_MOD_WHERE_IDX])
         __spp_is_corner_mod(m) ?
             let(
-                mctx = str("[", ctx, "] bevel_corners(", m[2], ", where=", tokens, ")"),
+                mctx = str("[", ctx, "] ", __spp_mod_call(m)),
                 sel = __spp_box_select(tokens, __SPP_BOX_CORNERS, zet, mctx)
             )
             __spp_box_stages(mods, zet, ctx, idx+1, A, B, C,
@@ -149,7 +150,7 @@ function __spp_box_stages(mods, zet, ctx, idx=0, A=[], B=[[], [], [], []], C=[],
             let(
                 kind = m[__SPP_EDGE_MOD_KIND_IDX],
                 raw = m[__SPP_EDGE_MOD_VALUE_IDX],
-                mctx = str("[", ctx, "] ", kind, "(", raw, ", where=", tokens, ")"),
+                mctx = str("[", ctx, "] ", __spp_mod_call(m, raw)),
                 sel = __spp_box_select(tokens, __SPP_BOX_EDGES, zet, mctx),
                 vert = [for (n = sel) if (__spp_in_list(n, __SPP_BOX_VERTICAL_EDGES)) n],
                 base = [for (n = sel) if (__spp_in_list(n, __SPP_BOX_BASE_EDGES)) n],
@@ -165,7 +166,7 @@ function __spp_box_stages(mods, zet, ctx, idx=0, A=[], B=[[], [], [], []], C=[],
                     "(a vertical-edge modifier placed after a base-edge modifier); reorder 'mod_list'"))
             let(
                 vmod = len(vert) > 0 ?
-                        __spp_box_mod2d(kind, [v[0], v[1]], [for (n = vert) __spp_box_parent_name(n, zet)]) :
+                        __spp_box_mod2d(kind, [v[0], v[1]], [for (n = vert) __spp_box_parent_name(n, zet)], m) :
                         undef,
                 _A = !is_undef(vmod) && !seen_base ? concat(A, [vmod]) : A,
                 _C = !is_undef(vmod) && seen_base ? concat(C, [vmod]) : C,
@@ -176,7 +177,7 @@ function __spp_box_stages(mods, zet, ctx, idx=0, A=[], B=[[], [], [], []], C=[],
                         tags = [if (__spp_in_list(str("z", s), base)) "bo", if (__spp_in_list(str("Z", s), base)) "to"],
                         side_v = i < 2 ? v[0] : v[1]
                     )
-                    len(tags) > 0 ? concat(B[i], [__spp_box_mod2d(kind, [side_v, v[2]], tags)]) : B[i]]
+                    len(tags) > 0 ? concat(B[i], [__spp_box_mod2d(kind, [side_v, v[2]], tags, m)]) : B[i]]
             )
             __spp_box_stages(mods, zet, ctx, idx+1, _A, _B, _C, D, seen_base || len(base) > 0, _seen_cut);
 

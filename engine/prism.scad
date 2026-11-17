@@ -160,7 +160,7 @@ function __spp_prism_stages(mods, edges, pts, letters, zet, ctx, idx=0, A=[], B=
             tokens = m[__SPP_EDGE_MOD_WHERE_IDX],
             kind = m[__SPP_EDGE_MOD_KIND_IDX],
             v = m[__SPP_EDGE_MOD_VALUE_IDX],
-            mctx = str("[", ctx, "] ", kind, "(", v, ", where=", tokens, ")"),
+            mctx = str("[", ctx, "] ", __spp_mod_call(m, v[0] == v[1] ? v[0] : v)),
             sel = __spp_prism_select(tokens, edges, pts, letters, zet, mctx),
             vert = [for (e = sel) if (e[1] == "v") e[0]],
             base = [for (e = sel) if (e[1] != "v") e],
@@ -176,7 +176,7 @@ function __spp_prism_stages(mods, edges, pts, letters, zet, ctx, idx=0, A=[], B=
             str(mctx, ": a modifier of base edges cannot follow a cut of edges parallel to 'zet' ",
                 "(a vertical-edge modifier placed after a base-edge modifier); reorder 'mod_list'"))
         let(
-            vmod = len(vert) > 0 ? __spp_box_mod2d(kind, v, vert) : undef,
+            vmod = len(vert) > 0 ? __spp_box_mod2d(kind, v, vert, m) : undef,
             _A = !is_undef(vmod) && !seen_base ? concat(A, [vmod]) : A,
             _C = !is_undef(vmod) && seen_base ? concat(C, [vmod]) : C,
             _seen_cut = seen_cut || (!is_undef(vmod) && seen_base),
@@ -184,7 +184,7 @@ function __spp_prism_stages(mods, edges, pts, letters, zet, ctx, idx=0, A=[], B=
                 let(tags = [
                     if (len([for (e = base) if (e[1] == "b" && e[2] == k) 1]) > 0) "bo",
                     if (len([for (e = base) if (e[1] == "t" && e[2] == k) 1]) > 0) "to"])
-                len(tags) > 0 ? concat(_B0[k], [__spp_box_mod2d(kind, v, tags)]) : _B0[k]]
+                len(tags) > 0 ? concat(_B0[k], [__spp_box_mod2d(kind, v, tags, m)]) : _B0[k]]
         )
         __spp_prism_stages(mods, edges, pts, letters, zet, ctx, idx+1, _A, _B, _C,
             seen_base || len(base) > 0, _seen_cut);

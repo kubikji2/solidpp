@@ -189,6 +189,28 @@ _t_sector = [
     check("sector zet y starts at +z", __spp_check_sector([10, 100], "y", "T"), [280, 90]),
 ];
 
+// ------------------------------------------------------------------ aliases
+
+_t_alias = [
+    check("chamfer = bevel", chamfer(1, "t"), concat(bevel(1, "t"), ["chamfer"])),
+    check("fillet = rounding", fillet([1, 2]), concat(rounding([1, 2]), ["fillet"])),
+    check("chamfer_corners = bevel_corners", chamfer_corners(2), concat(bevel_corners(2), ["chamfer_corners"])),
+    check("flare = negative rounding", flare(2, "b"), concat(rounding(-2, "b"), ["flare"])),
+    check("flare bevel", flare([1, 2], "b", kind="bevel"), concat(bevel([-1, -2], "b"), ["flare"])),
+    check("alias is a modifier", [__spp_is_edge_mod(fillet(1)), __spp_is_corner_mod(chamfer_corners(1))], [true, true]),
+    check("name", [__spp_mod_name(bevel(1)), __spp_mod_name(chamfer(1))], ["bevel", "chamfer"]),
+    check("call text", [__spp_mod_call(fillet(1)), __spp_mod_call(flare(2, "b")), __spp_mod_call(flare(1, kind="bevel"))],
+          ["fillet(1)", "flare(2, where=[\"b\"])", "flare(1, kind=\"bevel\")"]),
+    // the resolver keeps the name (values converted to [across, along])
+    check("resolver keeps the alias", __spp_resolve_mod_list([fillet(1, "t")], "revolved", "T"),
+          [["__SPP_EDGE_MOD__", "rounding", [1, 1], ["t"], "fillet"]]),
+    // same profile with the alias and the canonical name
+    check("alias geometry", __spp_cyl_spec([5, 5, 4], __spp_resolve_mod_list([fillet(1, "t"), flare(1, "b")], "revolved", "T"),
+                                           false, false, "T")[0],
+          __spp_cyl_spec([5, 5, 4], __spp_resolve_mod_list([rounding(1, "t"), rounding(-1, "b")], "revolved", "T"),
+                         false, false, "T")[0]),
+];
+
 // ------------------------------------------------------------------ face names (grammar)
 
 _t_names = [
