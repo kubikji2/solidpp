@@ -35,20 +35,20 @@ TUBEPP_DEF_ALIGN = "z";
 //       printed holes keep their size); the 'fn' of that wall must not be set
 // - argument 'flare_in_align' if true, alignment includes flares (default false)
 // - argument 'flare_in_size' if true, the outer diameter includes flares, the body shrinks (default false)
-// - arguments 'outer_section', 'inner_section' are the shapes of the outer wall and of the hole
+// - arguments 'outer_cross_section', 'inner_cross_section' are the shapes of the outer wall and of the hole
 //   '-> teardrop(up, angle, cap), serration(n, depth, profile, width), or [teardrop(), serration()]
-//   '-> e.g. inner_section=serration(6, 0.25, "round") gives crush ribs in the hole
+//   '-> e.g. inner_cross_section=serration(6, 0.25, "round") gives crush ribs in the hole
 // - argument 'sector' cuts a sector of the outer body (a C-shape): an angle or [from, to] in degrees
 //   '-> right-hand rule around 'zet', 0 at +x (zet "z"), +y (zet "x"), +z (zet "y")
 //   '-> the bounding box (alignment) is the one of the full tube
-//   '-> only for the circle 'outer_section'
+//   '-> only for the circle 'outer_cross_section'
 // - arguments 'inner_mod_list', 'outer_mod_list' are deprecated, use 'mod_list' with "i"/"o" selectors
 // See DESIGN.md for details.
 module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
               align=undef, zet=undef, center=false, mod_list=undef,
               outer_fn=undef, inner_fn=undef, outer_polygon="corners", inner_polygon="corners",
               flare_in_align=false, flare_in_size=false,
-              outer_section=undef, inner_section=undef, sector=undef,
+              outer_cross_section=undef, inner_cross_section=undef, sector=undef,
               inner_mod_list=undef, outer_mod_list=undef)
 {
     __module_name = "TUBEPP";
@@ -61,11 +61,11 @@ module tubepp(size=undef, t=undef, r=undef, d=undef, R=undef, D=undef, h=undef,
         __spp_resolve_mod_list(mod_list, "revolved", __module_name),
         __spp_legacy_restrict(__spp_resolve_mod_list(outer_mod_list, "revolved", __module_name), "o", __module_name),
         __spp_legacy_restrict(__spp_resolve_mod_list(inner_mod_list, "revolved", __module_name), "i", __module_name));
-    _osec = __spp_resolve_section(outer_section, _zet, __module_name, "outer_section");
-    _isec = __spp_resolve_section(inner_section, _zet, __module_name, "inner_section");
+    _osec = __spp_resolve_section(outer_cross_section, _zet, __module_name, "outer_cross_section");
+    _isec = __spp_resolve_section(inner_cross_section, _zet, __module_name, "inner_cross_section");
     _sector = __spp_check_sector(sector, _zet, __module_name);
     assert(is_undef(_sector) || __spp_is_plain_section(_osec),
-        str("[", __module_name, "] argument 'sector' cannot be combined with 'outer_section' (teardrop, serration)"));
+        str("[", __module_name, "] argument 'sector' cannot be combined with 'outer_cross_section' (teardrop, serration)"));
     assert(is_bool(flare_in_align) && is_bool(flare_in_size),
         str("[", __module_name, "] arguments 'flare_in_align' and 'flare_in_size' must be booleans"));
 

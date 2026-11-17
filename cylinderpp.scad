@@ -38,29 +38,29 @@ CYLINDERPP_DEF_ALIGN = "z";
 //       printed holes keep their size); 'fn' must not be set
 // - argument 'flare_in_align' if true, alignment includes flares (default false)
 // - argument 'flare_in_size' if true, the diameter includes flares, the body shrinks (default false)
-// - argument 'section' is the shape perpendicular to 'zet' (default undef = circle)
+// - argument 'cross_section' is the shape perpendicular to 'zet' (default undef = circle)
 //   '-> teardrop(up, angle, cap), serration(n, depth, profile, width), or [teardrop(), serration()]
 //   '-> serration runs along the straight part of the wall, the modified ends stay plain
 //   '-> the bounding box (alignment) is the one of the circle
 // - argument 'sector' cuts a sector: an angle (sweep from 0) or [from, to] in degrees
 //   '-> right-hand rule around 'zet', 0 at +x (zet "z"), +y (zet "x"), +z (zet "y")
 //   '-> the bounding box (alignment) is the one of the full cylinder
-//   '-> only for the circle section
+//   '-> only for the circular cross-section
 // See DESIGN.md for details.
 module cylinderpp(size=undef, r=undef, d=undef, h=undef, align=undef, zet=undef, center=false,
                   r1=undef, r2=undef, d1=undef, d2=undef, mod_list=undef,
                   fn=undef, polygon="corners", flare_in_align=false, flare_in_size=false,
-                  section=undef, sector=undef)
+                  cross_section=undef, sector=undef)
 {
     __module_name = "CYLINDERPP";
 
     _zet = __spp_check_zet(zet, __module_name);
     _fn = __spp_check_fn(fn, "fn", __module_name);
     _mods = __spp_resolve_mod_list(mod_list, "revolved", __module_name);
-    _sec = __spp_resolve_section(section, _zet, __module_name, "section");
+    _sec = __spp_resolve_section(cross_section, _zet, __module_name, "cross_section");
     _sector = __spp_check_sector(sector, _zet, __module_name);
     assert(is_undef(_sector) || __spp_is_plain_section(_sec),
-        str("[", __module_name, "] argument 'sector' cannot be combined with 'section' (teardrop, serration)"));
+        str("[", __module_name, "] argument 'sector' cannot be combined with 'cross_section' (teardrop, serration)"));
     assert(is_bool(flare_in_align) && is_bool(flare_in_size),
         str("[", __module_name, "] arguments 'flare_in_align' and 'flare_in_size' must be booleans"));
 

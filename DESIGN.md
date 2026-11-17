@@ -2,7 +2,7 @@
 
 Status: agreed design for the modifier refactor. Implemented: the engine,
 `bevel()`/`rounding()`/`bevel_corners()`, `cylinderpp`, `tubepp`, `cubepp`, the
-translation of the old modifiers and the sections `teardrop()`/`serration()`
+translation of the old modifiers and the cross-sections `teardrop()`/`serration()`
 (see Roadmap for the rest).
 
 ## 1. Principles
@@ -165,6 +165,24 @@ An operation acts on the *sharp* corners of the selected edges:
 `cubepp` adds a rule for edges parallel to `zet` ("vertical" edges) because they
 are corners of the cross-section, see section 5.
 
+### 3.6 Aliases
+
+CAD names for the modifiers; they build the same record plus the name the user
+called, so the messages show it (`fillet(6, where=["t"]): does not fit ...`):
+
+| alias                       | same as                                                                                            |
+|-----------------------------|----------------------------------------------------------------------------------------------------|
+| `chamfer(d, where)`         | `bevel(d, where)`                                                                                  |
+| `fillet(r, where)`          | `rounding(r, where)`                                                                               |
+| `chamfer_corners(d, where)` | `bevel_corners(d, where)`                                                                          |
+| `flare(r, where, kind)`     | `rounding(-r, where)` (`kind="rounding"`, default) or `bevel(-r, where)` (`kind="bevel"`); `r > 0` |
+
+- The optional 5th field of a record is the alias name; the resolver and the box
+  and prism stages keep it when they rebuild records (`__spp_mod_keep_name`).
+- Messages use `__spp_mod_call(m, shown)`; equal components are shown as one
+  number, a flare with its positive size.
+- `round` is not an alias: it would replace the built-in `round()`.
+
 ## 4. Revolved family
 
 ### 4.1 How it is built
@@ -209,7 +227,7 @@ polygon is not rotated by 180 degrees (it only changes the phase of odd counts).
 ### 4.3 Arguments
 
 `cylinderpp(size, r|d, h, r1|d1, r2|d2, align, zet, center, mod_list, fn, polygon,
-flare_in_align, flare_in_size, section)`
+flare_in_align, flare_in_size, cross_section)`
 
 - `size`: number or `[d, d, h]` in the parent frame (respects `zet`). The two
   base dimensions must be equal: **elliptical cylinders are not supported**.
@@ -220,23 +238,23 @@ flare_in_align, flare_in_size, section)`
 - default: `d=1, h=1`, `align="z"`.
 
 `tubepp(size, t, r|d, R|D, h, align, zet, center, mod_list, outer_fn, inner_fn,
-outer_polygon, inner_polygon, flare_in_align, flare_in_size, outer_section,
-inner_section)`
+outer_polygon, inner_polygon, flare_in_align, flare_in_size, outer_cross_section,
+inner_cross_section)`
 
 - exactly two of `t`, `r|d` (hole), `R|D` (outer) are required; `size` counts
   as `R|D` plus `h`. Each can be a number or `[bottom, top]`.
 - default: `r=0.5, R=1, h=1`, `align="z"`.
 
-### 4.4 Sections: `teardrop()`, `serration()`
+### 4.4 Cross-sections: `teardrop()`, `serration()`
 
-A section is the shape of a wall perpendicular to `zet`: `section` of `cylinderpp`,
-`outer_section` and `inner_section` of `tubepp`. It is a separate argument, not a
+A cross-section is the shape of a wall perpendicular to `zet`: `cross_section` of `cylinderpp`,
+`outer_cross_section` and `inner_cross_section` of `tubepp`. It is a separate argument, not a
 modifier: every wall has exactly one, and it combines with `mod_list`.
 
 ```openscad
-section=teardrop()                                     // base shape
-section=serration(12, 0.4, "round")                    // circle with grooves
-section=[teardrop(cap="bridge"), serration(12, 0.4)]   // base shape, then decoration
+cross_section=teardrop()                                     // base shape
+cross_section=serration(12, 0.4, "round")                    // circle with grooves
+cross_section=[teardrop(cap="bridge"), serration(12, 0.4)]   // base shape, then decoration
 ```
 
 - At most one base shape (the circle by default, or `teardrop()`), optionally
@@ -277,7 +295,7 @@ section=[teardrop(cap="bridge"), serration(12, 0.4)]   // base shape, then decor
   circle; with `teardrop()` only `"corners"` is allowed. `fn` is the number of
   fragments of the circle in both cases.
 
-How a wall with a section is built (`engine/section.scad`):
+How a wall with a cross-section is built (`engine/section.scad`):
 
 1. The nominal outline O at the nominal radius R (circle polygon or teardrop).
 2. The wall chain from the modified profile, bottom to top: every point
@@ -293,11 +311,12 @@ How a wall with a section is built (`engine/section.scad`):
 5. Beyond an unmodified end, the hole cut-out continues the wall line (straight
    part and conical holes stay exact); the protrusion is short.
 
-A wall without a section keeps the `rotate_extrude` path.
+A wall without a cross-section keeps the `rotate_extrude` path.
 
 ### 4.5 Sector
 
-`sector` is an argument of `cylinderpp` and `tubepp` (not a modifier: a solid has one
+`sector` is an argument of the round solids (`cylinderpp`, `tubepp`, `toruspp`, `revolvepp`,
+`circlepp`, `ringpp`; not a modifier: a solid has one
 angular range).
 
 - `sector=90` sweeps from 0 to 90 degrees, `sector=[-45, 45]` from -45 to 45;
@@ -307,9 +326,9 @@ angular range).
   +z), +z for `zet="y"` (towards +x).
 - The bounding box (alignment) is the one of the full cylinder/tube.
 - `tubepp` cuts only the outer body (a C-shape); the hole stays a full
-  revolution, so `inner_section` works.
-- Built by `rotate_extrude(angle=)`; not combinable with a non-circular `section`
-  or `outer_section` (those walls are not revolved). The flat end faces of the
+  revolution, so `inner_cross_section` works.
+- Built by `rotate_extrude(angle=)`; not combinable with a non-circular `cross_section`
+  or `outer_cross_section` (those walls are not revolved). The flat end faces of the
   sector cannot be modified by `mod_list`.
 
 ### 4.6 `revolvepp`
@@ -359,8 +378,10 @@ Points: `[x, y]`, `[x, y, "tag"]` or `[x, y, "tag", "f"]`.
   (`"to"`, `"tot1"`, `"og"`).
 - Placement is by `align` as for `cylinderpp` (default `"z"`), the y offset of
   the points is dropped. `align="keep"` places the points as given (axis through
-  the origin, y along `+zet`); `center=true` still overrides it. `polygon` modes are measured at the largest
-  radius. Sections (`teardrop`, `serration`) are not supported (a general
+  the origin, y along `+zet`); `center=true` still overrides it. `"keep"` exists only
+  for `revolvepp`, `prismpp` and `polygonpp`; the other solids reject it (it used to
+  center them silently). `polygon` modes are measured at the largest
+  radius. Cross-sections (`teardrop`, `serration`) are not supported (a general
   profile has no monotonic wall). Old modifiers are not supported.
 
 ### 4.7 `toruspp`
@@ -608,9 +629,9 @@ match the solid):
 ```
 squarepp(size, align, center, mod_list, flare_in_align)
 polygonpp(points, align, center, mod_list, flare_in_align)
-circlepp(size|r|d, align, center, fn, polygon, sector, section)
+circlepp(size|r|d, align, center, fn, polygon, sector, cross_section)
 ringpp(t, r|d, R|D, align, center, outer_fn, inner_fn, outer_polygon, inner_polygon,
-       sector, outer_section, inner_section)
+       sector, outer_cross_section, inner_cross_section)
 ```
 
 ### 6.1 Corner modifiers (`squarepp`, `polygonpp`)
@@ -652,15 +673,15 @@ A corner is named by its two sides:
 
 ### 6.2 Circles (`circlepp`, `ringpp`)
 
-- `fn`, `polygon` (`"corners"`, `"flats"`, `"polyhole"`), `sector` and `section`
+- `fn`, `polygon` (`"corners"`, `"flats"`, `"polyhole"`), `sector` and `cross_section`
   (`teardrop()`, `serration()`) as for `cylinderpp`; the 2D teardrop takes `up`
   from `"x"`, `"X"`, `"y"`, `"Y"` (default `"Y"`: the tip points to +y).
-- `polygon` modes other than `"corners"`, `sector` and `section` work for
-  circles only, not for ellipses; `sector` and `section` cannot be combined.
+- `polygon` modes other than `"corners"`, `sector` and `cross_section` work for
+  circles only, not for ellipses; `sector` and `cross_section` cannot be combined.
 - Alignment uses the bounding box of the full circle.
 - `ringpp` is the 2D `tubepp`: exactly two of `t`, `r|d`, `R|D` (default
-  `r=0.5, R=1`), separate `fn`/`polygon`/`section` for the outer and inner
-  circle, `sector` cuts the ring; the hole (with its polygon mode and section)
+  `r=0.5, R=1`), separate `fn`/`polygon`/`cross_section` for the outer and inner
+  circle, `sector` cuts the ring; the hole (with its polygon mode and cross-section)
   must stay inside the outer outline.
 
 ### 6.3 Engine
@@ -768,6 +789,10 @@ their z-axis points out of the face of `pos` (the sum of the letters: `"X"` is
 text reads from outside. Drilling into a face:
 `transform_to_spp(size, align, "X", orient=true) cylinderpp(d=3, h=10, align="Z");`
 The function `get_orientation_to_spp(pos)` returns that direction.
+`align="keep"` describes no bounding box and is an error (as for the solids
+without points). The default alignments are in `CUBEPP_DEF_ALIGN`, `CYLINDERPP_DEF_ALIGN`, ...;
+the old comment promising `align="cube"`/`"sphere"`/`"cylinder"` (never implemented)
+was removed.
 
 ## 8. Dropped / changed
 
@@ -839,7 +864,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `engine/profile.scad`              | face names, selection, corner operations, fragments      |
 | `engine/revolved.scad`             | cylinder/tube/torus/revolvepp profiles, argument parsing |
 | `engine/box.scad`                  | frames, selectors, stages, rings, offsets, hull geometry |
-| `engine/section.scad`              | sections: outlines, serration, wall chains, pieces       |
+| `engine/section.scad`              | cross-sections: outlines, serration, wall chains, pieces       |
 | `cubepp.scad`                      | thin module over the engine                              |
 | `cylinderpp.scad`                  | thin module over the engine                              |
 | `other_solidspp/tubepp.scad`       | thin module over the engine                              |
@@ -866,10 +891,10 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `tests/gallery_prismpp.scad`       | visual smoke test of prismpp                             |
 | `tests/test_revolved.scad`         | `assert`-based tests of the data layer (no geometry)     |
 | `tests/test_cubepp.scad`           | `assert`-based tests of the box data and legacy layer    |
-| `tests/test_sections.scad`         | `assert`-based tests of the sections                     |
+| `tests/test_sections.scad`         | `assert`-based tests of the cross-sections                     |
 | `tests/gallery_revolved.scad`      | visual smoke test of all combinations                    |
 | `tests/gallery_cubepp.scad`        | visual smoke test of all combinations                    |
-| `tests/gallery_sections.scad`      | visual smoke test of sections, holes in plates           |
+| `tests/gallery_sections.scad`      | visual smoke test of cross-sections, holes in plates           |
 
 - Vertex format: `[x, y, tag, sharp]`. `sharp=false` marks arc points; the tag
   `"_"` marks vertices that are not edges (axis, collinear points).
@@ -891,7 +916,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] Port `cubepp` to rings (section 5) and remove the old modifier internals.
 - [ ] Check render times of `cubepp` with fine `$fa`/`$fs` (function evaluation
       of the rings) on 2021.01 and on a nightly.
-- [x] Sections: `teardrop()` (point, bridge), `serration()` (triangle, round).
+- [x] Cross-sections (`cross_section`, renamed from `section`): `teardrop()` (point, bridge), `serration()` (triangle, round).
 - [x] `sector` for revolved solids (bounding box of the full cylinder).
 - [x] `polygon="polyhole"` (hole size compensation).
 - [x] Taper of `cubepp` (`size_bottom`, `size_top`), `trapezoid` deprecated.
@@ -909,4 +934,5 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] `spherepp` and `circlepp` are built at their largest diameter and scaled
       down for ellipsoids/ellipses (resolution scales with size, vertices on
       the sphere/circle as in OpenSCAD).
-- [ ] Rewrite the README for the new API (last, when everything is settled).
+- [x] Aliases `chamfer`, `fillet`, `chamfer_corners`, `flare` (section 3.6).
+- [x] README rewritten; its examples in `docs/examples/`, images by `docs/render_examples.sh`.

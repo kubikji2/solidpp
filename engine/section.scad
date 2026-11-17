@@ -16,7 +16,7 @@ include<../modifiers/section_modifiers.scad>
 
 // ------------------------------------------------------------------ resolution
 
-// resolves the 'section' argument to [teardrop, serration]
+// resolves a cross-section argument ('cross_section', 'outer_cross_section', 'inner_cross_section') to [teardrop, serration]
 // - teardrop: undef or [angle, cap, up direction in the local frame]
 // - serration: undef or [n, depth, profile, width]
 // - 'def_up' default 'up' of a teardrop (undef: "x" for zet z, "Z" otherwise)

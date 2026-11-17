@@ -1,10 +1,10 @@
 // Section shapes: teardrop() and serration()
 //
-// A section describes the shape of a wall perpendicular to the 'zet' axis of
-// cylinderpp ('section') and tubepp ('outer_section', 'inner_section'):
+// A cross-section describes the shape of a wall perpendicular to the 'zet' axis of
+// cylinderpp ('cross_section') and tubepp ('outer_cross_section', 'inner_cross_section'):
 //   - at most one base shape: the circle (default) or teardrop()
 //   - optionally followed by serration()
-// e.g. section=teardrop(), section=serration(8, 0.2), section=[teardrop(cap="bridge"), serration(8, 0.2)]
+// e.g. cross_section=teardrop(), cross_section=serration(8, 0.2), cross_section=[teardrop(cap="bridge"), serration(8, 0.2)]
 //
 // Records:
 //   ["__SPP_SECTION__", "teardrop", up, angle, cap]

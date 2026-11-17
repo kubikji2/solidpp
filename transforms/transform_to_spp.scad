@@ -46,11 +46,11 @@ function __solidpp__transforms__process_size_el(l, s, c, C, int) =
 //       `pos=yZ,x=0.25` is the point on the front-top edge 1/4 of the length from the left-front-top corner.
 // NOTE: the translation to the solidpp center might be different to the scope origin
 //       since the `align` might be use for the geometry.
-// NOTE: the string `cube`/`sphere`/`cylinder` can be used to signals
-//       that `cubepp`/`spherepp`/`cylinderpp` default alignment is used.
-// NOTE: the default solidpp alignments are avaliable in
+// NOTE: the default solidpp alignments are available in
 //       `CUBEPP_DEF_ALIGN`, `CYLINDERPP_DEF_ALIGN` and `SPHEREPP_DEF_ALIGN`.
 function get_translation_to_spp(size, align, pos, x=undef, y=undef, z=undef) =
+    assert(align != "keep",
+        "[TRANSLATE TO SPP] align=\"keep\" does not describe a bounding box, give the align string of the box, e.g. \"z\" or \"xyz\"")
     add_vs
     (
         [
@@ -94,9 +94,7 @@ function get_translations_to_spp(size, align, pos, x=undef, y=undef, z=undef) =
 //       `pos=yZ,x=0.25` is the point on the front-top edge 1/4 of the length from the left-front-top corner.
 // NOTE: the translation to the solidpp center might be different to the scope origin
 //       since the `align` might be use for the geometry.
-// NOTE: the string `cube`/`sphere`/`cylinder` can be used to signals
-//       that `cubepp`/`spherepp`/`cylinderpp` default alignment is used.
-// NOTE: the default solidpp alignments are avaliable in
+// NOTE: the default solidpp alignments are available in
 //       `CUBEPP_DEF_ALIGN`, `CYLINDERPP_DEF_ALIGN` and `SPHEREPP_DEF_ALIGN`.
 // - argument `orient` (default false): if true, the children are also turned so that their z-axis
 //   points out of the face given by `pos` ("X": +x, "z": -z, an edge "XZ": its diagonal);

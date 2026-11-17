@@ -14,12 +14,12 @@ RINGPP_DEF_ALIGN = "";
 // - arguments 'outer_fn', 'inner_fn' number of sides of each circle (undef: $fn/$fa/$fs)
 // - arguments 'outer_polygon', 'inner_polygon': "corners" (default), "flats", "polyhole"
 // - argument 'sector' an angle or [from, to]: a slice of the ring
-// - arguments 'outer_section', 'inner_section': teardrop() and/or serration(), as for circlepp
+// - arguments 'outer_cross_section', 'inner_cross_section': teardrop() and/or serration(), as for circlepp
 //   '-> teardrop(up=...) with "x", "X", "y", "Y", default "Y"
 // See DESIGN.md for details.
 module ringpp(t=undef, r=undef, d=undef, R=undef, D=undef, align=undef, center=false,
               outer_fn=undef, inner_fn=undef, outer_polygon="corners", inner_polygon="corners",
-              sector=undef, outer_section=undef, inner_section=undef)
+              sector=undef, outer_cross_section=undef, inner_cross_section=undef)
 {
     __module_name = "RINGPP";
 
@@ -28,13 +28,13 @@ module ringpp(t=undef, r=undef, d=undef, R=undef, D=undef, align=undef, center=f
     _ofn = __spp_check_fn(outer_fn, "outer_fn", __module_name);
     _ifn = __spp_check_fn(inner_fn, "inner_fn", __module_name);
 
-    _outer = __spp_circle_shape(_args[1], _ofn, outer_polygon, sector, outer_section, __module_name);
-    _inner = __spp_circle_shape(_args[0], _ifn, inner_polygon, undef, inner_section, __module_name);
+    _outer = __spp_circle_shape(_args[1], _ofn, outer_polygon, sector, outer_cross_section, __module_name);
+    _inner = __spp_circle_shape(_args[0], _ifn, inner_polygon, undef, inner_cross_section, __module_name);
 
-    // the hole must stay inside the ring (with its polygon mode and section)
+    // the hole must stay inside the ring (with its polygon mode and cross-section)
     _rmax = max([for (p = _inner) norm(p)]);
     _Rmin = min([for (p = is_undef(sector) ? _outer : __spp_circle_shape(_args[1], _ofn, outer_polygon, undef,
-                                                                       outer_section, __module_name)) norm(p)]);
+                                                                       outer_cross_section, __module_name)) norm(p)]);
     assert(_rmax < _Rmin,
         str("[", __module_name, "] the hole (up to ", _rmax, " from the center) does not fit into the ring ",
             "(down to ", _Rmin, "), make the ring wider"));

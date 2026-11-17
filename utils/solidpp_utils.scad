@@ -103,7 +103,15 @@ function __solidpp__produce_offset_from_align_and_center(_size, align, center, s
     // parse alignment
     // '-> if undef, use default
     let (_align = is_undef(align) ? def_align : align)
-    
+
+    // "keep" (the points as given) exists only for the solids defined by points;
+    // '-> revolvepp, prismpp and polygonpp handle it before calling this function
+    assert(
+            center || _align != "keep",
+            str("[", solidpp_name ,"] align=\"keep\" works only for revolvepp, prismpp and polygonpp, ",
+                "use an align string such as \"z\" or \"xyz\"")
+            )
+
     // check center
     // '-> it is just a bool
     assert(
