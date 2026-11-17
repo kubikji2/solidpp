@@ -467,7 +467,7 @@ size_top)`
 ### 5.4 `prismpp`
 
 ```
-prismpp(points, h, align, zet, center, mod_list, flare_in_align)
+prismpp(points, h, align, zet, center, mod_list, flare_in_align, scale, scale_center, draft)
 ```
 
 A right prism over a strictly convex base, built by the box engine generalized
@@ -481,8 +481,32 @@ to n sides (`engine/prism.scad`).
 - `align`: default `"keep"` (the points as given, base on the plane 0, top at
   `h`, as `linear_extrude`); any other value aligns the bounding box of the base
   polygon as for `cubepp`; `center=true` overrides both.
-- No `size`, no taper, no `flare_in_size`, no `bevel_corners`, no `[x, y, z]`
-  values (the sides are not axis-aligned). Old modifiers are not supported.
+- No `size`, no `flare_in_size`, no `bevel_corners`, no `[x, y, z]` values (the
+  sides are not axis-aligned). Old modifiers are not supported.
+
+Taper (at most one of `scale` and `draft`; every side stays a flat face):
+
+| argument              | top                                                                                          |
+|-----------------------|----------------------------------------------------------------------------------------------|
+| `scale=s`             | the base scaled by `s > 0` (same shape); `s > 1`: larger top (overhang)                      |
+| `scale_center=[x, y]` | centre of the scaling (default: the centroid of the base); off-centre gives an oblique prism |
+| `draft=α`             | every side leans inwards by `α` (outwards if negative), `-90 < α < 90`                       |
+| `draft=[α0, α1, ...]` | one angle per side, in the user's order (`0` keeps a side vertical)                          |
+
+- A non-uniform scale (as in `linear_extrude(scale=[sx, sy])`) would twist the
+  sides, so it is an error. `scale=0` (a pyramid) is not supported by the ring
+  engine (a later `pyramidpp`).
+- A draft keeps the wall angle, not the shape: on an irregular base a strong
+  draft can make a side of the top vanish, which is an error.
+- As for `cubepp`: the side profiles are slanted (bottom and top distance of
+  every side), the cross-section is built on the larger base of every side,
+  straight cuts (stage C) are vertical, flares are detected against the slanted
+  wall (a flare of radius `r` reaches `r/tan(φ/2)` along the base, φ the open
+  angle between the base plane and the wall), the edges between the sides stay
+  `"<zet>-edges"`. The bounding box includes the top.
+- The side profiles measure the distance of each side from the centroid of the
+  base; a side of an oblique taper may pass beyond it, its profile is then
+  shifted (the corner operations do not depend on the origin).
 
 Faces and edges:
 
@@ -694,7 +718,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] Taper of `cubepp` (`size_bottom`, `size_top`), `trapezoid` deprecated.
 - [x] Unified face-name grammar (section 3.3), `revolvepp` (section 4.6).
 - [x] `prismpp` (convex bases, points + `h`, faces `t`, `b`, `s0`..., section 5.4).
-- [ ] Taper of `prismpp` (`top_offset` or `scale`), when needed.
+- [x] Taper of `prismpp` (`scale`, `scale_center`, `draft`, section 5.4).
 - [x] `toruspp` on the revolved engine, `prism` deprecated.
 - [x] `platonicpp` (dice) with face/vertex helpers, `tetrahedron` removed.
 - [ ] 2D shapes (`squarepp`, `circlepp`) and their modifiers.

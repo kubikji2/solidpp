@@ -221,27 +221,111 @@ function __spp_prism_weights(nr, N) =
             [for (j = [0:1:n-1]) j == best ? 1 : 0] :
             [for (j = [0:1:n-1]) j == k ? wk : (j == (k+n-1)%n ? 1 - wk : 0)];
 
+// ------------------------------------------------------------------ taper
+
+// local bounding box of the nominal prism (base and top polygons, true coordinates)
+function __spp_prism_body_box(base_pts, top_pts, h) =
+    let(P = concat(base_pts, top_pts))
+    [[min([for (p = P) p[0]]), min([for (p = P) p[1]]), -h/2],
+     [max([for (p = P) p[0]]), max([for (p = P) p[1]]),  h/2]];
+
+// polygon of the sides with the outward normals 'N' at the distances 'W' (vertex k between the
+// sides k-1 and k), undef if a side vanishes (has no positive length)
+function __spp_prism_poly_from_w(N, W) =
+    let(
+        n = len(N),
+        P = [for (k = [0:1:n-1])
+            let(a = N[(k+n-1)%n], b = N[k], det = a[0]*b[1] - a[1]*b[0])
+            [(W[(k+n-1)%n]*b[1] - W[k]*a[1]) / det, (a[0]*W[k] - b[0]*W[(k+n-1)%n]) / det]],
+        // direction of side k (counter-clockwise): the normal turned by +90°
+        ok = len([for (k = [0:1:n-1]) if ((P[(k+1)%n] - P[k]) * [-N[k][1], N[k][0]] <= 1e-9 * (1 + norm(P[k]))) 1]) == 0
+    )
+    ok ? P : undef;
+
+// distances of the top sides from the centroid of the base (taper), undef without a taper
+// - 'scale' number > 0: the top is the base scaled about 'scale_center' (default: the centroid)
+// - 'draft' angle or list of angles (one per side, user order): the sides lean inwards by the angle
+//   (outwards if negative)
+function __spp_prism_taper(base, h, scale, scale_center, draft, ctx) =
+    assert(is_undef(scale) || is_undef(draft), str("[", ctx, "] use either 'scale' or 'draft', not both"))
+    assert(is_undef(scale_center) || !is_undef(scale), str("[", ctx, "] 'scale_center' needs 'scale'"))
+    is_undef(scale) && is_undef(draft) ?
+        undef :
+        let(
+            c = base[2],
+            pts = [for (p = base[0]) p - c],
+            n = len(pts),
+            N = __spp_edge_normals(pts),
+            Wb = [for (k = [0:1:n-1]) N[k]*pts[k]]
+        )
+        !is_undef(scale) ?
+            assert(is_num(scale),
+                str("[", ctx, "] argument 'scale' must be a single number: a non-uniform scale (as in ",
+                    "linear_extrude) would twist the sides, they would not be flat faces; got ", scale))
+            assert(scale > 0, str("[", ctx, "] argument 'scale' must be positive (0 would make a pyramid), got ", scale))
+            assert(is_undef(scale_center) || (is_list(scale_center) && len(scale_center) == 2 &&
+                   is_num(scale_center[0]) && is_num(scale_center[1])),
+                str("[", ctx, "] argument 'scale_center' must be a point [x, y], got ", scale_center))
+            let(sc = is_undef(scale_center) ? [0, 0] : scale_center - c)
+            [for (k = [0:1:n-1]) N[k]*sc + scale*(Wb[k] - N[k]*sc)] :
+            let(
+                // the draft list is in the user order of the sides; base[1][k][0] is "s<user index>"
+                user = [for (k = [0:1:n-1]) __spp_parse_uint(base[1][k][0], 1)],
+                angles = is_num(draft) ? [for (k = [0:1:n-1]) draft] : draft
+            )
+            assert(is_list(angles) && len(angles) == n && len([for (a = angles) if (!is_num(a)) 1]) == 0,
+                str("[", ctx, "] argument 'draft' must be an angle or a list of ", n, " angles (one per side), got ", draft))
+            assert(len([for (a = angles) if (abs(a) >= 90) 1]) == 0,
+                str("[", ctx, "] the draft angles must lie in (-90, 90), got ", draft))
+            [for (k = [0:1:n-1]) Wb[k] - h*tan(angles[user[k]])];
+
+// checks the top of a taper, returns its points relative to the centroid of the base
+function __spp_prism_top(base, Wt, ctx) =
+    let(
+        c = base[2],
+        pts = [for (p = base[0]) p - c],
+        N = __spp_edge_normals(pts),
+        P = __spp_prism_poly_from_w(N, Wt)
+    )
+    assert(!is_undef(P), str("[", ctx, "] the taper is too strong: a side of the top vanishes"))
+    P;
+
+
 // complete data of a prism in the local frame (base centered on w = 0)
 // returns [rings, is convex, [], local body box, local box with flares, flare range] as __spp_box_spec
 // - 'base' result of __spp_prism_base, 'stages' result of __spp_prism_stages
-function __spp_prism_spec(base, h, stages, ctx) =
+// - 'Wt' distances of the top sides (__spp_prism_taper), undef without a taper
+// - as for cubepp, the cross-section is built on the larger base of every side and the straight
+//   cuts (stage C) are vertical
+function __spp_prism_spec(base, h, stages, ctx, Wt=undef) =
     let(
         c = base[2],
         pts = [for (p = base[0]) p - c],
         n = len(pts),
         N = __spp_edge_normals(pts),
-        W = [for (k = [0:1:n-1]) N[k]*pts[k]],
+        Wb = [for (k = [0:1:n-1]) N[k]*pts[k]],
+        Wt_ = is_undef(Wt) ? Wb : Wt,
+        W = [for (k = [0:1:n-1]) max(Wb[k], Wt_[k])],
+        top = is_undef(Wt) ? pts : __spp_prism_top(base, Wt, ctx),
+        Wpts = is_undef(Wt) ? pts : __spp_prism_poly_from_w(N, W)
+    )
+    assert(!is_undef(Wpts), str("[", ctx, "] the taper is too oblique: a side vanishes in the outline ",
+        "of the larger bases"))
+    let(
         tags = [for (e = __spp_prism_edges(base[1])) if (e[1] == "v") e[0]],
-        // side profiles (x = distance of the side from the centroid)
+        // side profiles (x = distance of the side from the centroid of the base)
+        // '-> an oblique taper may put a side on the other side of the centroid (distance <= 0):
+        //     the profile is then shifted by K (the corner operations do not depend on the origin)
         chains = [for (k = [0:1:n-1])
             let(
+                K = min(Wb[k], Wt_[k]) > 0 ? 0 : 1 - min(Wb[k], Wt_[k]),
                 sctx = str(ctx, "] [base edges of face ", __spp_prism_tag(base[1][k]), " (bo = bottom, to = top)"),
-                p = __spp_profile_apply_mods(__spp_rev_cylinder_profile(W[k], W[k], h), stages[1][k],
+                p = __spp_profile_apply_mods(__spp_rev_cylinder_profile(Wb[k] + K, Wt_[k] + K, h), stages[1][k],
                         __SPP_REV_LETTERS, sctx, 0)
             )
-            [each __spp_rev_tag_points(p, "bo"), each __spp_rev_tag_points(p, "to")]],
+            [for (q = concat(__spp_rev_tag_points(p, "bo"), __spp_rev_tag_points(p, "to"))) [q[0] - K, q[1]]]],
         // cross-section (stage A)
-        poly = [for (k = [0:1:n-1]) [pts[k][0], pts[k][1], tags[k], true]],
+        poly = [for (k = [0:1:n-1]) [Wpts[k][0], Wpts[k][1], tags[k], true]],
         section = __spp_profile_apply_mods(poly, stages[0], base[3], str(ctx, "] [edges parallel to 'zet'")),
         sec_pts = __spp_profile_points(section),
         weights = [for (nr = __spp_edge_normals(sec_pts)) __spp_prism_weights(nr, N)],
@@ -265,13 +349,14 @@ function __spp_prism_spec(base, h, stages, ctx) =
                 ring = __spp_convex_offset(sec_pts, shifts, bound)
             )
             [levels[j], [for (p = __spp_clip_halfplanes(ring, cut_hps)) p + c]]],
+        // a ring is in a flare zone if a side is outside its straight (possibly slanted) wall
+        side_at = function(k, w) Wb[k] + (Wt_[k] - Wb[k])*(w + h/2)/h,
         no_flare = [for (j = [0:1:len(levels)-1])
-            if (len([for (k = [0:1:n-1]) if (xs[j][k] > W[k] + 1e-9) 1]) == 0) j],
+            if (len([for (k = [0:1:n-1]) if (xs[j][k] > side_at(k, levels[j]) + 1e-9) 1]) == 0) j],
         flare_range = len(no_flare) == 0 ? [len(levels)-1, 0] : [no_flare[0], no_flare[len(no_flare)-1]],
         is_convex = len(no_flare) == len(levels),
         all_pts = [for (r = rings) each r[1]],
-        body_box = [[min([for (p = base[0]) p[0]]), min([for (p = base[0]) p[1]]), -h/2],
-                    [max([for (p = base[0]) p[0]]), max([for (p = base[0]) p[1]]),  h/2]],
+        body_box = __spp_prism_body_box(base[0], [for (p = top) p + c], h),
         full_box = [[min(body_box[0][0], min([for (p = all_pts) p[0]])), min(body_box[0][1], min([for (p = all_pts) p[1]])), -h/2],
                     [max(body_box[1][0], max([for (p = all_pts) p[0]])), max(body_box[1][1], max([for (p = all_pts) p[1]])),  h/2]]
     )

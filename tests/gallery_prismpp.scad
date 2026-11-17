@@ -38,3 +38,11 @@ at(2, 2) prismpp(pent, h=6, align="xyz", flare_in_align=true, mod_list=[rounding
 at(3, 2) prismpp(pent, h=8, zet="x", mod_list=[rounding(1.5, "x-edges")]);
 at(4, 2) prismpp(pent, h=8, zet="y", align="xyz", mod_list=[bevel(1, "all")]);
 at(5, 2) prismpp(tri, h=5, center=true, mod_list=[rounding(1, "x-edges")]);      // side 0 only
+
+// ---- row 3: taper (scale or draft)
+at(0, 3) prismpp(pent, h=8, scale=0.5);                                               // plain, about the centroid
+at(1, 3) prismpp(pent, h=8, draft=20, mod_list=[rounding(1)]);
+at(2, 3) prismpp(pent, h=8, draft=[0, 30, 30, 30, 0], mod_list=[rounding(1.5, "z-edges"), bevel(0.8, "t")]);
+at(3, 3) prismpp(hex, h=8, scale=0.5, scale_center=[8, 0], mod_list=[rounding(0.8)]); // oblique
+at(4, 3) prismpp(hex, h=6, scale=1.4, align="xyz", mod_list=[rounding(-1.5, "b"), rounding(1, "t")]);  // overhang
+at(5, 3) prismpp(hex, h=4, draft=45, mod_list=[rounding(2, "z-edges")]);             // 45° self-supporting walls

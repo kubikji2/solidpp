@@ -88,4 +88,46 @@ _t_spec = [
           [r[0], r[1]], [1, [[0.5, 0.5], [3.5, 0.5], [3.5, 3.5], [0.5, 3.5]]]),
 ];
 
+// ------------------------------------------------------------------ taper
+
+_bsq = base(_sq);
+_Nsq = __spp_edge_normals([for (p = _bsq[0]) p - _bsq[2]]);
+function taper(p, h, scale=undef, scale_center=undef, draft=undef) =
+    __spp_prism_taper(base(p), h, scale, scale_center, draft, "T");
+
+_t_taper = [
+    check("poly from distances", __spp_prism_poly_from_w(_Nsq, [2, 2, 2, 2]), [[-2, -2], [2, -2], [2, 2], [-2, 2]]),
+    check("poly from distances, vanished side", __spp_prism_poly_from_w(
+          __spp_edge_normals([[0, 0], [4, 0], [5, 1], [4, 2], [0, 2]]), [1, 3, -1, 1, 1]), undef),
+    check("no taper", taper(_sq, 4), undef),
+    check("scale about the centroid", taper(_sq, 4, scale=0.5), [1, 1, 1, 1]),
+    check("scale about a point", taper(_sq, 4, scale=0.5, scale_center=[4, 2]),
+          // the top square [2, 4] x [1, 3], seen from the centroid [2, 2] (side s3 passes through it)
+          [1, 2, 1, 0]),
+    check("draft", taper(_sq, 4, draft=45), [-2, -2, -2, -2]),
+    check("draft list (user order)", taper(_sq, 4, draft=[0, 45, 0, -45]), [2, -2, 2, 6]),
+    // clockwise input: the list follows the user's sides
+    check("draft list clockwise", taper([[0, 4], [4, 4], [4, 0], [0, 0]], 4, draft=[45, 0, 0, 0]),
+          // user side 0 runs from [0, 4] to [4, 4] (the top side, CCW side 2)
+          [2, 2, -2, 2]),
+    check("top polygon", __spp_prism_top(_bsq, [1, 1, 1, 1], "T"), [[-1, -1], [1, -1], [1, 1], [-1, 1]]),
+    check("body box overhang", __spp_prism_body_box(_bsq[0], [[-1, -1], [5, -1], [5, 5], [-1, 5]], 4),
+          [[-1, -1, -2], [5, 5, 2]]),
+    // tapered spec: the top ring of a top bevel on the scaled square
+    check("taper spec top ring", let(
+              b = _bsq, e = __spp_prism_edges(b[1]),
+              s = __spp_prism_spec(b, 4, __spp_prism_stages([bevel(0.5, "t")], e, b[0], b[3], "z", "T"), "T",
+                                   taper(_sq, 4, scale=0.5)),
+              r = s[0][len(s[0])-1])
+          [r[0], r[1], s[3], s[1]],
+          [2, [[1.5, 1.5], [2.5, 1.5], [2.5, 2.5], [1.5, 2.5]], [[0, 0, -2], [4, 4, 2]], true]),
+    check("taper spec flare against the slanted wall", let(
+              b = _bsq, e = __spp_prism_edges(b[1]),
+              s = __spp_prism_spec(b, 4, __spp_prism_stages([rounding(-1, "b")], e, b[0], b[3], "z", "T"), "T",
+                                   taper(_sq, 4, scale=0.5)))
+          // fillet of radius 1 between the base plane and the wall leaning in by atan(1/4):
+          // it reaches 1/tan((90 + atan(1/4))/2) along the base
+          [s[1], s[4][0][0], s[4][1][0]], let(g = 1/tan((90 + atan(1/4))/2)) [false, -g, 4 + g]),
+];
+
 echo("ALL TESTS PASSED");

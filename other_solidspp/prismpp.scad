@@ -27,8 +27,16 @@ PRISMPP_DEF_ALIGN = "keep";
 //       "s1s2" (vertical edge between sides 1 and 2), "z-edges" (edges parallel to the z-axis), ...
 //   '-> negative values add a flare into the base plane (base edges only)
 // - argument 'flare_in_align' if true, alignment includes flares (default false)
+// - taper (at most one of):
+//   '-> argument 'scale' number > 0: the top is the base scaled about 'scale_center'
+//       (default: the centroid of the base); > 1 makes the top larger (overhang)
+//   '-> argument 'draft' angle or list of angles (one per side s0, s1, ...): the sides lean inwards
+//       by the angle (outwards if negative), e.g. 45 for self-supporting walls, [0, 30, 30, 30]
+//       keeps side s0 vertical
+//   '-> the edges between the sides stay "<zet>-edges" (slanted), the bounding box includes the top
 // See DESIGN.md for details.
-module prismpp(points, h=1, align=undef, zet=undef, center=false, mod_list=undef, flare_in_align=false)
+module prismpp(points, h=1, align=undef, zet=undef, center=false, mod_list=undef, flare_in_align=false,
+               scale=undef, scale_center=undef, draft=undef)
 {
     __module_name = "PRISMPP";
 
@@ -47,6 +55,10 @@ module prismpp(points, h=1, align=undef, zet=undef, center=false, mod_list=undef
     // [CCW points, side names, centroid, letters]
     _base = __spp_prism_base(points, __module_name);
 
+    // distances of the top sides (undef without a taper) and the top polygon (true coordinates)
+    _Wt = __spp_prism_taper(_base, _h, scale, scale_center, draft, __module_name);
+    _top = is_undef(_Wt) ? _base[0] : [for (p = __spp_prism_top(_base, _Wt, __module_name)) p + _base[2]];
+
     // [rings, is convex, [], local body box, local box with flares, flare range] or undef
     _spec = len(_mods) == 0 ?
         undef :
@@ -54,10 +66,9 @@ module prismpp(points, h=1, align=undef, zet=undef, center=false, mod_list=undef
             _edges = __spp_prism_edges(_base[1]),
             _stages = __spp_prism_stages(_mods, _edges, _base[0], _base[3], _zet, __module_name)
         )
-        __spp_prism_spec(_base, _h, _stages, __module_name);
+        __spp_prism_spec(_base, _h, _stages, __module_name, _Wt);
 
-    _body_box = [[min([for (p = _base[0]) p[0]]), min([for (p = _base[0]) p[1]]), -_h/2],
-                 [max([for (p = _base[0]) p[0]]), max([for (p = _base[0]) p[1]]),  _h/2]];
+    _body_box = __spp_prism_body_box(_base[0], _top, _h);
     _box = !is_undef(_spec) && _flare_in_align ? _spec[4] : _body_box;
 
     _rot = __solidpp__get_rotation_from_zet(_zet, [0,0,0]);
@@ -65,7 +76,7 @@ module prismpp(points, h=1, align=undef, zet=undef, center=false, mod_list=undef
     if (_keep)
         rotate(_rot)
             translate([0, 0, _h/2])
-                __spp_prism_geometry(_base, _h, _spec);
+                __spp_prism_geometry(_base, _top, _h, _spec);
     else
     {
         _box_size = __spp_box_to_parent_extents(_box[1] - _box[0], _zet);
@@ -80,16 +91,19 @@ module prismpp(points, h=1, align=undef, zet=undef, center=false, mod_list=undef
 
         translate(_o - _box_center)
             rotate(_rot)
-                __spp_prism_geometry(_base, _h, _spec);
+                __spp_prism_geometry(_base, _top, _h, _spec);
     }
 }
 
 // prism in the local frame, base centered on w = 0
-module __spp_prism_geometry(base, h, spec)
+// - 'top' polygon of the top (equal to the base without a taper)
+module __spp_prism_geometry(base, top, h, spec)
 {
-    if (is_undef(spec))
+    if (!is_undef(spec))
+        __spp_box_geometry(spec);
+    else if (top == base[0])
         linear_extrude(height=h, center=true)
             polygon(base[0]);
     else
-        __spp_box_geometry(spec);
+        __spp_rings_hull([[-h/2, base[0]], [h/2, top]]);
 }
