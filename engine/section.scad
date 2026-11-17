@@ -19,7 +19,8 @@ include<../modifiers/section_modifiers.scad>
 // resolves the 'section' argument to [teardrop, serration]
 // - teardrop: undef or [angle, cap, up direction in the local frame]
 // - serration: undef or [n, depth, profile, width]
-function __spp_resolve_section(section, zet, ctx, name) =
+// - 'def_up' default 'up' of a teardrop (undef: "x" for zet z, "Z" otherwise)
+function __spp_resolve_section(section, zet, ctx, name, def_up=undef) =
     is_undef(section) ?
         [undef, undef] :
         let(l = __spp_is_section(section) ? [section] : section)
@@ -38,7 +39,7 @@ function __spp_resolve_section(section, zet, ctx, name) =
                     undef :
                     let(
                         t = tds[0],
-                        up = is_undef(t[2]) ? (zet == "z" || zet == "Z" ? "x" : "Z") : t[2],
+                        up = !is_undef(t[2]) ? t[2] : !is_undef(def_up) ? def_up : (zet == "z" || zet == "Z" ? "x" : "Z"),
                         loc = __spp_box_parent_to_local_letter(up, zet)
                     )
                     assert(!is_undef(loc) && loc != "z" && loc != "Z",

@@ -223,10 +223,13 @@ function __spp_corner_round(A, V, B, val) =
     )
     [pts, [lA, lB]];
 
-// flare: material added in the corner between the base plane and the wall
+// flare: material added in the corner between the base and the wall
 // - 'kind' is "bevel" or "rounding", 'val' are the (positive) sizes [across, along]
-// - exactly one of the faces at 'V' must be horizontal (the base face)
-function __spp_corner_flare(kind, A, V, B, val, ctx) =
+// - 'base' "A" (the face towards A) or "B" is the face that is extended beyond 'V';
+//   undef: the horizontal face (exactly one of the faces at 'V' must be horizontal)
+// - 'metric' "projected": sizes measured along x/y (ellipse with the semi-axes 'val');
+//   "along": sizes measured along the faces (circle of the radius val[0])
+function __spp_corner_flare(kind, A, V, B, val, ctx, base=undef, metric="projected") =
     let(
         uA = __spp_unit(A - V),
         uB = __spp_unit(B - V),
@@ -235,46 +238,67 @@ function __spp_corner_flare(kind, A, V, B, val, ctx) =
     )
     assert(__spp_is_convex(A, V, B),
         str(ctx, ": a flare (negative value) needs a convex edge, use a positive value to fill a concave edge"))
-    assert(hA != hB,
+    assert(!is_undef(base) || hA != hB,
         str(ctx, ": a flare (negative value) needs an unmodified base edge, ",
             "i.e. exactly one adjacent face in a base plane"))
     let(
-        // continuation of the base plane beyond 'V'
-        ext = hA ? -uA : -uB,
+        a_is_base = is_undef(base) ? hA : base == "A",
+        // continuation of the base beyond 'V'
+        ext = a_is_base ? -uA : -uB,
         // wall direction from 'V'
-        wall = hA ? uB : uA,
-        // points ordered from the base plane to the wall
+        wall = a_is_base ? uB : uA,
+        // points ordered from the base to the wall
         pts = kind == "bevel" ?
-                [V + ext*val[0], V + wall*(val[1] / abs(wall[1]))] :
-                __spp_fillet_arc_elliptic(V, ext, wall, val),
+                (metric == "along" ?
+                    [V + ext*val[0], V + wall*val[1]] :
+                    let(ext_h = abs(ext[0]) >= abs(wall[0]))
+                    [V + ext*__spp_bevel_leg(ext, val, ext_h), V + wall*__spp_bevel_leg(wall, val, !ext_h)]) :
+                (metric == "along" ?
+                    __spp_fillet_arc(V, ext, wall, val[0], val[0])[0] :
+                    __spp_fillet_arc_elliptic(V, ext, wall, val)),
         wall_leg = norm(pts[len(pts)-1] - V)
     )
-    hA ?
+    a_is_base ?
         [pts, [0, wall_leg]] :
         [__spp_reverse(pts), [wall_leg, 0]];
 
+// chamfer of a corner with the legs measured along the faces ('val' = [leg on A, leg on B])
+function __spp_corner_bevel_along(A, V, B, val) =
+    let(uA = __spp_unit(A - V), uB = __spp_unit(B - V))
+    [[V + uA*val[0], V + uB*val[1]], [val[0], val[1]]];
+
+// circular rounding of a corner with the radius val[0]
+function __spp_corner_round_along(A, V, B, val) =
+    let(res = __spp_fillet_arc(V, __spp_unit(A - V), __spp_unit(B - V), val[0], val[0]))
+    [res[0], [res[1], res[1]]];
+
 // dispatches the corner operation
 // - 'neg' true for flares, 'val' are positive sizes
-function __spp_corner_op(kind, neg, A, V, B, val, ctx) =
+// - 'base', 'metric' see __spp_corner_flare; "along" measures the legs along the faces (any
+//   direction of the faces, circular rounding), "projected" along x/y (profiles, boxes)
+function __spp_corner_op(kind, neg, A, V, B, val, ctx, base=undef, metric="projected") =
     let(
         _A = __spp_xy(A),
         _V = __spp_xy(V),
         _B = __spp_xy(B)
     )
     neg ?
-        __spp_corner_flare(kind, _A, _V, _B, val, ctx) :
-        kind == "bevel" ?
-            __spp_corner_bevel(_A, _V, _B, val) :
-            __spp_corner_round(_A, _V, _B, val);
+        __spp_corner_flare(kind, _A, _V, _B, val, ctx, base, metric) :
+        metric == "along" ?
+            (kind == "bevel" ?
+                __spp_corner_bevel_along(_A, _V, _B, val) :
+                __spp_corner_round_along(_A, _V, _B, val)) :
+            (kind == "bevel" ?
+                __spp_corner_bevel(_A, _V, _B, val) :
+                __spp_corner_round(_A, _V, _B, val));
 
 
 // ------------------------------------------------------------------ applying modifiers
 
 // applies a single edge modifier to the profile
 // - 'letters' are the letters usable in selectors (e.g. "tboi")
-// - 'min_x' if defined, all resulting points must have x >= min_x (axis of revolution)
-// - 'ctx' is the name of the solid used in messages
-function __spp_profile_apply_mod(profile, mod, letters, ctx, min_x=undef) =
+// - 'metric' see __spp_corner_op
+function __spp_profile_apply_mod(profile, mod, letters, ctx, min_x=undef, metric="projected") =
     let(
         kind = mod[__SPP_EDGE_MOD_KIND_IDX],
         val = mod[__SPP_EDGE_MOD_VALUE_IDX],
@@ -290,15 +314,26 @@ function __spp_profile_apply_mod(profile, mod, letters, ctx, min_x=undef) =
                 assert(len([for (v = profile) if (v[2] == tag && v[3]) 1]) > 0,
                     str(mctx, ": edge \"", tag, "\" is already rounded"))
                 0],
+            // per vertex: undef (not selected) or "" (selected, flares on the horizontal face)
+            ops = [for (v = profile) v[3] && __spp_in_list(v[2], sel) ? "" : undef]
+        )
+        __spp_profile_apply_ops(profile, kind, val, ops, mctx, min_x, metric);
+
+// applies the corner operation of one modifier at the selected vertices
+// - 'ops' per vertex: undef (not selected), "" (selected) or "A"/"B" (the base side of a flare)
+// - 'val' signed sizes [across, along] ("along" metric: [leg, leg] or [r, r])
+function __spp_profile_apply_ops(profile, kind, val, ops, mctx, min_x=undef, metric="projected") =
+        let(
             n = len(profile),
-            is_sel = [for (v = profile) v[3] && __spp_in_list(v[2], sel)],
+            is_sel = [for (o = ops) !is_undef(o)],
             neg = val[0] < 0,
             aval = [abs(val[0]), abs(val[1])],
             res = [for (i = [0:1:n-1])
                 is_sel[i] ?
                     __spp_corner_op(kind, neg,
                         profile[(i+n-1)%n], profile[i], profile[(i+1)%n],
-                        aval, str(mctx, " at edge \"", profile[i][2], "\"")) :
+                        aval, str(mctx, " at edge \"", profile[i][2], "\""),
+                        ops[i] == "" ? undef : ops[i], metric) :
                     undef],
             // the corners at both ends of a face must not consume more than the face length
             _check_fit = [for (i = [0:1:n-1])
@@ -324,12 +359,12 @@ function __spp_profile_apply_mod(profile, mod, letters, ctx, min_x=undef) =
         out;
 
 // applies the list of edge modifiers in reading order
-function __spp_profile_apply_mods(profile, mods, letters, ctx, min_x=undef, idx=0) =
+function __spp_profile_apply_mods(profile, mods, letters, ctx, min_x=undef, idx=0, metric="projected") =
     idx >= len(mods) ?
         profile :
         __spp_profile_apply_mods(
-            __spp_profile_apply_mod(profile, mods[idx], letters, ctx, min_x),
-            mods, letters, ctx, min_x, idx+1);
+            __spp_profile_apply_mod(profile, mods[idx], letters, ctx, min_x, metric),
+            mods, letters, ctx, min_x, idx+1, metric);
 
 
 // ------------------------------------------------------------------ polygonal walls

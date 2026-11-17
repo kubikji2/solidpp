@@ -443,7 +443,8 @@ function __spp_revp_spec(points, mods, flare_in_align, ctx, keep=false) =
 // parses the arguments of toruspp, returns [r, R, t, h] (inner radius, outer radius,
 // radial width and height of the tube)
 // - exactly two of 't', 'r|d', 'R|D' (none: r=0.5, R=1); 'h' defaults to 't'
-function __spp_torus_args(t, r, d, R, D, h, ctx) =
+// - 'zero_msg' explanation appended when the inner radius is 0 (default: the torus case)
+function __spp_torus_args(t, r, d, R, D, h, ctx, zero_msg=undef) =
     assert(is_undef(r) || is_undef(d), str("[", ctx, "] use either 'r' or 'd', not both"))
     assert(is_undef(R) || is_undef(D), str("[", ctx, "] use either 'R' or 'D', not both"))
     assert(is_undef(t) || is_num(t), str("[", ctx, "] argument 't' must be a number, got ", t))
@@ -466,7 +467,7 @@ function __spp_torus_args(t, r, d, R, D, h, ctx) =
         _h = is_undef(h) ? _t : h
     )
     assert(ri > 0, str("[", ctx, "] inner radius must be positive, got ", ri,
-        "; with r = 0 the tube touches the axis in a single point, which is not a valid solid"))
+        is_undef(zero_msg) ? "; with r = 0 the tube touches the axis in a single point, which is not a valid solid" : zero_msg))
     assert(_t > 0, str("[", ctx, "] outer radius ", Ro, " must be greater than the inner radius ", ri))
     assert(_h > 0, str("[", ctx, "] height must be positive, got ", _h))
     [ri, Ro, _t, _h];

@@ -483,6 +483,8 @@ to n sides (`engine/prism.scad`).
   polygon as for `cubepp`; `center=true` overrides both.
 - No `size`, no `flare_in_size`, no `bevel_corners`, no `[x, y, z]` values (the
   sides are not axis-aligned). Old modifiers are not supported.
+- Edges between the sides take a single number: the legs are measured along the
+  sides (circular rounding), `[across, along]` applies to base edges only.
 
 Taper (at most one of `scale` and `draft`; every side stays a flat face):
 
@@ -536,7 +538,7 @@ Faces and edges:
   and equal insets give an exact offset.
 - Flares are mitered at the vertices (as `cubepp`); with `flare_in_align` the
   bounding box includes them exactly.
-- The old `prism(points, h, n)` (oblique prism by a normal) is deprecated, see 6.1.
+- The old `prism(points, h, n)` (oblique prism by a normal) is deprecated, see 7.1.
 
 ### 5.5 `platonicpp` (dice)
 
@@ -601,7 +603,76 @@ match the solid):
 - A d4 is labelled at the corners: on every face, `$face_vertices[k] + 1` near
   `$face_corners[k]` (see the gallery).
 
-## 6. Dropped / changed
+## 6. 2D shapes
+
+```
+squarepp(size, align, center, mod_list, flare_in_align)
+polygonpp(points, align, center, mod_list, flare_in_align)
+circlepp(size|r|d, align, center, fn, polygon, sector, section)
+ringpp(t, r|d, R|D, align, center, outer_fn, inner_fn, outer_polygon, inner_polygon,
+       sector, outer_section, inner_section)
+```
+
+### 6.1 Corner modifiers (`squarepp`, `polygonpp`)
+
+`bevel()` and `rounding()` work on the corners of the outline, in reading order,
+with the same rules as for solids (rounding is final, a bevel can be rounded).
+A corner is named by its two sides:
+
+| shape       | sides                                   | corners                        | values                                                     |
+|-------------|-----------------------------------------|--------------------------------|------------------------------------------------------------|
+| `squarepp`  | `y`, `X`, `Y`, `x` (bottom, right, ...) | `"xy"`, `"Xy"`, `"XY"`, `"xY"` | number or `[dx, dy]` (legs along x/y, elliptical rounding) |
+| `polygonpp` | `s0`, `s1`, ... + tag names             | `"s0s1"`, ...                  | single number (legs along the sides, circular rounding)    |
+
+- Positive values: a token selects the corners whose sides include all its
+  names (order does not matter): `"x"` both corners of side x, `"xY"` one
+  corner, `"all"` all corners. Concave corners (`polygonpp`) are filled.
+- Negative values (flares): the **first name of a token is the base side**, it
+  is extended beyond the corner and the flare fills the angle to the other side;
+  the other names select which of its two corners:
+
+| token (negative) | base side  | flared corners                |
+|------------------|------------|-------------------------------|
+| `"y"`            | the side y | both corners of y             |
+| `"yX"`           | the side y | the corner of y shared with X |
+| `"Xy"`           | the side X | the corner of X shared with y |
+| `"s0"`, `"s0s1"` | side s0    | both / the one shared with s1 |
+| `"all"`, `"s"`   | error      | (no single base side)         |
+
+  A corner flared from both of its sides (e.g. `["y", "x"]`) is an error, a
+  flare needs a convex corner.
+- `flare_in_align` aligns the outline with the flares, otherwise the nominal
+  rectangle/polygon.
+- `polygonpp`: concave outlines allowed, must not intersect itself, any
+  orientation (side numbers follow the user's points), tags as in `prismpp`
+  (`t b s x X y Y z Z` reserved), points collinear with their neighbours are not
+  corners. Default `align="keep"` (the points as given).
+- `squarepp` keeps `align="xy"` (as `square()`); without modifiers it is a plain
+  `square()`.
+
+### 6.2 Circles (`circlepp`, `ringpp`)
+
+- `fn`, `polygon` (`"corners"`, `"flats"`, `"polyhole"`), `sector` and `section`
+  (`teardrop()`, `serration()`) as for `cylinderpp`; the 2D teardrop takes `up`
+  from `"x"`, `"X"`, `"y"`, `"Y"` (default `"Y"`: the tip points to +y).
+- `polygon` modes other than `"corners"`, `sector` and `section` work for
+  circles only, not for ellipses; `sector` and `section` cannot be combined.
+- Alignment uses the bounding box of the full circle.
+- `ringpp` is the 2D `tubepp`: exactly two of `t`, `r|d`, `R|D` (default
+  `r=0.5, R=1`), separate `fn`/`polygon`/`section` for the outer and inner
+  circle, `sector` cuts the ring; the hole (with its polygon mode and section)
+  must stay inside the outer outline.
+
+### 6.3 Engine
+
+- `engine/shape2d.scad`: outline validation, side names, selection with the
+  base-side rule; the corner operations are those of `engine/profile.scad`.
+- The corner engine has two metrics: `"projected"` (legs measured along x/y,
+  for revolved profiles, boxes and `squarepp`) and `"along"` (legs measured along
+  the sides, circular roundings, for `polygonpp` and the vertical edges of
+  `prismpp`). Flares can name their base side explicitly.
+
+## 7. Dropped / changed
 
 | old                                         | new                                           |
 |---------------------------------------------|-----------------------------------------------|
@@ -621,7 +692,7 @@ match the solid):
 | `toruspp` via `circlepp` + `rotate_extrude` | revolved engine (`fn`, `polygon`, `sector`)   |
 | `tetrahedron(points)`                       | removed (`platonicpp(4)` for a regular one)   |
 
-### 6.1 Old modifiers (backward compatibility)
+### 7.1 Old modifiers (backward compatibility)
 
 The old constructors keep their signatures and still work. They return a legacy
 record that the solid translates to the new modifiers, printing an echo such as
@@ -659,7 +730,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
   `translate([0, 0, z]) multmatrix(shear) linear_extrude(...)` for an oblique prism
   with a horizontal base; other 3D bases have no direct replacement (`hull()`).
 
-## 7. Implementation notes
+## 8. Implementation notes
 
 - Files:
 
@@ -680,6 +751,13 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `other_solidspp/toruspp.scad`      | thin module over the engine                              |
 | `other_solidspp/platonicpp.scad`   | platonicpp, wrappers, face and vertex helpers            |
 | `engine/platonic.scad`             | solid data, numbering, modifier bodies, frames           |
+| `engine/shape2d.scad`              | 2D outlines, side names, selection with base sides       |
+| `shapespp/squarepp.scad`           | squarepp                                                 |
+| `shapespp/polygonpp.scad`          | polygonpp                                                |
+| `shapespp/circlepp.scad`           | circlepp                                                 |
+| `shapespp/ringpp.scad`             | ringpp                                                   |
+| `tests/test_shapes.scad`           | `assert`-based tests of the 2D shapes                    |
+| `tests/gallery_shapes.scad`        | visual smoke test of the 2D shapes (extruded by 1)       |
 | `tests/test_platonicpp.scad`       | `assert`-based tests of the platonic data layer          |
 | `tests/gallery_platonicpp.scad`    | visual smoke test incl. engraved dice                    |
 | `engine/prism.scad`                | base validation, side names, selectors, blended rings    |
@@ -704,7 +782,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - Modules contain no logic beyond calling the data functions and emitting
   geometry, so almost everything is testable with plain `assert`s.
 
-## 8. Open items / roadmap
+## 9. Open items / roadmap
 
 - [ ] Check in OpenSCAD: phase of `rotate_extrude` vs `cylinder()` for odd `fn`
       (a full-revolution `rotate_extrude` may start at 180°, `cylinder()`
@@ -721,7 +799,8 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] Taper of `prismpp` (`scale`, `scale_center`, `draft`, section 5.4).
 - [x] `toruspp` on the revolved engine, `prism` deprecated.
 - [x] `platonicpp` (dice) with face/vertex helpers, `tetrahedron` removed.
-- [ ] 2D shapes (`squarepp`, `circlepp`) and their modifiers.
+- [x] 2D shapes: `squarepp`, `polygonpp` with corner modifiers and flares,
+  `circlepp` with `fn`/`polygon`/`sector`/`section`, `ringpp` (section 6).
 - [ ] `rotate_extrudepp`, `projectpp`.
 - [x] `spherepp` and `circlepp` are built at their largest diameter and scaled
       down for ellipsoids/ellipses (resolution scales with size, vertices on

@@ -166,6 +166,9 @@ function __spp_prism_stages(mods, edges, pts, letters, zet, ctx, idx=0, A=[], B=
             base = [for (e = sel) if (e[1] != "v") e],
             is_neg = v[0] < 0
         )
+        assert(len(vert) == 0 || v[0] == v[1],
+            str(mctx, ": edges parallel to 'zet' take a single number (the leg along both sides), ",
+                "[across, along] applies to base edges only; the selection contains ", vert))
         assert(!is_neg || len(vert) == 0,
             str(mctx, ": negative values (flares) are allowed only on base edges (perpendicular to 'zet'), ",
                 "the selection contains edges parallel to 'zet': ", vert))
@@ -326,11 +329,14 @@ function __spp_prism_spec(base, h, stages, ctx, Wt=undef) =
             [for (q = concat(__spp_rev_tag_points(p, "bo"), __spp_rev_tag_points(p, "to"))) [q[0] - K, q[1]]]],
         // cross-section (stage A)
         poly = [for (k = [0:1:n-1]) [Wpts[k][0], Wpts[k][1], tags[k], true]],
-        section = __spp_profile_apply_mods(poly, stages[0], base[3], str(ctx, "] [edges parallel to 'zet'")),
+        // the sides have any direction: legs measured along the sides (circular roundings)
+        section = __spp_profile_apply_mods(poly, stages[0], base[3], str(ctx, "] [edges parallel to 'zet'"),
+                                           metric="along"),
         sec_pts = __spp_profile_points(section),
         weights = [for (nr = __spp_edge_normals(sec_pts)) __spp_prism_weights(nr, N)],
         // straight cuts (stage C)
-        cut = __spp_profile_apply_mods(poly, stages[2], base[3], str(ctx, "] [cut of edges parallel to 'zet'")),
+        cut = __spp_profile_apply_mods(poly, stages[2], base[3], str(ctx, "] [cut of edges parallel to 'zet'"),
+                                       metric="along"),
         cut_hps = let(m = len(cut))
             [for (i = [0:1:m-1])
                 let(P = cut[i], Q = cut[(i+1)%m])
