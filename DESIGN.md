@@ -385,7 +385,7 @@ A torus has no edges, so there is no `mod_list`.
 - `projectpp(plane=[point, normal])`: moves the plane to z=0 and runs
   `projection(cut=true)`.
 
-## 5. Box family (`cubepp`, `prismpp`)
+## 5. Box family (`cubepp`, `prismpp`) and Platonic solids
 
 ### 5.1 How it is built
 
@@ -512,7 +512,70 @@ Faces and edges:
   and equal insets give an exact offset.
 - Flares are mitered at the vertices (as `cubepp`); with `flare_in_align` the
   bounding box includes them exactly.
-- The old `prism(points, h, n)` (oblique prism by a normal) is unchanged.
+- The old `prism(points, h, n)` (oblique prism by a normal) is deprecated, see 6.1.
+
+### 5.5 `platonicpp` (dice)
+
+```
+platonicpp(n, a|d|D, align, zet, center, mod_list)
+tetrahedronpp(...), hexahedronpp(...), octahedronpp(...), dodecahedronpp(...), icosahedronpp(...)
+platonicpp_faces(n, a|d|D, align, zet, center, idx, numbering) children
+platonicpp_vertices(n, a|d|D, align, zet, center, idx) children
+```
+
+The five Platonic solids (`n` = 4, 6, 8, 12, 20 faces), the wrappers fix `n`.
+
+| size | meaning                                                                                                               |
+|------|-----------------------------------------------------------------------------------------------------------------------|
+| `a`  | edge length (default 1)                                                                                               |
+| `d`  | diameter of the inscribed sphere (dice size: distance between opposite faces; for the tetrahedron half of its height) |
+| `D`  | diameter of the circumscribed sphere (through the vertices)                                                           |
+
+- Placement: one face down (outward normal `-zet`), one edge of that face
+  parallel to x (for `zet="z"`), then turned by `zet` like every solidpp solid.
+  `align` uses the bounding box of the nominal solid, default `"z"` (centered in
+  x/y, on z = 0); `center=true` centers the bounding box (for the tetrahedron and
+  the dodecahedron it is not the center of the solid).
+- Engine (`engine/platonic.scad`): generated from vertex coordinates; the faces
+  are the vertices with the largest dot product with the face normals (the
+  vertex directions of the dual solid), so no face lists are written by hand.
+
+Modifiers (all edges/corners are equivalent: `where="all"` only, single
+positive numbers, each kind at most once, `rounding` last):
+
+| modifier           | meaning                                                     | construction                                                                  |
+|--------------------|-------------------------------------------------------------|-------------------------------------------------------------------------------|
+| `bevel(d)`         | chamfer, leg `d` along both faces                           | intersection with the body of the edge planes                                 |
+| `bevel_corners(d)` | corner cut at `d` along the edges (`a/2`: the edges vanish) | intersection with the body of the vertex planes (dual solid)                  |
+| `rounding(r)`      | rounds every edge (also of the cuts)                        | solid shrunk by `r`, Minkowski with a sphere (only rounding: hull of spheres) |
+
+- Each body of planes is a convex polyhedron with known vertices (the solid, the
+  dual, the rhombic solid of the edges), the cut solid is their `intersection()`.
+- All modifiers keep the face planes, so the alignment and the face helper do
+  not depend on `mod_list`.
+- Limits: `bevel` smaller than the face apothem, `bevel_corners` at most `a/2`,
+  `rounding` smaller than the inscribed sphere after the cuts.
+
+Face and vertex helpers (same size and placement arguments, so they always
+match the solid):
+
+- The children are placed in the frame of each face (origin in its center, z
+  outward, y towards the up axis, x for the top/bottom faces, so `text()` reads
+  from outside) or of each vertex (origin in the vertex, z from the center out).
+- `idx`: undef (all), a number or a list of numbers.
+- Special variables in the children: `$face`, `$face_vertices` (numbers of the
+  corners, counter-clockwise), `$face_corners` (their 2D positions in the face
+  frame), `$vertex`. They exist only inside the children.
+
+| `numbering`            | order of `$face`                                                                                                                                    |
+|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `"opposite"` (default) | face `k` opposite to face `n-1-k` (labels `k+1`: opposite faces add up to `n+1`); tetrahedron: geometric order                                      |
+| `"sequential"`         | consecutive faces share an edge, the last face is adjacent to the first (spindown dice, life counters); depth-first search with the Warnsdorff rule |
+
+- Both orders start with the top face. Vertices are numbered from the top down,
+  then counter-clockwise from +x.
+- A d4 is labelled at the corners: on every face, `$face_vertices[k] + 1` near
+  `$face_corners[k]` (see the gallery).
 
 ## 6. Dropped / changed
 
@@ -532,6 +595,7 @@ Faces and edges:
 | `trapezoid(base, top, h)`                   | `cubepp(size, size_top)` (deprecated wrapper) |
 | `prism(points, h)`, `prism(points3D, n)`    | `prismpp` / `linear_extrude` (deprecated)     |
 | `toruspp` via `circlepp` + `rotate_extrude` | revolved engine (`fn`, `polygon`, `sector`)   |
+| `tetrahedron(points)`                       | removed (`platonicpp(4)` for a regular one)   |
 
 ### 6.1 Old modifiers (backward compatibility)
 
@@ -590,6 +654,10 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `other_solidspp/revolvepp.scad`    | thin module over the engine                              |
 | `other_solidspp/prismpp.scad`      | thin module over the engine                              |
 | `other_solidspp/toruspp.scad`      | thin module over the engine                              |
+| `other_solidspp/platonicpp.scad`   | platonicpp, wrappers, face and vertex helpers            |
+| `engine/platonic.scad`             | solid data, numbering, modifier bodies, frames           |
+| `tests/test_platonicpp.scad`       | `assert`-based tests of the platonic data layer          |
+| `tests/gallery_platonicpp.scad`    | visual smoke test incl. engraved dice                    |
 | `engine/prism.scad`                | base validation, side names, selectors, blended rings    |
 | `tests/test_prismpp.scad`          | `assert`-based tests of the prism data layer             |
 | `tests/gallery_prismpp.scad`       | visual smoke test of prismpp                             |
@@ -628,6 +696,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] `prismpp` (convex bases, points + `h`, faces `t`, `b`, `s0`..., section 5.4).
 - [ ] Taper of `prismpp` (`top_offset` or `scale`), when needed.
 - [x] `toruspp` on the revolved engine, `prism` deprecated.
+- [x] `platonicpp` (dice) with face/vertex helpers, `tetrahedron` removed.
 - [ ] 2D shapes (`squarepp`, `circlepp`) and their modifiers.
 - [ ] `rotate_extrudepp`, `projectpp`.
 - [x] `spherepp` and `circlepp` are built at their largest diameter and scaled
