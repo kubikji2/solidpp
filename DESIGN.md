@@ -538,7 +538,7 @@ Faces and edges:
   and equal insets give an exact offset.
 - Flares are mitered at the vertices (as `cubepp`); with `flare_in_align` the
   bounding box includes them exactly.
-- The old `prism(points, h, n)` (oblique prism by a normal) is deprecated, see 7.1.
+- The old `prism(points, h, n)` (oblique prism by a normal) is deprecated, see 8.1.
 
 ### 5.5 `platonicpp` (dice)
 
@@ -672,7 +672,104 @@ A corner is named by its two sides:
   the sides, circular roundings, for `polygonpp` and the vertical edges of
   `prismpp`). Flares can name their base side explicitly.
 
-## 7. Dropped / changed
+## 7. Transforms
+
+All transforms keep the behaviour of their originals by default (`mirrorpp` as
+`mirror`, `linear_extrudepp` as `linear_extrude`, ...); the additions are opt-in.
+
+| transform                                                     | what it adds                                                           |
+|---------------------------------------------------------------|------------------------------------------------------------------------|
+| `mirrorpp(v, copy, point)`                                    | `copy` keeps the original; `v` axis letters: all combinations; `point` |
+| `hull_if`, `minkowski_if`, `difference_if`, `intersection_if` | the operation only if `condition`, otherwise `otherwise`               |
+| `replicate_at(pos, rot, x, y, z)`                             | copies at positions/rotations or on a grid, `$idx`, `$pos`, `$rot`     |
+| `replicate_around(n, r, angle, start, zet, orient, point)`    | polar array (bolt circles), `$idx`, `$angle`                           |
+| `pairwise_hull(closed)`                                       | hulls of consecutive children, `closed` also last + first              |
+| `linear_extrudepp(height, ..., zet)`                          | negative height, twist compensation, `zet`                             |
+| `rotate_extrudepp(zet, sector, fn)`                           | `zet` and the `sector` convention of the solids                        |
+| `projectpp(point, normal, cut)`                               | projection onto any plane                                              |
+| `cut(sector, zet, size, point)`                               | removes a wedge (cut-away views)                                       |
+| `transform_to_spp(size, align, pos, x, y, z, orient)`         | moves to a point of a bounding box, `orient` turns z out of the face   |
+
+### 7.1 `mirrorpp`
+
+- `v`: a 2D/3D vector (one mirror, as `mirror()`), or axis letters (`"x"`,
+  `"xy"`, `"xyz"`, case does not matter, each axis once): the mirrors in these
+  axes and all their combinations (`"xy"`: in x, in y, in both).
+- `copy=false` (default) makes only the mirrored copies, `copy=true` also keeps
+  the original: `mirrorpp("xy", copy=true) translate([a, b, 0]) hole();` makes
+  four holes in the corners.
+- `point`: a point of the mirror plane(s) (default the origin).
+
+### 7.2 Conditional operations
+
+`hull_if`, `minkowski_if`, `difference_if`, `intersection_if(condition, otherwise)`:
+the operation is applied iff `condition` is true; otherwise `otherwise` selects
+what is kept:
+
+| `otherwise`         | kept                                                       |
+|---------------------|------------------------------------------------------------|
+| `"first"` (default) | `children(0)` (e.g. the body without the holes)            |
+| `"rest"`            | `children(1)`, ... (e.g. only the holes: support blockers) |
+| `"all"`             | all children (union)                                       |
+| `"none"`            | nothing                                                    |
+| a number or a list  | these children                                             |
+
+- `minkowski_if` takes any number of children (as `minkowski()`).
+- `ommit_children` (true: `"first"`, false: `"all"`) is deprecated, it echoes the
+  replacement.
+
+### 7.3 Replication
+
+- `replicate_at`: `pos` and/or `rot` lists (paired by index) or a grid of `x`,
+  `y`, `z` values (ordered x, then y, then z). The children get `$idx`, `$pos`,
+  `$rot`.
+- `replicate_around(n, r=0, angle=360, start=0, zet, orient=true, point)`: `n`
+  copies around the axis `zet` through `point`; with `angle=360` evenly around,
+  otherwise from `start` to `start + angle` (both ends included). Angles as for
+  `sector` (right-hand rule, 0 is +x for zet "z", +y for "x", +z for "y");
+  `orient` turns every copy by its angle. The children get `$idx`, `$angle`.
+- `pairwise_hull(closed=false)`: hull of every pair of consecutive children,
+  `closed` also hulls the last child with the first one.
+
+### 7.4 Extrusions and projections
+
+- `linear_extrudepp(..., zet)`: as before (a negative `height` extrudes
+  downwards, `compensate_rotation`), `zet` turns it like every solidpp solid.
+- `rotate_extrudepp(zet, sector, fn, convexity)`: the 2D children in x >= 0,
+  `sector` as for the solids. OpenSCAD cannot measure children, so there is no
+  alignment (use `transform_to_spp`, or `revolvepp` with points).
+- `projectpp(point=[0, 0, 0], normal=[0, 0, 1], cut=false)`: moves the plane
+  (`point`, `normal`; the normal may be a face letter `"X"`, ...) to z = 0 and
+  calls `projection(cut)`. The 2D result is seen from the side the normal points
+  to (the frame of the face helpers: y towards +z, x = y × normal).
+
+### 7.5 `cut`
+
+`cut(sector, zet, size, point)` removes a wedge around the axis `zet` through
+`point` from the children:
+
+| `sector`     | removed wedge                                                                             |
+|--------------|-------------------------------------------------------------------------------------------|
+| `a > 0`      | `[0, a]`                                                                                  |
+| `a < 0`      | `[a, 0]`                                                                                  |
+| `[from, to]` | from `from` counter-clockwise to `to`; `to < from` wraps around (`[90, -90]` = 90 to 270) |
+
+- Angles as for `sector` of the solids. For zet "y" this differs from the old
+  `cut` (it turned the other way around the axis, starting at +x).
+- `size` (default 1000) bounds the wedge; `align` and `center` never had an effect
+  and are deprecated.
+
+### 7.6 `transform_to_spp`
+
+`transform_to_spp(size, align, pos, x, y, z, orient=false)` moves the children to
+a point of a bounding box (unchanged); `orient=true` also turns them so that
+their z-axis points out of the face of `pos` (the sum of the letters: `"X"` is
++x, the edge `"XZ"` its diagonal) and y up (+z, or +y on the top/bottom), so
+text reads from outside. Drilling into a face:
+`transform_to_spp(size, align, "X", orient=true) cylinderpp(d=3, h=10, align="Z");`
+The function `get_orientation_to_spp(pos)` returns that direction.
+
+## 8. Dropped / changed
 
 | old                                         | new                                           |
 |---------------------------------------------|-----------------------------------------------|
@@ -692,7 +789,7 @@ A corner is named by its two sides:
 | `toruspp` via `circlepp` + `rotate_extrude` | revolved engine (`fn`, `polygon`, `sector`)   |
 | `tetrahedron(points)`                       | removed (`platonicpp(4)` for a regular one)   |
 
-### 7.1 Old modifiers (backward compatibility)
+### 8.1 Old modifiers (backward compatibility)
 
 The old constructors keep their signatures and still work. They return a legacy
 record that the solid translates to the new modifiers, printing an echo such as
@@ -730,7 +827,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
   `translate([0, 0, z]) multmatrix(shear) linear_extrude(...)` for an oblique prism
   with a horizontal base; other 3D bases have no direct replacement (`hull()`).
 
-## 8. Implementation notes
+## 9. Implementation notes
 
 - Files:
 
@@ -752,6 +849,10 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 | `other_solidspp/platonicpp.scad`   | platonicpp, wrappers, face and vertex helpers            |
 | `engine/platonic.scad`             | solid data, numbering, modifier bodies, frames           |
 | `engine/shape2d.scad`              | 2D outlines, side names, selection with base sides       |
+| `engine/frame.scad`                | frames (z along a direction, y up), letter vectors       |
+| `transforms/*.scad`                | the transforms (section 7)                               |
+| `tests/test_transforms.scad`       | `assert`-based tests of the transforms                   |
+| `tests/gallery_transforms.scad`    | visual smoke test of the transforms                      |
 | `shapespp/squarepp.scad`           | squarepp                                                 |
 | `shapespp/polygonpp.scad`          | polygonpp                                                |
 | `shapespp/circlepp.scad`           | circlepp                                                 |
@@ -782,7 +883,7 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - Modules contain no logic beyond calling the data functions and emitting
   geometry, so almost everything is testable with plain `assert`s.
 
-## 9. Open items / roadmap
+## 10. Open items / roadmap
 
 - [ ] Check in OpenSCAD: phase of `rotate_extrude` vs `cylinder()` for odd `fn`
       (a full-revolution `rotate_extrude` may start at 180°, `cylinder()`
@@ -801,9 +902,11 @@ ECHO: "[CUBEPP] DEPRECATED: round_edges(r=2, axes="xy") -> use rounding(2, "z-ed
 - [x] `platonicpp` (dice) with face/vertex helpers, `tetrahedron` removed.
 - [x] 2D shapes: `squarepp`, `polygonpp` with corner modifiers and flares,
   `circlepp` with `fn`/`polygon`/`sector`/`section`, `ringpp` (section 6).
-- [ ] `rotate_extrudepp`, `projectpp`.
+- [x] Transforms (section 7): `mirrorpp` letters/`point`, `otherwise`,
+  `intersection_if`, `$idx`, `replicate_around`, `pairwise_hull(closed)`,
+  `linear_extrudepp(zet)`, `rotate_extrudepp`, `projectpp`, `cut` cleanup,
+  `transform_to_spp(orient)`.
 - [x] `spherepp` and `circlepp` are built at their largest diameter and scaled
       down for ellipsoids/ellipses (resolution scales with size, vertices on
       the sphere/circle as in OpenSCAD).
-- [ ] Update README for the new modifiers.
-- [ ] Separate task: review `transforms/`.
+- [ ] Rewrite the README for the new API (last, when everything is settled).

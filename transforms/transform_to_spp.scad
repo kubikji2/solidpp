@@ -1,5 +1,6 @@
 include<../utils/solidpp_utils.scad>
 include<../utils/vector_operations.scad>
+include<../engine/frame.scad>
 
 // produce the offset
 // '-> given input string 's' for axis defined by 'c' and 'C' of length 'l' 
@@ -97,7 +98,11 @@ function get_translations_to_spp(size, align, pos, x=undef, y=undef, z=undef) =
 //       that `cubepp`/`spherepp`/`cylinderpp` default alignment is used.
 // NOTE: the default solidpp alignments are avaliable in
 //       `CUBEPP_DEF_ALIGN`, `CYLINDERPP_DEF_ALIGN` and `SPHEREPP_DEF_ALIGN`.
-module transform_to_spp(size, align, pos, x=undef, y=undef, z=undef) 
+// - argument `orient` (default false): if true, the children are also turned so that their z-axis
+//   points out of the face given by `pos` ("X": +x, "z": -z, an edge "XZ": its diagonal);
+//   y points up (+z) where possible, +y on the top/bottom faces, so text reads from outside
+//   '-> drilling into a face: transform_to_spp(size, align, "X", orient=true) cylinderpp(d=3, h=10, align="Z");
+module transform_to_spp(size, align, pos, x=undef, y=undef, z=undef, orient=false)
 {
     // check size
     // '-> it is either list of nums of size 3, or scalar
@@ -111,14 +116,28 @@ module transform_to_spp(size, align, pos, x=undef, y=undef, z=undef)
 
     // check pos
     assert(is_string(pos), "[TRANSLATE TO SPP] argument 'pos' must be string!");
+
+    assert(is_bool(orient), str("[TRANSLATE TO SPP] argument 'orient' must be a boolean, got ", orient));
     
     // produce offset
     __off = get_translation_to_spp(size=_size, align=align, pos=pos, x=x, y=y, z=z);
 
     // translate the children
-    translate(__off)
-    {
-        children();
-    }
-
+    if (orient)
+        multmatrix(__spp_frame(__off, get_orientation_to_spp(pos)))
+            children();
+    else
+        translate(__off)
+            children();
 }
+
+// outward direction (unit vector) of the position 'pos' of a bounding box: the sum of the face
+// directions of its letters ("X": [1, 0, 0], "XZ": the diagonal of that edge), see transform_to_spp
+function get_orientation_to_spp(pos) =
+    let(
+        v = [for (a = [["x", "X"], ["y", "Y"], ["z", "Z"]])
+            __solidpp__is_c_in_s(a[0], pos) ? -1 : (__solidpp__is_c_in_s(a[1], pos) ? 1 : 0)]
+    )
+    assert(norm(v) > 0, str("[TRANSLATE TO SPP] 'orient' needs a face, an edge or a corner in 'pos' ",
+        "(at least one of x, X, y, Y, z, Z), got \"", pos, "\""))
+    v / norm(v);

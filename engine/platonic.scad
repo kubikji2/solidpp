@@ -13,6 +13,7 @@
 //   edges, of the vertices), each built as a polyhedron
 
 include<box.scad>
+include<frame.scad>
 
 __SPP_PLAT_N = [4, 6, 8, 12, 20];
 
@@ -336,16 +337,8 @@ module __spp_plat_cut(V, N, nV, nE, h, cVF, cEV, cEF, tol)
 
 // ------------------------------------------------------------------ frames
 
-// frame with the origin 'o' and the z-axis 'nz' (unit); y is the projection of +z (local up) to the
-// plane, +y when the plane is horizontal; x = y × z (text on the plane reads from outside)
-function __spp_plat_frame(o, nz) =
-    let(
-        up = [0, 0, 1],
-        yp = up - (up*nz)*nz,
-        y = norm(yp) > 1e-9 ? yp / norm(yp) : [0, 1, 0],
-        x = cross(y, nz)
-    )
-    [[x[0], y[0], nz[0], o[0]], [x[1], y[1], nz[1], o[1]], [x[2], y[2], nz[2], o[2]], [0, 0, 0, 1]];
+// frame of a face/vertex, see __spp_frame (engine/frame.scad)
+function __spp_plat_frame(o, nz) = __spp_frame(o, nz);
 
 // checks 'idx' (undef, a number or a list of numbers in [0, n-1]), returns the list of numbers
 function __spp_plat_idx(idx, n, what, ctx) =

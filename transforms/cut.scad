@@ -1,93 +1,55 @@
-include<../cubepp.scad>
-
+include<../utils/solidpp_utils.scad>
+include<../engine/revolved.scad>
 
 // just a really big number
 __solidpp_big_m = 1000;
 
-// apply intersection to all children iff needed
-module __solidpp__cut_composer(apply_intersection)
-{
-    if(apply_intersection)
-    {
-        intersection_for(i=[0:$children-1])
-        {
-            children(i);
-        }
-    }
-    else
-    {
-        children();
-    }
-}
-
-
-// this module 
-module cut(sector, align=undef, zet=undef, size=undef, center=true)
+// cuts a wedge (a sector around an axis) out of the children, e.g. for cut-away views
+// - argument 'sector' the angles of the removed wedge, as for the 'sector' of the solids
+//   (right-hand rule around 'zet'; 0 is +x for zet "z", +y for "x", +z for "y"):
+//   '-> a positive angle a: [0, a]; a negative angle a: [a, 0]
+//   '-> [from, to]: from 'from' counter-clockwise to 'to'; if 'to' is smaller, it wraps around
+//       ([90, -90] removes the half from 90 to 270, [-90, 90] the half from -90 to 90)
+// - argument 'zet' the axis: "x", "y" or "z" (default)
+// - argument 'point' a point of the axis (default the origin)
+// - argument 'size' the size of the wedge: a number or [x, y, z], its largest value is used as
+//   the radius and the height (default 1000)
+// - arguments 'align', 'center' are deprecated: they never had an effect
+module cut(sector, align=undef, zet=undef, size=undef, center=undef, point=undef)
 {
     // set module name
     __module_name = "CUT";
 
-    // check sector argument
-    assert(
-            is_list(sector) && len(sector) == 2,
-            str("[", __module_name, "] argument 'sector' must be a vector of size 2!")
-    );
+    if (!is_undef(align) || !is_undef(center))
+        echo(str("[", __module_name, "] DEPRECATED: 'align' and 'center' have no effect, remove them; ",
+                 "use 'point' to move the axis"));
 
-    // check the sector values validity
-    assert(
-            sector[0] < sector[1],
-            str("[",__module_name, "] argument minimum sector angle (sector[0]) must be smaller then maximum sector angle (sector[1])!")
+    _s = __spp_cut_sector(sector, __module_name);
+    _zet = __spp_check_zet(zet, __module_name);
+    _size = __solidpp__get_argument_as_3Dlist(size, [__solidpp_big_m, __solidpp_big_m, __solidpp_big_m]);
+    _m = max(_size);
+    _p = is_undef(point) ? [0, 0, 0] : point;
+    assert(__solidpp__is_list_of_numbers(_p) && len(_p) == 3,
+        str("[", __module_name, "] argument 'point' must be a point [x, y, z], got ", point));
 
-    );
-
-    // define size
-    // '-> if undef use default size
-    // '-> if list, keep it
-    // '-> if number, fill array
-    _size = __solidpp__get_argument_as_3Dlist(size, [__solidpp_big_m,__solidpp_big_m,__solidpp_big_m]);
-    //echo(_size);
-
-    // process the align and center to produce offset
-    // '-> arguments 'align' and 'center' are checked within the function
-    _o = __solidpp__produce_offset_from_align_and_center(
-            _size=_size,
-            align=align,
-            center=center,
-            solidpp_name=__module_name,
-            def_align="");
-    
-    // check zet
-    // '-> it is string or undef
-    assert( is_undef(zet) || is_string(zet),
-            str("[", __module_name, "] arguments 'zet' is eithter 'undef' or a string!")
-    );
-
-    // construct rotation
-    _rot = __solidpp__get_rotation_from_zet(zet,[0,0,0]);
-    // construct offsets to compensate for strange behaviour
-    // of __solidpp__get_rotation_from_zet, LOL
-    _offset_z = _rot==__solidpp__get_rotation_from_zet("x") ? 90 : 0;
-    _offset_x = _rot==__solidpp__get_rotation_from_zet("y") ? 180 : 0;
-
-    // parse the sector argument
-    _min_s = sector[0];
-    _max_s = sector[1];
-
-    // get the maximal sector
-    _m = 2*max(_size);
-
-    // constructing geometry
     difference()
     {
-        // add children
         children();
 
-        // cut is using constructed sector
-        rotate(_rot)                            // rotate it according to the z-axis
-            rotate([_offset_x,0,0])             // compensate for strange z-axis
-                rotate([0,0,_min_s+_offset_z])  // rotate it to min_angle
-                    translate([0,0,-_m/2])      // center it in z-axis
-                        rotate_extrude(angle=abs(_max_s-_min_s)) // create cut as cylinder sector
-                            polygon([[0,0],[_m,0],[_m,_m], [0,_m]]);
+        translate(_p)
+            rotate(__solidpp__get_rotation_from_zet(_zet, [0, 0, 0]))
+                rotate([0, 0, __spp_sector_ref(_zet) + _s[0]])
+                    translate([0, 0, -_m/2])
+                        rotate_extrude(angle=_s[1] - _s[0])
+                            polygon([[0, 0], [_m, 0], [_m, _m], [0, _m]]);
     }
 }
+
+// [from, to] of the removed wedge (to > from, at most 360 apart)
+function __spp_cut_sector(sector, ctx) =
+    assert(is_num(sector) || (is_list(sector) && len(sector) == 2 && is_num(sector[0]) && is_num(sector[1])),
+        str("[", ctx, "] argument 'sector' must be an angle or [from, to], got ", sector))
+    let(s = is_num(sector) ? (sector >= 0 ? [0, sector] : [sector, 0]) : sector)
+    assert(s[0] != s[1] && abs(s[1] - s[0]) <= 360,
+        str("[", ctx, "] argument 'sector' must cover more than 0 and at most 360 degrees, got ", sector))
+    s[1] > s[0] ? s : [s[0], s[1] + 360];

@@ -63,12 +63,11 @@ function __spp_check_sector(sector, zet, ctx) =
             str("[", ctx, "] argument 'sector' must sweep more than 0 and at most 360 degrees, got ", sector))
         s[1] - s[0] == 360 ?
             undef :
-            let(
-                // angle of the reference axis in the local frame (see the frame of box.scad):
-                // zet x: +y is local +v (90), zet y: +z is local -v (270)
-                ref = zet == "x" || zet == "X" ? 90 : (zet == "y" || zet == "Y" ? 270 : 0)
-            )
-            [ref + s[0], s[1] - s[0]];
+            [__spp_sector_ref(zet) + s[0], s[1] - s[0]];
+
+// angle of the reference axis of 'sector' in the local frame (see the frame of box.scad):
+// zet z: +x (0), zet x: +y is local +v (90), zet y: +z is local -v (270)
+function __spp_sector_ref(zet) = zet == "x" || zet == "X" ? 90 : (zet == "y" || zet == "Y" ? 270 : 0);
 
 // ------------------------------------------------------------------ profiles
 
