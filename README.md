@@ -1,16 +1,13 @@
 # Solid++
 
-Solid++ extends the basic [OpenSCAD](https://openscad.org/) 2D shapes, 3D solids and
-transformations with what everyday design for 3D printing needs, while keeping the original
-arguments and behaviour. It stays plain OpenSCAD, so it is easy to pick up and to mix with
-existing code.
+Solid++ extends the basic [OpenSCAD](https://openscad.org/) 2D shapes, 3D solids and transformations with what everyday design for 3D printing needs, while keeping the original arguments and behaviour. It stays plain OpenSCAD, so it is easy to pick up and to mix with existing code.
 
-- **Drop-in replacement.** Every `xxxpp` module behaves like its OpenSCAD original when called with the original named arguments: `cubepp([a, b, c])` is `cube([a, b, c])`, `mirrorpp(v)` is   `mirror(v)`. Everything else is optional.
-- **No more positioning math.** `align` places a solid by its bounding box, `zet` turns it to any axis, and the transforms turn recurring patterns into one call: four corner holes, bolt   circles, holes drilled into a face, a part and its support blocker from one source.
+- **Drop-in replacement.** Every `xxxpp` module behaves like its OpenSCAD original when called with the original named arguments: `cubepp([a, b, c])` is `cube([a, b, c])`, `mirrorpp(v)` is `mirror(v)`. Everything else is optional.
+- **No more positioning math.** `align` places a solid by its bounding box, `zet` turns it to any axis, and the transforms turn recurring patterns into one call: four corner holes, bolt circles, holes drilled into a face, a part and its support blocker from one source.
 - **Edges and holes made for printing.** Bevel, round or flare any edge with a list of modifiers (`mod_list=[fillet(2, "t"), chamfer(1, "b")]`), applied in one go without Minkowski sums; teardrop and polyhole holes, crush ribs, nut traps with flats, sectors.
-- **More solids.** Tubes for heat inserts, tori, solids of revolution from your own profile,prisms over any convex base with a taper, the Platonic solids with helpers to engrave dice,   and 2D shapes with rounded corners.
+- **More solids.** Tubes for heat inserts, tori, solids of revolution from your own profile, prisms over any convex base with a taper, the Platonic solids with helpers to engrave dice, and 2D shapes with rounded corners.
 - **One vocabulary for all solids.** The bounding box (`size`), its placement (`align`), the axis (`zet`) and the names of faces and edges work the same way everywhere.
-- **Errors you can act on.** Arguments are validated and the messages say what is wrong and how to fix it, e.g. `fillet(6, where=["t"]): does not fit, ... the face is only 5 long`.
+- **Errors you can act on.** Arguments are validated and the messages say what is wrong and how to fix it, e.g. `fillet(6, where=["to"]): does not fit, edges "bo" and "to" need 6 of the face between them, but it is only 5 long`.
 - **Deprecation instead of breakage.** Old arguments and modules keep working and echo the exact replacement call.
 - **No dependencies.** Solid++ is plain OpenSCAD and does not depend on other libraries.
 
@@ -37,7 +34,7 @@ difference()
         translate([24, 14, 0])
             cylinderpp(d=3.4, h=20, center=true, mod_list=[chamfer(-0.8, "t")]);
     // horizontal hole along x with a teardrop pointing up (+z)
-    cylinderpp(d=6, h=70, zet="x", center=true, section=teardrop(up="Z"));
+    cylinderpp(d=6, h=70, zet="x", center=true, cross_section=teardrop(up="Z"));
 }
 ```
 
@@ -54,37 +51,43 @@ include<solidpp/solidpp.scad>
 
 ## Contents
 
-- [Design ideas](#design-ideas)
-- [Features at a glance](#features-at-a-glance)
-- [Basic geometries and their OpenSCAD counterparts](#basic-geometries-and-their-openscad-counterparts)
+- [Sizing and positioning](#sizing-and-positioning)
   - [Bounding box: `size`](#bounding-box-size)
   - [Alignment: `align`](#alignment-align)
   - [Orientation: `zet`](#orientation-zet)
 - [Modifiers](#modifiers)
   - [Naming the edges](#naming-the-edges)
-  - [`bevel` and `rounding`](#bevel-and-rounding)
-  - [Flares](#flares)
-  - [Corners](#corners)
+  - [`bevel` and `rounding` modifiers](#bevel-and-rounding-modifiers)
+  - [Negative-value `bevel` and `rounding` (flares)](#negative-value-bevel-and-rounding-flares)
+  - [Corner modifiers for `cubepp`](#corner-modifiers-for-cubepp)
   - [Order and layering](#order-and-layering)
   - [Compatibility of the basic geometries](#compatibility-of-the-basic-geometries)
-- [Round-solid options](#round-solid-options)
+- [Additional arguments for round solids](#additional-arguments-for-round-solids)
   - [Polygons and polyholes](#polygons-and-polyholes)
   - [Sectors](#sectors)
-  - [Sections: teardrops and serrations](#sections-teardrops-and-serrations)
-  - [Taper of `cubepp`](#taper-of-cubepp)
+  - [Cross-sections: teardrops and serrations](#cross-sections-teardrops-and-serrations)
+- [Taper](#taper)
 - [More solids](#more-solids)
   - [`tubepp`](#tubepp)
   - [`toruspp`](#toruspp)
   - [`revolvepp`](#revolvepp)
   - [`prismpp`](#prismpp)
-  - [`platonicpp` and dice](#platonicpp-and-dice)
+  - [`platonicpp`](#platonicpp)
+  - [Dice: `platonicpp_faces` and `platonicpp_vertices`](#dice-platonicpp_faces-and-platonicpp_vertices)
   - [Modifier support of all solids](#modifier-support-of-all-solids)
 - [2D shapes](#2d-shapes)
+  - [`squarepp` and `polygonpp`](#squarepp-and-polygonpp)
+  - [`circlepp` and `ringpp`](#circlepp-and-ringpp)
+  - [Alignment and modifier support of 2D shapes](#alignment-and-modifier-support-of-2d-shapes)
 - [Transforms](#transforms)
+  - [`mirrorpp`](#mirrorpp)
+  - [Conditional operations](#conditional-operations)
+  - [Replication](#replication)
+  - [Extrusions, projections, cuts and placement](#extrusions-projections-cuts-and-placement)
 - [Migration from older versions](#migration-from-older-versions)
 - [Tests, galleries and images](#tests-galleries-and-images)
 
-## Sizing and Positioning
+## Sizing and positioning
 
 Three concepts apply to every Solid++ solid:
 
@@ -350,7 +353,7 @@ cubepp(20, mod_list=[bevel(5, "t"), rounding(1.5, "t")]);       // a bevel with 
 
 The table for all solids is at the end of [More solids](#modifier-support-of-all-solids).
 
-## Additional Arguments for Round Solids
+## Additional arguments for round solids
 
 On top of the modifiers, the axially symmetric (round) solids have arguments of their own: `fn` and `polygon` set the polygon that approximates the circle, `sector` keeps only a part of the revolution, and `cross_section` changes the shape of the circle (teardrops for printable horizontal holes, serrations for grip and press fits). Not every round solid has all of them (`spherepp` has none):
 
@@ -434,9 +437,9 @@ cylinderpp(d=12, h=6, zet="y", cross_section=teardrop(up="Z"), mod_list=[roundin
 Cross-sections are available for the circular walls of:
 
 - `cylinderpp` as `cross_section`,
-- `tubepp` as `outer_cross_section`, and `inner_cross_section` for inner and outer crossesction respectively,
+- `tubepp` as `outer_cross_section` and `inner_cross_section` (the outer wall and the hole),
 - `circlepp` as `cross_section`, and
-- `ringpp` as `outer_cross_section`, and `inner_cross_section` for inner and outer crossesction respectively.
+- `ringpp` as `outer_cross_section` and `inner_cross_section` (the outer circle and the hole).
 
 The bounding box (and so `align`) is always the one of the circle.
 
@@ -479,7 +482,7 @@ A list combines them: `cross_section=[teardrop(...), serration(...)]`. The teard
 
 ## Taper
 
-A tapered solid has two bases of different sizes joined by slanted walls. The cone `cylinderpp(d=[d1, d2], h=h)` from [Sizing and Positioning](#sizing-and-positioning) is one; `cubepp` tapers into a frustum of a pyramid when one of its bases is given by `size_top` or `size_bottom`.
+A tapered solid has two bases of different sizes joined by slanted walls. The cone `cylinderpp(d=[d1, d2], h=h)` from [Sizing and positioning](#sizing-and-positioning) is one; `cubepp` tapers into a frustum of a pyramid when one of its bases is given by `size_top` or `size_bottom`.
 
 | ![taper](docs/img/taper.png)                                                                |
 |:-------------------------------------------------------------------------------------------:|
@@ -500,7 +503,7 @@ cubepp([20, 14, 10], zet="x", size_top=[8, 4], mod_list=[rounding(1, "x-edges")]
 
 Good to know:
 
-- Both bases are centred on the same axis.
+- Both bases are centered on the same axis.
 - The bounding box (and so `align`) is the one of the larger base.
 - The modifiers follow the slanted walls; the edges along `zet` are slanted but keep their names (`"z-edges"` for `zet="z"`).
 - The deprecated `trapezoid()` is now a tapered `cubepp`; it echoes the replacement.
@@ -528,7 +531,7 @@ Each of them is a number or `[bottom, top]` (a conical tube). `h` is the height 
 
 `size` follows the same convention as for `cylinderpp` (a number or `[x, y, z]` in the parent frame): it replaces `R|D` and `h`, so one of `t` or `r|d` is still needed, e.g. `tubepp(size=[10, 10, 5], t=1)`. Using `R|D`, `r|d`, `t` and `h` is recommended, as it reads more clearly.
 
-The outside and the hole are independent: each wall has its own `fn`, `polygon` and `cross_section` (see [Additional Arguments for Round Solids](#additional-arguments-for-round-solids)), and the modifiers select the edges of the hole with `i` (`"ti"` is the top edge of the hole):
+The outside and the hole are independent: each wall has its own `fn`, `polygon` and `cross_section` (see [Additional arguments for round solids](#additional-arguments-for-round-solids)), and the modifiers select the edges of the hole with `i` (`"ti"` is the top edge of the hole):
 
 | argument                                     | meaning                                                                         |
 |----------------------------------------------|---------------------------------------------------------------------------------|
@@ -837,13 +840,13 @@ A negative value (or `flare`) adds material: one side of the corner is extended 
 - `flare(3, "yX")` only on its right end,
 - `flare(3, "Xy")` extends the right side `X` downwards instead.
 
-A flare needs a base side, so `"all"` is an error, and so is a corner flared from both of its sides by one modifier. `flare_in_align=true` aligns the bounding box including the flares, by default it is not part of the aligning.
+A flare needs a base side, so `"all"` is an error, and so is a corner flared from both of its sides by one modifier. `flare_in_align=true` aligns the bounding box including the flares; by default, the flares are not part of it.
 
 ### `circlepp` and `ringpp`
 
 `circlepp` takes `size`, `r` or `d` (one of them, default `d=1`): a number, or `[x, y]` for an ellipse. `ringpp` is defined by exactly two of `t` (the width of the ring), `r|d` (the hole) and `R|D` (the outside), as `tubepp`; the hole must fit inside the outer outline.
 
-Both take the arguments of the round solids (see [Additional Arguments for Round Solids](#additional-arguments-for-round-solids)), `ringpp` per circle as `tubepp`:
+Both take the arguments of the round solids (see [Additional arguments for round solids](#additional-arguments-for-round-solids)), `ringpp` per circle as `tubepp`:
 
 - `fn` and `polygon` (`"corners"`, `"flats"`, `"polyhole"`),
 - `sector`: counter-clockwise from +x; on `ringpp` it cuts the whole ring,
@@ -853,18 +856,18 @@ Both take the arguments of the round solids (see [Additional Arguments for Round
 
 ### Alignment and modifier support of 2D shapes
 
-| feature               | `squarepp` | `polygonpp` | `circlepp` | `ringpp`   |
-|-----------------------|------------|-------------|------------|------------|
-| `bevel` / `chamfer`   | **yes**    | **yes**     | no         | no         |
-| `rounding` / `fillet` | **yes**    | **yes**     | no         | no         |
-| `[dx, dy]` values     | **yes**    | no          | no         | no         |
-| flares                | **yes**    | **yes**     | no         | no         |
-| `flare_in_align`      | **yes**    | **yes**     | no         | no         |
+| feature               | `squarepp` | `polygonpp` | `circlepp` | `ringpp`             |
+|-----------------------|------------|-------------|------------|----------------------|
+| `bevel` / `chamfer`   | **yes**    | **yes**     | no         | no                   |
+| `rounding` / `fillet` | **yes**    | **yes**     | no         | no                   |
+| `[dx, dy]` values     | **yes**    | no          | no         | no                   |
+| flares                | **yes**    | **yes**     | no         | no                   |
+| `flare_in_align`      | **yes**    | **yes**     | no         | no                   |
 | `fn`, `polygon`       | no         | no          | **yes**    | **yes** (per circle) |
-| `sector`              | no         | no          | **yes**    | **yes**    |
+| `sector`              | no         | no          | **yes**    | **yes**              |
 | `cross_section`       | no         | no          | **yes**    | **yes** (per circle) |
-| `align="keep"`        | no         | **yes**     | no         | no         |
-| default `align`       | `"xy"`     | `"keep"`    | `""`       | `""`       |
+| `align="keep"`        | no         | **yes**     | no         | no                   |
+| default `align`       | `"xy"`     | `"keep"`    | `""`       | `""`                 |
 
 `squarepp` keeps the alignment of `square` (`"xy"`, the corner at the origin), `polygonpp` keeps the points as given (as `polygon`), `circlepp` and `ringpp` are centered (as `circle`).
 
@@ -1027,29 +1030,18 @@ Old code keeps working: deprecated modules and arguments echo a message with the
 | `hull_if(..., ommit_children=true/false)` | `otherwise="first"` / `otherwise="all"`                           |
 | `cut(..., align, center)`                 | remove them (they never had an effect), `point`                   |
 
-**Removed:** `tetrahedron(points)` (`tetrahedronpp` for a regular one), elliptical cylinders,
-the `children()` profile of `cylinderpp` (`revolvepp`).
+**Removed:** `tetrahedron(points)` (`tetrahedronpp` for a regular one), elliptical cylinders, the `children()` profile of `cylinderpp` (`revolvepp`).
 
 **Changed behaviour:**
 
-- `cut(..., zet="y")` measures its angles like the `sector` of the solids (from +z, around +y);
-  the old version started at +x and turned the other way.
-- `spherepp` and `circlepp` take their resolution from the largest diameter (vertices on the
-  sphere/circle as in OpenSCAD).
-- `toruspp` needs a positive inner radius (`r = 0` touched the axis in a single point, which
-  is not a valid solid).
+- `cut(..., zet="y")` measures its angles like the `sector` of the solids (from +z, around +y); the old version started at +x and turned the other way.
+- `spherepp` and `circlepp` take their resolution from the largest diameter (vertices on the sphere/circle as in OpenSCAD).
+- `toruspp` needs a positive inner radius (`r = 0` touched the axis in a single point, which is not a valid solid).
 - `prism(points2D, h)` produced nothing before; it now builds the prism.
 
 ## Tests, galleries and images
 
-- `tests/test_*.scad`: assert-based tests of the data layer; run e.g.
-  `openscad -o /tmp/out.echo tests/test_cubepp.scad`, the last line must be
-  `ECHO: "ALL TESTS PASSED"`.
-- `tests/gallery_*.scad`: visual smoke tests; render them (F6) to check that every
-  combination gives a valid manifold.
-- `docs/examples/*.scad` are the examples of this README; `docs/render_examples.sh` renders
-  them to `docs/img/` with the OpenSCAD command line (`--render` for the full render, `--force`
-  to render everything again, `OPENSCAD=...` for another binary); with ImageMagick installed
-  the images are cropped to their content and limited to `MAX_WIDTH` pixels (default 720).
-- [DESIGN.md](DESIGN.md) describes the internals: the profile and ring engines, the selector
-  grammar, the stages of the box modifiers, and the roadmap.
+- `tests/test_*.scad`: assert-based tests of the data layer; run e.g. `openscad -o /tmp/out.echo tests/test_cubepp.scad`, the last line must be `ECHO: "ALL TESTS PASSED"`.
+- `tests/gallery_*.scad`: visual smoke tests; render them (F6) to check that every combination gives a valid manifold.
+- `docs/examples/*.scad` are the examples of this README; `docs/render_examples.sh` renders them to `docs/img/` with the OpenSCAD command line (`--render` for the full render, `--force` to render everything again, `OPENSCAD=...` for another binary); with ImageMagick installed, the images are cropped to their content and limited to `MAX_WIDTH` pixels (default 720).
+- [DESIGN.md](DESIGN.md) describes the internals: the profile and ring engines, the selector grammar, the stages of the box modifiers, and the roadmap.
